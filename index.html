@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planificador Semanal — GIRI Ambipar Chile</title>
+<style>
+:root {
+  --g1:#1B5E3B; --g2:#2E7D52; --g3:#388E3C; --gBg:#E8F5E9; --gL:#A5D6A7;
+  --b1:#0D47A1; --b2:#1565C0; --b3:#1976D2; --bBg:#E3F2FD; --bL:#90CAF9;
+  --o:#BF360C; --oBg:#FBE9E7;
+  --p:#6A1B9A; --pBg:#F3E5F5;
+  --r:#B71C1C; --rBg:#FFEBEE;
+  --sl:#455A64; --slBg:#ECEFF1;
+  --surface:#F4F6F4; --white:#fff;
+  --dark:#1C1C1E; --muted:#6E6E73; --border:rgba(0,0,0,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--surface);color:var(--dark);min-height:100vh;font-size:13px;}
+
+/* HEADER */
+.hdr{background:var(--g1);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.hdr-left{display:flex;flex-direction:column;gap:2px;}
+.hdr-label{font-size:9px;letter-spacing:2px;color:#81C784;text-transform:uppercase;font-weight:700;}
+.hdr-title{font-size:17px;font-weight:800;color:#fff;}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.week-nav{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);border-radius:10px;padding:6px 12px;}
+.week-nav button{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.week-nav button:hover{background:rgba(255,255,255,0.35);}
+.week-label{font-size:12px;font-weight:700;color:#fff;min-width:170px;text-align:center;}
+.hdr-btns{display:flex;gap:6px;}
+.hdr-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:6px 14px;font-size:11px;cursor:pointer;font-weight:600;}
+.hdr-btn:hover{background:rgba(255,255,255,0.25);}
+
+/* LEGEND */
+.legend{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.leg-title{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-right:4px;}
+.leg-chip{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.legend-sep{width:1px;height:16px;background:var(--border);margin:0 4px;}
+
+/* TOOLBAR */
+.toolbar{padding:10px 24px;display:flex;align-items:center;gap:8px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.btn-add-client{background:var(--g1);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:11px;font-weight:700;cursor:pointer;}
+.btn-add-client:hover{background:var(--g2);}
+.btn-clear{background:var(--rBg);color:var(--r);border:1px solid #FFCDD2;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;}
+.btn-clear:hover{background:#FFCDD2;}
+.btn-manage-reg{background:var(--slBg);color:var(--sl);border:1px solid #CFD8DC;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;}
+.btn-manage-reg:hover{background:#CFD8DC;}
+.toolbar-right{margin-left:auto;font-size:11px;color:var(--muted);}
+.toolbar-right strong{color:var(--dark);}
+
+/* CALENDAR GRID */
+.cal-wrap{overflow-x:auto;padding:14px 24px 20px;}
+.cal-grid{display:grid;grid-template-columns:60px repeat(6,1fr);min-width:860px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;}
+
+.cal-corner{background:var(--g1);}
+.day-hdr{background:var(--g1);padding:10px 8px;text-align:center;border-left:1px solid rgba(255,255,255,0.12);}
+.day-hdr .day-name{font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.5px;}
+.day-hdr .day-date{font-size:10px;color:#A5D6A7;margin-top:2px;}
+.day-hdr.today{background:var(--g2);}
+
+.period-label{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border-top:1px solid var(--border);}
+.period-label.am{background:#F0F7F0;}
+.period-label.pm{background:var(--surface);}
+.period-label.sal{background:#FFF5F5;}
+.pl-tag{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.period-label.am .pl-tag{color:var(--g2);}
+.period-label.pm .pl-tag{color:var(--sl);}
+.period-label.sal .pl-tag{color:var(--r);font-size:9px;}
+.pl-time{font-size:8px;color:var(--muted);margin-top:2px;text-align:center;}
+
+/* CELLS */
+.cal-cell{border-left:1px solid var(--border);border-top:1px solid var(--border);padding:7px;min-height:95px;cursor:pointer;transition:background 0.12s;}
+.cal-cell:hover{background:#F6FBF6;}
+.cal-cell.am{background:#FAFFF9;}
+.cal-cell.pm{background:#fff;}
+.cal-cell.sal{background:#FEFAFA;min-height:58px;}
+.cal-cell.today-col{border-left:2px solid var(--g3);}
+
+.cap-bar{height:4px;border-radius:2px;background:#EAEAEA;margin-bottom:6px;overflow:hidden;}
+.cap-fill{height:100%;border-radius:2px;transition:width 0.3s;}
+
+/* CHIPS */
+.chips{display:flex;flex-direction:column;gap:4px;}
+.chip{border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;display:flex;align-items:flex-start;gap:5px;cursor:pointer;position:relative;transition:opacity 0.15s;}
+.chip:hover{opacity:0.82;}
+.chip-icon{font-size:12px;flex-shrink:0;margin-top:1px;}
+.chip-body{flex:1;min-width:0;}
+.chip-name{line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chip-meta{display:flex;gap:6px;margin-top:3px;flex-wrap:wrap;}
+.chip-badge{font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:10px;background:rgba(0,0,0,0.08);white-space:nowrap;}
+.chip-reg{font-size:8px;opacity:0.65;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.chip-del{position:absolute;right:4px;top:4px;background:rgba(0,0,0,0.18);color:#fff;border-radius:50%;width:14px;height:14px;display:none;align-items:center;justify-content:center;font-size:10px;font-weight:900;cursor:pointer;line-height:1;}
+.chip:hover .chip-del{display:flex;}
+.chip.rampla{border:1.5px dashed;}
+.chip.salida{border:1.5px dashed;background:#fff!important;}
+
+.cell-add{margin-top:5px;display:flex;align-items:center;gap:4px;color:var(--muted);font-size:10px;opacity:0;transition:opacity 0.15s;}
+.cal-cell:hover .cell-add{opacity:0.7;}
+.cell-add-icon{width:16px;height:16px;border-radius:4px;border:1.5px dashed var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;}
+
+/* SUMMARY */
+.summary-section{background:#fff;border-top:2px solid var(--border);padding:14px 24px;}
+.sum-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sum-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;}
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.sum-card{border-radius:10px;padding:10px 14px;border:1px solid var(--border);}
+.sum-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.sum-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.sum-name{font-size:11px;font-weight:700;color:var(--dark);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sum-stats{display:flex;gap:10px;}
+.sum-stat{display:flex;flex-direction:column;}
+.sum-val{font-size:16px;font-weight:800;line-height:1;}
+.sum-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;margin-top:1px;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:100;display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:24px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.22);max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:16px;font-weight:800;color:var(--dark);margin-bottom:3px;}
+.modal-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+.form-group{margin-bottom:13px;}
+.form-group label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:4px;}
+.form-group select,.form-group input,.form-group textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--dark);font-family:inherit;background:#fff;outline:none;transition:border-color 0.15s;}
+.form-group select:focus,.form-group input:focus{border-color:var(--g2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.modal-btns{display:flex;gap:8px;margin-top:16px;}
+.btn-ok{flex:1;background:var(--g1);color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-ok:hover{background:var(--g2);}
+.btn-cancel{background:var(--slBg);color:var(--sl);border:none;border-radius:9px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* SECTION DIVIDER IN MODAL */
+.form-divider{border:none;border-top:1px solid var(--border);margin:14px 0 10px;}
+.form-section-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;}
+
+/* CLIENT MODAL */
+.color-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.color-swatch{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2.5px solid transparent;transition:transform 0.1s;}
+.color-swatch.selected{border-color:var(--dark);transform:scale(1.18);}
+.cat-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.cat-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;background:transparent;color:var(--dark);}
+.cat-btn.selected{background:var(--g1);color:#fff;border-color:var(--g1);}
+
+/* MANAGE REGISTRADORES */
+.reg-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:200px;overflow-y:auto;}
+.reg-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--slBg);border-radius:8px;}
+.reg-item span{flex:1;font-size:12px;}
+.reg-del{background:transparent;border:none;color:var(--r);cursor:pointer;font-size:14px;font-weight:900;padding:0 4px;}
+.reg-add-row{display:flex;gap:8px;}
+.reg-add-row input{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:7px 11px;font-size:13px;font-family:inherit;outline:none;}
+.reg-add-row input:focus{border-color:var(--g2);}
+.reg-add-btn{background:var(--g1);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;}
+
+/* TOOLTIP */
+.tooltip{position:fixed;background:var(--dark);color:#fff;font-size:11px;padding:6px 12px;border-radius:6px;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:999;white-space:nowrap;}
+
+/* FOOTER */
+.footer{padding:10px 24px;font-size:9px;color:var(--muted);border-top:1px solid var(--border);background:#fff;display:flex;justify-content:space-between;}
+
+@media print{
+  .toolbar,.hdr-btns,.cell-add,.chip-del,.summary-section{display:none!important;}
+  body{background:#fff;}
+  .cal-wrap{padding:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <span class="hdr-label">Ambipar Chile · GIRI</span>
+    <div class="hdr-title">Planificador Semanal de Operaciones</div>
+  </div>
+  <div class="hdr-right">
+    <div class="week-nav">
+      <button onclick="shiftWeek(-1)">&#8249;</button>
+      <span class="week-label" id="weekLabel"></span>
+      <button onclick="shiftWeek(1)">&#8250;</button>
+    </div>
+    <div class="hdr-btns">
+      <button class="hdr-btn" onclick="window.print()">🖨 Imprimir</button>
+      <button class="hdr-btn" onclick="exportCSV()">📥 Exportar CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <span class="leg-title">Ingresos:</span>
+  <span class="leg-chip" style="background:#E8F5E9;color:#1B5E3B"><span class="leg-dot" style="background:#2E7D52"></span>RESIMPLE</span>
+  <span class="leg-chip" style="background:#F1F8E9;color:#33691E"><span class="leg-dot" style="background:#558B2F"></span>Otros val.</span>
+  <span class="leg-chip" style="background:#E3F2FD;color:#0D47A1"><span class="leg-dot" style="background:#1565C0"></span>CDR</span>
+  <span class="leg-chip" style="background:#F3E5F5;color:#6A1B9A"><span class="leg-dot" style="background:#7B1FA2"></span>Mineras</span>
+  <span class="leg-chip" style="background:#FBE9E7;color:#BF360C"><span class="leg-dot" style="background:#BF360C"></span>Envase-Prod.</span>
+  <span class="legend-sep"></span>
+  <span class="leg-title">Salidas:</span>
+  <span class="leg-chip" style="border:1.5px dashed #2E7D52;color:#2E7D52"><span class="leg-dot" style="background:#2E7D52"></span>Valorizables</span>
+  <span class="leg-chip" style="border:1.5px dashed #1565C0;color:#1565C0"><span class="leg-dot" style="background:#1565C0"></span>CDR</span>
+  <span class="leg-chip" style="border:1.5px dashed #B71C1C;color:#B71C1C"><span class="leg-dot" style="background:#B71C1C"></span>Disp. Final</span>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <button class="btn-add-client" onclick="openClientModal()">＋ Nuevo cliente</button>
+  <button class="btn-manage-reg" onclick="openRegModal()">👤 Registradores</button>
+  <button class="btn-clear" onclick="clearWeek()">Limpiar semana</button>
+  <div class="toolbar-right">Capacidad por franja: <strong>3–4 camiones</strong> según zona de descarga</div>
+</div>
+
+<!-- CALENDAR -->
+<div class="cal-wrap">
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- SUMMARY -->
+<div class="summary-section" id="summarySection">
+  <div class="sum-header">
+    <span class="sum-title">Resumen semana</span>
+  </div>
+  <div class="sum-grid" id="sumGrid"></div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>GIRI — Planificador Operacional · SGI Trinorma · Ambipar Chile</span>
+  <span>Los datos son de planificación · actualizar con registros reales</span>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- ══ MODAL: AGREGAR ENTRADA ══ -->
+<div class="overlay" id="addOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Agregar entrada</h3>
+    <div class="modal-sub" id="modalSub"></div>
+
+    <div class="form-section-lbl">Datos del ingreso / salida</div>
+    <div class="form-group">
+      <label>Cliente / Corriente</label>
+      <select id="selClient"></select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo de vehículo</label>
+        <select id="selVehicle">
+          <option value="camion">🚚 Camión</option>
+          <option value="rampla">🚛 Rampla (fardos)</option>
+          <option value="mixer">🚜 Mixer / Tolva</option>
+          <option value="furgon">🚐 Furgón</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cantidad de vehículos</label>
+        <input type="number" id="inpTrucks" min="1" max="6" value="1" placeholder="1">
+      </div>
+    </div>
+
+    <hr class="form-divider">
+    <div class="form-section-lbl">Peso y registro</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Toneladas estimadas (ton)</label>
+        <input type="number" id="inpTons" min="0" step="0.1" placeholder="Ej: 12.5">
+      </div>
+      <div class="form-group">
+        <label>Registrado por</label>
+        <select id="selRegistrador">
+          <option value="">— Sin asignar —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Notas (opcional)</label>
+      <input type="text" id="inpNotes" placeholder="Ej: confirmar hora de llegada, requiere báscula">
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn-ok" onclick="saveEntry()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: NUEVO CLIENTE ══ -->
+<div class="overlay" id="clientOverlay">
+  <div class="modal">
+    <h3>Nuevo cliente / corriente</h3>
+    <div class="modal-sub">Se agrega a la paleta del planificador</div>
+    <div class="form-group">
+      <label>Nombre del cliente</label>
+      <input type="text" id="inpClientName" placeholder="Ej: Minera Los Andes">
+    </div>
+    <div class="form-group">
+      <label>Categoría</label>
+      <div class="cat-row" id="catRow">
+        <button class="cat-btn selected" data-cat="valorizable" onclick="selCat(this)">Valorizable</button>
+        <button class="cat-btn" data-cat="cdr" onclick="selCat(this)">CDR</button>
+        <button class="cat-btn" data-cat="minera" onclick="selCat(this)">Minera</button>
+        <button class="cat-btn" data-cat="envase" onclick="selCat(this)">Envase-Producto</button>
+        <button class="cat-btn" data-cat="salida" onclick="selCat(this)">Salida</button>
+        <button class="cat-btn" data-cat="otro" onclick="selCat(this)">Otro</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Toneladas típicas por camión</label>
+      <input type="number" id="inpClientTons" placeholder="Ej: 8" min="0" step="0.5">
+    </div>
+    <div class="form-group">
+      <label>Color de identificación</label>
+      <div class="color-row" id="colorRow"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeClientModal()">Cancelar</button>
+      <button class="btn-ok" onclick="saveClient()">Agregar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: REGISTRADORES ══ -->
+<div class="overlay" id="regOverlay">
+  <div class="modal">
+    <h3>Gestión de Registradores</h3>
+    <div class="modal-sub">Personas que registran ingresos y salidas en la planta</div>
+    <div class="reg-list" id="regList"></div>
+    <div class="reg-add-row">
+      <input type="text" id="inpRegName" placeholder="Nombre del registrador" onkeydown="if(event.key==='Enter')addRegistrador()">
+      <button class="reg-add-btn" onclick="addRegistrador()">Agregar</button>
+    </div>
+    <div class="modal-btns" style="margin-top:14px">
+      <button class="btn-ok" onclick="closeRegModal()">Listo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════
+const COLORS_PALETTE = [
+  '#2E7D52','#558B2F','#1565C0','#1976D2','#42A5F5','#7B1FA2',
+  '#BF360C','#E65100','#F57F17','#B71C1C','#455A64','#00695C',
+  '#0277BD','#AD1457','#4527A0','#006064',
+];
+
+let CLIENTS = [
+  { id:'resimple',   name:'RESIMPLE',               color:'#2E7D52', bg:'#E8F5E9', cat:'valorizable', icon:'♻️',  isOut:false, typTons:8  },
+  { id:'otros_val',  name:'Otros valorizables',      color:'#558B2F', bg:'#F1F8E9', cat:'valorizable', icon:'♻️',  isOut:false, typTons:10 },
+  { id:'cdr_env',    name:'CDR — Envases contam.',   color:'#1565C0', bg:'#E3F2FD', cat:'cdr',         icon:'🔵', isOut:false, typTons:6  },
+  { id:'cdr_plas',   name:'CDR — Plástico / Film',   color:'#1976D2', bg:'#EDE7F6', cat:'cdr',         icon:'🔵', isOut:false, typTons:7  },
+  { id:'cdr_mad',    name:'CDR — Madera / Pallets',  color:'#1E88E5', bg:'#E1F5FE', cat:'cdr',         icon:'🔵', isOut:false, typTons:9  },
+  { id:'cdr_rp',     name:'CDR — Res. peligrosos',   color:'#0D47A1', bg:'#E8EAF6', cat:'cdr',         icon:'⚠️', isOut:false, typTons:5  },
+  { id:'cdr_cen',    name:'CDR — Cenizas',           color:'#607D8B', bg:'#ECEFF1', cat:'cdr',         icon:'⬜', isOut:false, typTons:12 },
+  { id:'cdr_otros',  name:'CDR — Otros materiales',  color:'#42A5F5', bg:'#E1F5FE', cat:'cdr',         icon:'🔵', isOut:false, typTons:6  },
+  { id:'minera',     name:'Mineras',                 color:'#7B1FA2', bg:'#F3E5F5', cat:'minera',       icon:'⛏️', isOut:false, typTons:15 },
+  { id:'env_prod',   name:'Segreg. Envase-Producto', color:'#BF360C', bg:'#FBE9E7', cat:'envase',       icon:'🪣', isOut:false, typTons:5  },
+  { id:'sal_val',    name:'Salida Valorizables',     color:'#2E7D52', bg:'#fff',    cat:'salida',       icon:'🚛', isOut:true,  typTons:20 },
+  { id:'sal_cdr',    name:'Salida CDR',              color:'#1565C0', bg:'#fff',    cat:'salida',       icon:'🚛', isOut:true,  typTons:20 },
+  { id:'sal_df',     name:'Salida Disp. Final',      color:'#B71C1C', bg:'#fff',    cat:'salida',       icon:'🚛', isOut:true,  typTons:15 },
+];
+
+let REGISTRADORES = ['Jefe de turno','Operador báscula','Técnico receptor','Patricia Morales'];
+
+const DAYS   = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DAYS_S = ['Lun','Mar','Mié','Jue','Vie','Sáb'];
+const PERIODS = [
+  { key:'am',  label:'AM',      time:'08:00–12:30', cls:'am'  },
+  { key:'pm',  label:'PM',      time:'13:00–18:00', cls:'pm'  },
+  { key:'sal', label:'SALIDAS', time:'',             cls:'sal' },
+];
+
+let schedule = {};
+let currentMonday = getThisMonday();
+let editTarget = null;
+let selectedColor = COLORS_PALETTE[0];
+let selectedCat = 'valorizable';
+let entryCounter = 0;
+
+// ════════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════════
+function getThisMonday(d) {
+  const now = d || new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + diff);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+function shiftWeek(dir) {
+  currentMonday = new Date(currentMonday);
+  currentMonday.setDate(currentMonday.getDate() + dir * 7);
+  schedule = {};
+  preloadResimple();
+  renderCal();
+}
+function fmtDate(d) { return d.toLocaleDateString('es-CL',{day:'numeric',month:'short'}); }
+function key(day, period) { return day + '_' + period; }
+function getEntries(day, period) { return schedule[key(day, period)] || []; }
+function addEntry(day, period, entry) {
+  const k = key(day, period);
+  if (!schedule[k]) schedule[k] = [];
+  schedule[k].push(entry);
+  renderCal();
+}
+function removeEntry(day, period, entryId) {
+  const k = key(day, period);
+  if (schedule[k]) schedule[k] = schedule[k].filter(e => e.id !== entryId);
+  renderCal();
+}
+function getTrucksUsed(day, period) {
+  return getEntries(day, period)
+    .filter(e => !(CLIENTS.find(c=>c.id===e.clientId)?.isOut))
+    .reduce((s, e) => s + (e.trucks || 1), 0);
+}
+function getTonsTotal(entries) {
+  return entries.reduce((s, e) => s + (parseFloat(e.tons) || 0), 0);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// PRELOAD RESIMPLE
+// ════════════════════════════════════════════════════════════════════
+function preloadResimple() {
+  // 6 camiones/día Lun-Vie (3 AM + 3 PM), Sáb 2 AM
+  [0,1,2,3,4].forEach(d => {
+    [['am',3,8],['pm',3,8]].forEach(([p,n,tons]) => {
+      for (let i=0; i<n; i++) {
+        const k = key(d,p);
+        if (!schedule[k]) schedule[k] = [];
+        schedule[k].push({id:'e'+(++entryCounter),clientId:'resimple',trucks:1,vehicle:'camion',tons,notes:'',registrador:'Operador báscula'});
+      }
+    });
+  });
+  // Sáb 2 AM
+  const kS = key(5,'am'); if (!schedule[kS]) schedule[kS]=[];
+  for(let i=0;i<2;i++) schedule[kS].push({id:'e'+(++entryCounter),clientId:'resimple',trucks:1,vehicle:'camion',tons:8,notes:'',registrador:'Operador báscula'});
+  // Ramplas Lun PM, Mié PM, Vie PM
+  [[0,'pm'],[2,'pm'],[4,'pm']].forEach(([d,p]) => {
+    const k=key(d,p); if(!schedule[k]) schedule[k]=[];
+    schedule[k].push({id:'e'+(++entryCounter),clientId:'resimple',trucks:1,vehicle:'rampla',tons:25,notes:'Fardos valorizables',registrador:'Jefe de turno'});
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER CALENDAR
+// ════════════════════════════════════════════════════════════════════
+function renderCal() {
+  const sat = new Date(currentMonday); sat.setDate(sat.getDate()+5);
+  document.getElementById('weekLabel').textContent = 'Semana '+fmtDate(currentMonday)+' – '+fmtDate(sat);
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const todayStr = new Date().toDateString();
+
+  // Header
+  grid.appendChild(Object.assign(document.createElement('div'),{className:'cal-corner'}));
+  DAYS.forEach((name, di) => {
+    const d = new Date(currentMonday); d.setDate(d.getDate()+di);
+    const isToday = d.toDateString()===todayStr;
+    const el = document.createElement('div');
+    el.className='day-hdr'+(isToday?' today':'');
+    el.innerHTML=`<div class="day-name">${DAYS_S[di]}</div><div class="day-date">${fmtDate(d)}</div>`;
+    grid.appendChild(el);
+  });
+
+  // Period rows
+  PERIODS.forEach(({key:pk, label, time, cls}) => {
+    const lbl = document.createElement('div');
+    lbl.className='period-label '+cls;
+    lbl.innerHTML=`<span class="pl-tag">${label}</span>${time?`<span class="pl-time">${time}</span>`:''}`;
+    grid.appendChild(lbl);
+
+    DAYS.forEach((_, di) => {
+      const isToday=(()=>{const d=new Date(currentMonday);d.setDate(d.getDate()+di);return d.toDateString()===todayStr;})();
+      const cell = document.createElement('div');
+      cell.className='cal-cell '+cls+(isToday?' today-col':'');
+
+      const entries = getEntries(di, pk);
+
+      // Capacity bar
+      if (pk!=='sal') {
+        const used = getTrucksUsed(di,pk);
+        const pct = Math.min(100,(used/4)*100);
+        const col = used<=2?'#66BB6A':used<=3?'#FFA726':'#EF5350';
+        const tons = getTonsTotal(entries.filter(e=>!(CLIENTS.find(c=>c.id===e.clientId)?.isOut)));
+        cell.innerHTML=`<div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${col}"></div></div>`;
+        if(tons>0){
+          const tbar=document.createElement('div');
+          tbar.style.cssText='font-size:9px;color:var(--muted);margin-bottom:5px;font-weight:600;';
+          tbar.textContent=`${used} veh. · ${tons.toFixed(1)} ton`;
+          cell.appendChild(tbar);
+        }
+      }
+
+      // Chips
+      const chips = document.createElement('div');
+      chips.className='chips';
+      entries.forEach(entry => {
+        const cl = CLIENTS.find(c=>c.id===entry.clientId);
+        if(!cl) return;
+        const isRampla = entry.vehicle==='rampla';
+        const isOut = cl.isOut;
+        const chip = document.createElement('div');
+        chip.className='chip'+(isRampla?' rampla':'')+(isOut?' salida':'');
+        chip.style.background = isOut?'#fff':cl.bg;
+        chip.style.color = cl.color;
+        if(isRampla||isOut) chip.style.borderColor=cl.color;
+
+        const tonsStr = entry.tons ? `${parseFloat(entry.tons).toFixed(1)} ton` : '';
+        const vehStr = isRampla?'rmp':'cam';
+        const regStr = entry.registrador ? `👤 ${entry.registrador}` : '';
+
+        chip.innerHTML=`
+          <span class="chip-icon">${isOut?'🚛':isRampla?'🚚':cl.icon}</span>
+          <span class="chip-body">
+            <div class="chip-name">${cl.name}</div>
+            <div class="chip-meta">
+              <span class="chip-badge">×${entry.trucks} ${vehStr}</span>
+              ${tonsStr?`<span class="chip-badge" style="background:rgba(0,0,0,0.12)">${tonsStr}</span>`:''}
+            </div>
+            ${regStr?`<div class="chip-reg">${regStr}</div>`:''}
+            ${entry.notes?`<div class="chip-reg" style="font-style:italic">${entry.notes}</div>`:''}
+          </span>
+          <span class="chip-del" onclick="event.stopPropagation();removeEntry(${di},'${pk}','${entry.id}')">×</span>
+        `;
+        chips.appendChild(chip);
+      });
+      cell.appendChild(chips);
+
+      // Add button
+      const addBtn = document.createElement('div');
+      addBtn.className='cell-add';
+      addBtn.innerHTML=`<div class="cell-add-icon">+</div><span>Agregar</span>`;
+      addBtn.onclick=e=>{e.stopPropagation();openAddModal(di,pk);};
+      cell.appendChild(addBtn);
+      cell.onclick=()=>openAddModal(di,pk);
+      grid.appendChild(cell);
+    });
+  });
+
+  renderSummary();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SUMMARY
+// ════════════════════════════════════════════════════════════════════
+function renderSummary() {
+  const totals = {};
+  Object.values(schedule).flat().forEach(e => {
+    if (!totals[e.clientId]) totals[e.clientId] = {trucks:0, tons:0};
+    totals[e.clientId].trucks += (e.trucks||1);
+    totals[e.clientId].tons   += parseFloat(e.tons||0);
+  });
+
+  const grid = document.getElementById('sumGrid');
+  grid.innerHTML = '';
+
+  // Total general
+  const allTons = Object.values(totals).reduce((s,t)=>s+t.tons,0);
+  const allTrucks = Object.values(totals).reduce((s,t)=>s+t.trucks,0);
+  if(allTrucks > 0) {
+    const tot = document.createElement('div');
+    tot.className='sum-card';
+    tot.style.cssText='background:var(--gBg);border-color:var(--gL);grid-column:1/-1;';
+    tot.innerHTML=`
+      <div class="sum-card-top">
+        <div class="sum-dot" style="background:var(--g1)"></div>
+        <span class="sum-name" style="font-size:12px">TOTAL SEMANA</span>
+      </div>
+      <div class="sum-stats">
+        <div class="sum-stat"><span class="sum-val" style="color:var(--g1)">${allTrucks}</span><span class="sum-lbl">Vehículos</span></div>
+        <div class="sum-stat"><span class="sum-val" style="color:var(--g1)">${allTons.toFixed(1)}</span><span class="sum-lbl">Toneladas</span></div>
+      </div>`;
+    grid.appendChild(tot);
+  }
+
+  CLIENTS.forEach(cl => {
+    const t = totals[cl.id];
+    if (!t) return;
+    const card = document.createElement('div');
+    card.className='sum-card';
+    card.style.background = cl.bg || '#f5f5f5';
+    if(cl.isOut) { card.style.border='1.5px dashed '+cl.color; card.style.background='#fff'; }
+    card.innerHTML=`
+      <div class="sum-card-top">
+        <div class="sum-dot" style="background:${cl.color}"></div>
+        <span class="sum-name" style="color:${cl.color}">${cl.name}</span>
+      </div>
+      <div class="sum-stats">
+        <div class="sum-stat"><span class="sum-val" style="color:${cl.color}">${t.trucks}</span><span class="sum-lbl">${cl.isOut?'Salidas':'Vehículos'}</span></div>
+        <div class="sum-stat"><span class="sum-val" style="color:${cl.color}">${t.tons.toFixed(1)}</span><span class="sum-lbl">Toneladas</span></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MODAL: AGREGAR ENTRADA
+// ════════════════════════════════════════════════════════════════════
+function openAddModal(day, period) {
+  editTarget = {day, period};
+  const used = getTrucksUsed(day, period);
+  const per = PERIODS.find(p=>p.key===period);
+  document.getElementById('modalTitle').textContent = `${DAYS[day]} — ${per.label}`;
+  document.getElementById('modalSub').textContent = period!=='sal'
+    ? `Capacidad disponible: ${4-used} de 4 slots · ${used} vehículos asignados`
+    : 'Registrar salida de mercadería';
+
+  // Client select
+  const sel = document.getElementById('selClient');
+  sel.innerHTML='';
+  const ingresos = CLIENTS.filter(c=>!c.isOut);
+  const salidas  = CLIENTS.filter(c=>c.isOut);
+  if(period!=='sal') {
+    [['Ingresos — Valorizables', ingresos.filter(c=>c.cat==='valorizable')],
+     ['Ingresos — CDR',          ingresos.filter(c=>c.cat==='cdr')],
+     ['Ingresos — Otros',        ingresos.filter(c=>c.cat==='minera'||c.cat==='envase'||c.cat==='otro')]
+    ].forEach(([lbl,list]) => {
+      if(!list.length) return;
+      const grp=document.createElement('optgroup'); grp.label=lbl;
+      list.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;grp.appendChild(o);});
+      sel.appendChild(grp);
+    });
+  } else {
+    const grp=document.createElement('optgroup'); grp.label='Salidas';
+    salidas.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;grp.appendChild(o);});
+    sel.appendChild(grp);
+  }
+
+  // Prefill typical tons
+  sel.addEventListener('change', prefillTons, {once:true});
+  prefillTons();
+
+  // Registradores select
+  const selReg = document.getElementById('selRegistrador');
+  selReg.innerHTML='<option value="">— Sin asignar —</option>';
+  REGISTRADORES.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;selReg.appendChild(o);});
+
+  document.getElementById('inpTrucks').value=1;
+  document.getElementById('inpNotes').value='';
+  document.getElementById('addOverlay').classList.add('open');
+}
+function prefillTons() {
+  const cid = document.getElementById('selClient').value;
+  const cl = CLIENTS.find(c=>c.id===cid);
+  if(cl?.typTons) document.getElementById('inpTons').value=cl.typTons;
+}
+function closeAddModal() {
+  document.getElementById('addOverlay').classList.remove('open');
+  editTarget=null;
+}
+function saveEntry() {
+  if(!editTarget) return;
+  const clientId  = document.getElementById('selClient').value;
+  const trucks    = parseInt(document.getElementById('inpTrucks').value)||1;
+  const vehicle   = document.getElementById('selVehicle').value;
+  const tons      = parseFloat(document.getElementById('inpTons').value)||0;
+  const registrador = document.getElementById('selRegistrador').value;
+  const notes     = document.getElementById('inpNotes').value.trim();
+  addEntry(editTarget.day, editTarget.period,
+    {id:'e'+(++entryCounter), clientId, trucks, vehicle, tons, registrador, notes});
+  closeAddModal();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MODAL: NUEVO CLIENTE
+// ════════════════════════════════════════════════════════════════════
+function openClientModal() {
+  const row=document.getElementById('colorRow');
+  row.innerHTML='';
+  COLORS_PALETTE.forEach(c=>{
+    const sw=document.createElement('div');
+    sw.className='color-swatch'+(c===selectedColor?' selected':'');
+    sw.style.background=c;
+    sw.onclick=()=>{ selectedColor=c; document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected')); sw.classList.add('selected'); };
+    row.appendChild(sw);
+  });
+  document.getElementById('inpClientName').value='';
+  document.getElementById('inpClientTons').value='';
+  document.getElementById('clientOverlay').classList.add('open');
+}
+function selCat(btn) {
+  selectedCat=btn.dataset.cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function closeClientModal() { document.getElementById('clientOverlay').classList.remove('open'); }
+function saveClient() {
+  const name=document.getElementById('inpClientName').value.trim();
+  if(!name){alert('Ingresa el nombre del cliente');return;}
+  const typTons=parseFloat(document.getElementById('inpClientTons').value)||0;
+  const isOut = selectedCat==='salida';
+  CLIENTS.push({id:'c'+Date.now(), name, color:selectedColor, bg:selectedColor+'22', cat:selectedCat, icon:'📦', isOut, typTons});
+  closeClientModal();
+  renderCal();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MODAL: REGISTRADORES
+// ════════════════════════════════════════════════════════════════════
+function openRegModal() {
+  renderRegList();
+  document.getElementById('inpRegName').value='';
+  document.getElementById('regOverlay').classList.add('open');
+}
+function renderRegList() {
+  const list=document.getElementById('regList');
+  list.innerHTML='';
+  REGISTRADORES.forEach((r,i)=>{
+    const item=document.createElement('div'); item.className='reg-item';
+    item.innerHTML=`<span>${r}</span><button class="reg-del" onclick="removeReg(${i})">×</button>`;
+    list.appendChild(item);
+  });
+}
+function removeReg(i) { REGISTRADORES.splice(i,1); renderRegList(); }
+function addRegistrador() {
+  const v=document.getElementById('inpRegName').value.trim();
+  if(!v) return;
+  if(REGISTRADORES.includes(v)){alert('Ya existe');return;}
+  REGISTRADORES.push(v);
+  document.getElementById('inpRegName').value='';
+  renderRegList();
+}
+function closeRegModal() { document.getElementById('regOverlay').classList.remove('open'); }
+
+// ════════════════════════════════════════════════════════════════════
+// CLEAR / EXPORT
+// ════════════════════════════════════════════════════════════════════
+function clearWeek() {
+  if(!confirm('¿Limpiar toda la planificación de esta semana?')) return;
+  schedule={};
+  renderCal();
+}
+
+function exportCSV() {
+  const rows=[['Día','Franja','Cliente','Tipo Vehículo','Vehículos','Toneladas','Registrado por','Notas']];
+  DAYS.forEach((day,di)=>{
+    PERIODS.forEach(({key:pk,label})=>{
+      getEntries(di,pk).forEach(e=>{
+        const cl=CLIENTS.find(c=>c.id===e.clientId);
+        rows.push([day, label, cl?cl.name:e.clientId, e.vehicle, e.trucks, e.tons||0, e.registrador||'', e.notes||'']);
+      });
+    });
+  });
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download='GIRI_Planificacion_semana.csv';
+  a.click();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// CLOSE ON OVERLAY CLICK
+// ════════════════════════════════════════════════════════════════════
+['addOverlay','clientOverlay','regOverlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+});
+
+// ════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════
+preloadResimple();
+renderCal();
+</script>
+</body>
+</html>
