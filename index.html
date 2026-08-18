@@ -1597,9 +1597,12 @@ function mover(n){
 }
 function irHoy(){
   const h = new Date();
+  const antes = dia, antesVista = vista;
   lunes = lunesDe(h);
   dia = h.getDay()===0 ? diasSemana()[0] : hoyISO();
+  vista = 'dia';                       /* desde la semana, aterriza en el día */
   pintar();
+  if(antes===dia && antesVista==='dia') aviso('Ya estás en el día de hoy.');
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1881,10 +1884,16 @@ function borrarActual(){
   aviso('Ingreso eliminado.');
 }
 function cerrarModal(){ document.getElementById('ov').classList.remove('abierto'); editando = null }
-document.getElementById('ov').addEventListener('click', function(e){ if(e.target===this) cerrarModal() });
-document.getElementById('ov-bloq').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('abierto') });
+/* Cierra cualquier ventana por su id. La usan los botones "Cerrar". */
+function cerrar(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.remove('abierto');
+  if(id==='ov') editando = null;
+}
+document.querySelectorAll('.overlay').forEach(o=>
+  o.addEventListener('click', function(e){ if(e.target===this) cerrar(this.id) }));
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ cerrarModal(); document.getElementById('ov-bloq').classList.remove('abierto') }
+  if(e.key==='Escape') document.querySelectorAll('.overlay.abierto').forEach(o=>o.classList.remove('abierto'));
   if(e.key==='Enter' && document.getElementById('ov').classList.contains('abierto')
      && e.target.tagName==='INPUT'){ e.preventDefault(); guardarFicha() }
 });
