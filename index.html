@@ -276,6 +276,61 @@ aside{ position:sticky; top:6.5rem }
 .leg-i{ display:flex; align-items:center; gap:.5rem; font-size:12px; color:var(--z600) }
 .leg-c{ width:11px; height:11px; flex:0 0 auto; border:1px solid }
 
+/* =========================================================================
+   VISTA DE CELULAR — lista del día con botones grandes de Llegó / No llegó
+   ========================================================================= */
+#lista-movil{ display:none; margin-top:1.1rem }
+.m-dia{ font-size:10px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--z500); background:var(--z100); padding:.4rem .7rem; margin:1rem 0 .5rem }
+.m-dia:first-child{ margin-top:0 }
+.mrow{ border:1px solid var(--z200); border-left:4px solid; background:#fff;
+  padding:.7rem .8rem .65rem; margin-bottom:.55rem }
+.m-top{ display:flex; gap:.7rem; align-items:flex-start }
+.mrow.llegado{ background:#E7F4EC; border-color:#1E8E4E }
+.mrow.nollego{ background:var(--z100); border-color:var(--z400); border-style:dotted }
+.mrow.nollego .m-cli{ text-decoration:line-through; color:var(--z500) }
+.mrow.cruce{ background:var(--rojoBg); border-color:var(--rojo) }
+.m-hora{ flex:0 0 52px; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1 }
+.m-hora span{ display:block; font-size:10px; font-weight:400; color:var(--z400); margin-top:2px }
+.m-info{ flex:1; min-width:0 }
+.m-cli{ display:block; font-size:14px; font-weight:600 }
+.m-res{ display:block; font-size:12px; color:var(--z600); margin-top:1px }
+.m-pto{ display:flex; align-items:center; gap:.35rem; font-size:11px; color:var(--z500); margin-top:3px }
+.m-pto i{ width:8px; height:8px; flex:0 0 auto }
+.m-tag{ font-size:9.5px; font-weight:700; letter-spacing:.08em; margin-top:4px; display:block }
+.m-acc{ display:flex; gap:.45rem; margin-top:.6rem }
+.m-acc button{ flex:1; height:42px; border:1px solid var(--z200); background:#fff;
+  font-size:13.5px; font-weight:600; font-family:inherit; border-radius:4px; color:var(--z600);
+  display:flex; align-items:center; justify-content:center; gap:.4rem }
+.m-acc .ok[aria-pressed=true]{ background:#1E8E4E; border-color:#1E8E4E; color:#fff }
+.m-acc .no[aria-pressed=true]{ background:var(--rojo); border-color:var(--rojo); color:#fff }
+.m-vacio{ border:1px dashed var(--z300); padding:1.6rem; text-align:center; font-size:13px; color:var(--z400) }
+
+@media (max-width:900px){
+  .lienzo{ padding:1.25rem 1rem 2rem }
+  .barra-in{ height:auto; padding:.7rem 1rem; gap:.7rem }
+  .barra-in .logo{ height:1.5rem } .barra-in svg.logo{ width:136px }
+  .sep-v{ display:none }
+  .titulo-sis p:first-child{ font-size:15px }
+  .titulo-sis p:last-child{ font-size:11px }
+  .barra-der{ width:100%; margin-left:0 }
+  h1.premium-heading{ font-size:1.6rem; line-height:2rem }
+  .tarjeta{ padding:1rem .9rem 1.2rem }
+  .grilla-caja{ display:none }          /* la grilla no se lee en un celular */
+  #lista-movil{ display:block }
+  .ayuda{ display:none }
+  .control{ gap:.4rem }
+  .control .der{ margin-left:0; width:100% }
+  .nav-fecha{ flex:1 } #etiqueta-fecha{ min-width:0; flex:1 }
+  .switch{ display:none }               /* en el celular siempre se ve el día */
+  .kpis{ grid-template-columns:repeat(2,1fr) }
+  .modal{ padding:1.1rem; border-radius:0; max-height:100vh; height:100%; width:100% }
+  .overlay{ padding:0 }
+  .fila2,.fila3{ grid-template-columns:1fr }
+  .item-fila{ grid-template-columns:1fr 80px 26px }
+  aside{ position:static }
+}
+
 /* ---------- MODAL ---------- */
 .overlay{ position:fixed; inset:0; background:rgba(3,23,22,.45); z-index:100; display:none; align-items:center; justify-content:center; padding:1rem }
 .overlay.abierto{ display:flex }
@@ -409,11 +464,14 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
 
     <div class="titulo-sis">
       <p class="premium-heading">Planificador GIRI</p>
-      <p>GIRI · Chile</p>
+      <p>GIRI - Chile</p>
     </div>
 
     <div class="barra-der">
-      <div class="pill-tinta"><span class="punto"></span><span id="txt-estado">Guardado en este equipo</span></div>
+      <div class="pill-tinta" id="estado-sync" onclick="abrirPlanilla()"
+           title="Estado de la información · clic para ver la conexión" style="cursor:pointer">
+        <span class="punto"></span><span id="txt-estado">Actualizado</span>
+      </div>
     </div>
   </div>
 </header>
@@ -484,6 +542,8 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
 
         <div id="lista-caja"></div>
 
+        <div id="lista-movil"></div>
+
         <div class="grilla-caja">
           <div class="grilla-scroll">
             <div class="grilla">
@@ -526,14 +586,6 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
         </div>
       </div>
       <div class="blq">
-        <p class="blq-tit"><span class="pt"></span>PLANILLA</p>
-        <p id="txt-planilla">La planificación se guarda solo en este equipo.</p>
-        <button class="btn secundario" style="margin-top:.6rem;width:100%" onclick="abrirPlanilla()">
-          Conectar Google Sheets
-        </button>
-      </div>
-
-      <div class="blq">
         <p class="blq-tit"><span class="pt"></span>HORARIO</p>
         <p>08:30 a 18:30. Lunes a sábado.</p>
       </div>
@@ -543,8 +595,8 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
 
 <footer class="pie">
   <div class="pie-in">
-    <span>Ambipar Chile · GIRI — Planificador Operacional</span>
-    <span>Planificación referencial · confirmar con báscula y guías</span>
+    <span>Ambipar Chile - GIRI - Planificador Operacional</span>
+    <span>Inteligencia Circular - Chile</span>
   </div>
 </footer>
 
@@ -726,6 +778,22 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
 /* ══════════════════════════════════════════════════════════════════════════
    1 · CONFIGURACIÓN
    ══════════════════════════════════════════════════════════════════════════ */
+
+/* ┌──────────────────────────────────────────────────────────────────────────┐
+   │  PLANILLA COMPARTIDA DE GOOGLE — lo único que hay que editar             │
+   │                                                                          │
+   │  Pega entre las comillas la dirección que entrega Google al publicar el  │
+   │  script (la que termina en /exec). Desde ese momento, cualquiera que     │
+   │  abra esta página ve la planificación actualizada, sin configurar nada.  │
+   │                                                                          │
+   │  Así queda:                                                              │
+   │  const URL_PLANILLA = 'https://script.google.com/macros/s/AKfy…/exec';   │
+   │                                                                          │
+   │  Si se deja vacío, el planificador funciona igual, pero cada persona     │
+   │  guarda su propia copia en su equipo.                                    │
+   └──────────────────────────────────────────────────────────────────────────┘ */
+const URL_PLANILLA = '';
+
 /* Puntos de descarga que sí se pueden planificar. No todos son naves: la
    recepción de madera para Arauco es un patio aparte, pero se agenda igual.
    La Nave Clasificación queda fuera: los ingresos de Resimple no se pueden
@@ -878,11 +946,19 @@ function num(n){ return (Math.round(n*10)/10).toFixed(1).replace('.',',') }
 /* ══════════════════════════════════════════════════════════════════════════
    4 · GUARDADO EN EL NAVEGADOR
    ══════════════════════════════════════════════════════════════════════════ */
+let ultimoGuardado = null;
+/* guardar()      → hay un cambio real: se marca la hora y se envía a la planilla.
+   guardar(true)  → solo se deja copia local (migraciones, datos que llegaron de
+                    la planilla, ajustes de conexión). Si marcara la hora, un
+                    equipo recién abierto se creería más nuevo que la planilla
+                    y nunca traería la información del resto. */
 function guardar(local){
-  datos.actualizado = Date.now();
+  if(!local) datos.actualizado = Date.now();
+  ultimoGuardado = new Date();
   try{ localStorage.setItem(CLAVE, JSON.stringify(datos)) }
   catch(e){ /* modo privado o sin permiso: la sesión sigue funcionando igual */ }
   if(!local) programarSync();
+  estadoPlanilla();
 }
 function cargar(){
   try{
@@ -1094,6 +1170,7 @@ function pintar(){
   });
 
   pintarLista();
+  pintarListaMovil();
   pintarEncabezadoTexto();
   pintarAviso();
   pintarKPIs();
@@ -1283,6 +1360,14 @@ function hacerBloque(r, carril, total){
     tic.className = 'b-tic'; tic.textContent = '✓';
     tic.title = 'Marcar que llegó';
     tic.addEventListener('pointerdown', e=>e.stopPropagation());
+    tic.addEventListener('click', e=>{ e.stopPropagation(); marcarDesdeLista(r.id,'llego') });
+    b.appendChild(tic);
+  }
+  if(real!=='llego' && !esCruce){
+    const tic = document.createElement('button');
+    tic.className = 'b-tic'; tic.textContent = '✓';
+    tic.title = 'Marcar que llegó';
+    tic.addEventListener('pointerdown', e=>e.stopPropagation());
     tic.addEventListener('click', e=>{ e.stopPropagation(); tocarReal(r.id,'llego') });
     b.appendChild(tic);
   }
@@ -1349,6 +1434,59 @@ function soltar(id, colK, slot){
 /* ══════════════════════════════════════════════════════════════════════════
    8 · PANELES DE APOYO
    ══════════════════════════════════════════════════════════════════════════ */
+/* Lista para celular: un renglón por camión, con dos botones grandes.
+   En el celular siempre se ve el día; si la vista es semana, se agrupa por día. */
+function pintarListaMovil(){
+  const caja = document.getElementById('lista-movil');
+  const dias = vista==='dia' ? [dia] : diasSemana();
+  let html = '';
+
+  dias.forEach(f=>{
+    const list = datos.reservas.filter(r=>r.fecha===f).sort((a,b)=>a.ini-b.ini);
+    if(vista!=='dia') html += `<div class="m-dia">${DIAS_N[(deISO(f).getDay()+6)%7]} ${fechaCorta(f)} · ${list.length} camion${list.length===1?'':'es'}</div>`;
+    if(!list.length){
+      html += `<div class="m-vacio">Sin camiones agendados${vista==='dia'?' este día':''}.</div>`;
+      return;
+    }
+    list.forEach(r=>{
+      const n = nave(r.nave), real = estadoReal(r), tt = totalTon(r);
+      const tag = real==='llego' ? '<span class="m-tag" style="color:#1E8E4E">LLEGÓ</span>'
+                : real==='nollego' ? '<span class="m-tag" style="color:var(--rojo)">NO LLEGÓ</span>'
+                : r.estado==='tentativo' ? '<span class="m-tag" style="color:var(--ambar)">POR CONFIRMAR</span>' : '';
+      html += `<div class="mrow ${real==='llego'?'llegado':''} ${real==='nollego'?'nollego':''} ${cruces.has(r.id)?'cruce':''}"
+                    style="border-left-color:${real?'':n.col}">
+        <div class="m-top" onclick="abrirModal('${r.id}')">
+          <div class="m-hora">${hhmm(r.ini)}<span>${hhmm(r.ini+r.dur)}</span></div>
+          <div class="m-info">
+            <b class="m-cli">${esc(r.cliente)}</b>
+            <span class="m-res">${esc(resumenResiduos(r))}</span>
+            <span class="m-pto"><i style="background:${n.col}"></i>${esc(n.nom)}${tt?` · ${num(tt)} t`:''}</span>
+            ${tag}
+          </div>
+        </div>
+        <div class="m-acc">
+          <button class="ok" aria-pressed="${real==='llego'}"
+                  onclick="marcarDesdeLista('${r.id}','llego')">✓ Llegó</button>
+          <button class="no" aria-pressed="${real==='nollego'}"
+                  onclick="marcarDesdeLista('${r.id}','nollego')">✕ No llegó</button>
+        </div>
+      </div>`;
+    });
+  });
+  caja.innerHTML = html;
+}
+
+/* Un toque marca, otro toque deshace. */
+function marcarDesdeLista(id, v){
+  const r = datos.reservas.find(x=>x.id===id);
+  if(!r) return;
+  r.real = (estadoReal(r)===v) ? null : v;
+  guardar(); pintar();
+  aviso(r.real==='llego' ? `${r.cliente}: llegó.`
+      : r.real==='nollego' ? `${r.cliente}: no llegó.`
+      : `${r.cliente}: sin registrar.`);
+}
+
 function pintarEncabezadoTexto(){
   const ds = diasSemana();
   document.getElementById('titulo-vista').textContent = vista==='dia' ? 'Agenda del día' : 'Agenda de la semana';
@@ -1992,22 +2130,36 @@ function descargarExcel(){
    ══════════════════════════════════════════════════════════════════════════ */
 let syncTimer = null, sincronizando = false, ultimaSync = null;
 
-function hojaUrl(){ return (datos.config && datos.config.hojaUrl) || '' }
+/* La dirección fija manda; si está vacía, se usa la que se haya conectado a
+   mano en este equipo. */
+function hojaUrl(){ return (URL_PLANILLA || (datos.config && datos.config.hojaUrl) || '').trim() }
+function urlEsFija(){ return !!URL_PLANILLA }
 
+/* La etiqueta oscura del encabezado solo informa a qué hora quedó todo al día.
+   No menciona planillas ni servicios: para quien la usa, basta con saber que
+   la información está guardada y desde cuándo. */
 function estadoPlanilla(txt, mal){
   const p = document.getElementById('txt-planilla');
   const pill = document.getElementById('txt-estado');
-  if(!hojaUrl()){
-    p.textContent = 'La planificación se guarda solo en este equipo.';
-    pill.textContent = 'Guardado en este equipo';
-    document.getElementById('btn-desconectar').style.display = 'none';
+  const punto = document.querySelector('#estado-sync .punto') || document.querySelector('.pill-tinta .punto');
+  const hora = h => h.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
+
+  if(p){
+    p.textContent = hojaUrl()
+      ? (txt || 'Conectado. Los cambios se guardan y se comparten solos.')
+      : 'La planificación se guarda solo en este equipo.';
+  }
+  const btn = document.getElementById('btn-desconectar');
+  if(btn) btn.style.display = (hojaUrl() && !urlEsFija()) ? 'inline-flex' : 'none';
+
+  if(mal){
+    pill.textContent = 'Sin conexión';
+    if(punto) punto.style.background = '#FF6B5A';
     return;
   }
-  document.getElementById('btn-desconectar').style.display = 'inline-flex';
-  const hora = ultimaSync ? ultimaSync.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}) : null;
-  p.innerHTML = txt || (hora ? `Conectada a Google Sheets.<br><span style="color:var(--z400)">Última sincronización ${hora}</span>`
-                             : 'Conectada a Google Sheets.');
-  pill.textContent = mal ? 'Planilla sin conexión' : (hora ? `Planilla · ${hora}` : 'Planilla conectada');
+  if(punto) punto.style.background = 'var(--neon)';
+  const ref = ultimaSync || ultimoGuardado;
+  pill.textContent = ref ? `Actualizado a las ${hora(ref)}` : 'Actualizado';
 }
 
 function programarSync(){
@@ -2059,14 +2211,18 @@ async function enviarAPlanilla(manual){
   sincronizando = false;
 }
 
-async function traerDePlanilla(manual){
+async function traerDePlanilla(manual, inicial){
   const url = hojaUrl();
   if(!url) return;
   try{
     const r = await fetch(url + '?accion=leer', {redirect:'follow'});
     const j = await r.json();
     if(!j || !j.ok) throw new Error('sin datos');
-    if(!j.datos || !j.datos.reservas){ if(manual) aviso('La planilla todavía no tiene datos.'); return }
+    if(!j.datos || !j.datos.reservas){
+      if(manual) aviso('La planilla todavía no tiene datos.');
+      if(inicial && datos.reservas.length) enviarAPlanilla();   /* planilla vacía: se sube lo de acá */
+      return;
+    }
     if((j.actualizado||0) <= (datos.actualizado||0)){
       if(manual) aviso('Ya tienes la versión más reciente.');
       ultimaSync = new Date(); estadoPlanilla();
@@ -2086,6 +2242,10 @@ async function traerDePlanilla(manual){
 }
 
 function abrirPlanilla(){
+  if(urlEsFija()){
+    aviso('Esta página ya viene conectada a la planilla del equipo.');
+    return;
+  }
   document.getElementById('f-hoja-url').value = hojaUrl();
   document.getElementById('hoja-estado').textContent = hojaUrl()
     ? 'Conectada. Cada cambio se envía automáticamente.' : '';
@@ -2119,13 +2279,18 @@ document.getElementById('ov-hoja').addEventListener('click', function(e){ if(e.t
 /* ══════════════════════════════════════════════════════════════════════════
    13 · INICIO
    ══════════════════════════════════════════════════════════════════════════ */
-if(!cargar()){ datos.bloqueos = [colacionPorDefecto()]; ejemplo(); guardar() }
+if(!cargar()){
+  datos.bloqueos = [colacionPorDefecto()];
+  if(!hojaUrl()) ejemplo();          /* con planilla conectada, los datos llegan de ahí */
+  guardar(true);
+}
 if(new Date().getDay()===0) dia = masDias(hoyISO(),1);
 pintar();
 estadoPlanilla();
 if(hojaUrl()){
-  traerDePlanilla();
+  traerDePlanilla(false, true);
   setInterval(()=>{ if(!document.querySelector('.overlay.abierto') && !arrastre) traerDePlanilla() }, 60*1000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) traerDePlanilla() });
 }
 setInterval(()=>{ if(vista) pintar() }, 5*60*1000);   // refresca la línea de "ahora"
 </script>
