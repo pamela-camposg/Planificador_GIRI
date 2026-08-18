@@ -116,8 +116,11 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 /* ---------- AYUDA ---------- */
 .ayuda{ margin-top:1rem; border:1px solid var(--z200); border-left:3px solid var(--neon);
   border-radius:0 6px 6px 0; background:var(--z50); padding:.75rem .95rem }
-.ayuda-tit{ display:block; font-size:10px; font-weight:500; letter-spacing:.16em;
+.ayuda-tit{ display:flex; align-items:center; font-size:10px; font-weight:500; letter-spacing:.16em;
   text-transform:uppercase; color:var(--z400); margin-bottom:.55rem }
+.ayuda-tit .quitar{ margin-left:auto; letter-spacing:.08em }
+.ayuda ol.solo-cel{ display:none }
+.ayuda.oculta{ display:none }
 .ayuda ol{ display:flex; flex-direction:column; gap:.4rem; font-size:12.5px; color:var(--z600) }
 .ayuda li{ list-style:none; display:flex; align-items:baseline; gap:.5rem }
 .ayuda li b{ font-weight:600; color:var(--tinta); font-size:10px; background:var(--neon);
@@ -318,7 +321,8 @@ aside{ position:sticky; top:6.5rem }
   .tarjeta{ padding:1rem .9rem 1.2rem }
   .grilla-caja{ display:none }          /* la grilla no se lee en un celular */
   #lista-movil{ display:block }
-  .ayuda{ display:none }
+  .ayuda ol.solo-pc{ display:none }
+  .ayuda ol.solo-cel{ display:flex }
   .control{ gap:.4rem }
   .control .der{ margin-left:0; width:100% }
   .nav-fecha{ flex:1 } #etiqueta-fecha{ min-width:0; flex:1 }
@@ -528,13 +532,20 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
           </div>
         </div>
 
-        <div class="ayuda">
-          <span class="ayuda-tit">Cómo se usa</span>
-          <ol>
-            <li><b>1</b> Haz clic en el punto de descarga y la hora que quieras.</li>
-            <li><b>2</b> Anota el cliente y elige el tipo de residuo.</li>
-            <li><b>3</b> Arrastra el bloque para cambiarlo de hora o de punto.</li>
-            <li><b>4</b> Cuando llegue el camión, ábrelo y marca la llegada.</li>
+        <div class="ayuda" id="ayuda">
+          <span class="ayuda-tit">Cómo se usa
+            <button class="quitar" onclick="ocultarAyuda()">Ocultar</button>
+          </span>
+          <ol class="solo-pc">
+            <li><b>1</b> Haz clic en un espacio libre para agendar un camión.</li>
+            <li><b>2</b> Escribe el cliente y elige qué residuo trae.</li>
+            <li><b>3</b> Si cambia la hora o el lugar, arrastra el bloque.</li>
+            <li><b>4</b> Cuando el camión llegue, márcalo con el ✓.</li>
+          </ol>
+          <ol class="solo-cel">
+            <li><b>1</b> Toca <b style="background:none;color:var(--tinta);width:auto">✓ Llegó</b> o <b style="background:none;color:var(--tinta);width:auto">✕ No llegó</b> según lo que pase con cada camión.</li>
+            <li><b>2</b> Toca el camión para ver o cambiar sus datos.</li>
+            <li><b>3</b> Para agregar uno nuevo, usa ＋ Agendar ingreso.</li>
           </ol>
         </div>
 
@@ -792,7 +803,7 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
    │  Si se deja vacío, el planificador funciona igual, pero cada persona     │
    │  guarda su propia copia en su equipo.                                    │
    └──────────────────────────────────────────────────────────────────────────┘ */
-const URL_PLANILLA = '';
+const URL_PLANILLA = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
 /* Puntos de descarga que sí se pueden planificar. No todos son naves: la
    recepción de madera para Arauco es un patio aparte, pero se agenda igual.
@@ -1005,30 +1016,8 @@ function recordar(lista, valor){
 /* ══════════════════════════════════════════════════════════════════════════
    5 · EJEMPLO INICIAL — solo la primera vez que se abre
    ══════════════════════════════════════════════════════════════════════════ */
-function ejemplo(){
-  const d = diasSemana();
-  const r = (fecha,nv,ini,dur,cliente,lista,estado)=>datos.reservas.push({
-    id:'r'+Math.random().toString(36).slice(2,9), fecha, nave:nv, ini, dur,
-    cliente, items:lista.map(([x,t])=>({r:x,t})), veh:'Camión', patente:'', transp:'',
-    quien:'Comercial', estado: estado||'confirmado', notas:''
-  });
-  r(d[0],'cdr',    9*60,  60, 'Papelera del Sur',      [['RESIDUOS NO RECICLABLES',16]]);
-  r(d[0],'envase',10*60,  90, 'Nestlé Chile',          [['ALIMENTO DESCARTADO',6],['INVENTARIO',3]]);
-  r(d[0],'cdr',   11*60,  90, 'Cervecería CCU',        [['MEZCLA DE PLÁSTICOS',8]], 'tentativo');
-  r(d[1],'cdr',    9*60,  60, 'Minera Los Andes',      [['MADERA',18]]);
-  r(d[1],'envase',11*60,  60, 'Laboratorio Andrómaco', [['FÁRMACOS',2],['COSMÉTICOS',2]]);
-  r(d[2],'cdr',    9*60, 120, 'Retail Falabella',      [['TEXTIL',9],['MEZCLA DE ENVASES Y EMBALAJES',6]]);
-  r(d[2],'envase',14*60,  60, 'Viña Santa Rita',       [['ROLLO PLÁSTICO DESDE VIÑA SANTA RITA',5]], 'tentativo');
-  r(d[3],'cdr',   10*60,  60, 'Constructora Aconcagua',[['ESCOMBROS',20]]);
-  r(d[4],'envase', 9*60,  90, 'Soprole',               [['ALIMENTO LÁCTEO',7]]);
-  r(d[1],'madera',10*60,  60, 'Aserradero El Roble',   [['PALLETS BUENOS',14]]);
-  r(d[3],'madera',15*60,  90, 'CMPC Maderas',          [['DESPUNTES',11],['OTRAS MADERAS',6]], 'tentativo');
-  ['Cervecería CCU','Nestlé Chile','Minera Los Andes','Retail Falabella','Papelera del Sur',
-   'Laboratorio Andrómaco','Viña Santa Rita','Constructora Aconcagua','Soprole',
-   'Aserradero El Roble','CMPC Maderas']
-    .forEach(c=>recordar('clientes',c));
-}
-
+/* Sin datos de ejemplo: la agenda parte vacía y se llena con camiones reales.
+   Los nombres de clientes se van guardando solos a medida que se escriben. */
 /* ══════════════════════════════════════════════════════════════════════════
    6 · CRUCES DE HORARIO
    ══════════════════════════════════════════════════════════════════════════ */
@@ -1171,6 +1160,8 @@ function pintar(){
 
   pintarLista();
   pintarListaMovil();
+  const ay = document.getElementById('ayuda');
+  if(ay) ay.classList.toggle('oculta', !!(datos.config && datos.config.ayudaOculta));
   pintarEncabezadoTexto();
   pintarAviso();
   pintarKPIs();
@@ -1445,7 +1436,8 @@ function pintarListaMovil(){
     const list = datos.reservas.filter(r=>r.fecha===f).sort((a,b)=>a.ini-b.ini);
     if(vista!=='dia') html += `<div class="m-dia">${DIAS_N[(deISO(f).getDay()+6)%7]} ${fechaCorta(f)} · ${list.length} camion${list.length===1?'':'es'}</div>`;
     if(!list.length){
-      html += `<div class="m-vacio">Sin camiones agendados${vista==='dia'?' este día':''}.</div>`;
+      html += `<div class="m-vacio">No hay camiones agendados${vista==='dia'?' este día':''}.<br>
+        <span style="color:var(--z500)">Usa <b>＋ Agendar ingreso</b> para agregar uno.</span></div>`;
       return;
     }
     list.forEach(r=>{
@@ -1485,6 +1477,13 @@ function marcarDesdeLista(id, v){
   aviso(r.real==='llego' ? `${r.cliente}: llegó.`
       : r.real==='nollego' ? `${r.cliente}: no llegó.`
       : `${r.cliente}: sin registrar.`);
+}
+
+function ocultarAyuda(){
+  document.getElementById('ayuda').classList.add('oculta');
+  datos.config = datos.config || {};
+  datos.config.ayudaOculta = true;
+  guardar(true);
 }
 
 function pintarEncabezadoTexto(){
@@ -2139,8 +2138,9 @@ function descargarExcel(){
    ══════════════════════════════════════════════════════════════════════════ */
 let syncTimer = null, sincronizando = false, ultimaSync = null;
 
-/* La dirección fija manda; si está vacía, se usa la que se haya conectado a
-   mano en este equipo. */
+/* La dirección fija manda; si está vacía, se usa la última que este equipo
+   haya conocido. Así, si alguien actualiza el archivo y olvida volver a pegar
+   la dirección, los equipos que ya estaban conectados no se quedan aislados. */
 function hojaUrl(){ return (URL_PLANILLA || (datos.config && datos.config.hojaUrl) || '').trim() }
 function urlEsFija(){ return !!URL_PLANILLA }
 
@@ -2161,12 +2161,18 @@ function estadoPlanilla(txt, mal){
   const btn = document.getElementById('btn-desconectar');
   if(btn) btn.style.display = (hojaUrl() && !urlEsFija()) ? 'inline-flex' : 'none';
 
+  const caja = document.getElementById('estado-sync');
   if(mal){
     pill.textContent = 'Sin conexión';
     if(punto) punto.style.background = '#FF6B5A';
+    if(caja) caja.title = 'No se pudo llegar a la planilla del equipo';
     return;
   }
-  if(punto) punto.style.background = 'var(--neon)';
+  /* Punto lima = conectado con el equipo · punto gris = solo en este equipo */
+  if(punto) punto.style.background = hojaUrl() ? 'var(--neon)' : '#71717A';
+  if(caja) caja.title = hojaUrl()
+    ? 'Conectado: todos ven la misma información'
+    : 'Se guarda solo en este equipo (sin planilla compartida)';
   const ref = ultimaSync || ultimoGuardado;
   pill.textContent = ref ? `Actualizado a las ${hora(ref)}` : 'Actualizado';
 }
@@ -2232,6 +2238,20 @@ async function traerDePlanilla(manual, inicial){
       if(inicial && datos.reservas.length) enviarAPlanilla();   /* planilla vacía: se sube lo de acá */
       return;
     }
+    const primeraVez = !datos.config || datos.config.urlAdoptada !== hojaUrl();
+    if(primeraVez){
+      datos.reservas = j.datos.reservas;
+      datos.bloqueos = j.datos.bloqueos || datos.bloqueos;
+      datos.listas   = j.datos.listas   || datos.listas;
+      datos.actualizado = j.actualizado;
+      datos.config = datos.config || {};
+      datos.config.urlAdoptada = hojaUrl();
+      guardar(true);
+      ultimaSync = new Date();
+      pintar(); estadoPlanilla();
+      aviso('Este equipo quedó conectado con la planificación del equipo.');
+      return;
+    }
     if((j.actualizado||0) <= (datos.actualizado||0)){
       if(manual) aviso('Ya tienes la versión más reciente.');
       ultimaSync = new Date(); estadoPlanilla();
@@ -2290,12 +2310,17 @@ document.getElementById('ov-hoja').addEventListener('click', function(e){ if(e.t
    ══════════════════════════════════════════════════════════════════════════ */
 if(!cargar()){
   datos.bloqueos = [colacionPorDefecto()];
-  if(!hojaUrl()) ejemplo();          /* con planilla conectada, los datos llegan de ahí */
   guardar(true);
 }
 if(new Date().getDay()===0) dia = masDias(hoyISO(),1);
 pintar();
 estadoPlanilla();
+/* Deja guardada la dirección fija como respaldo de este equipo. */
+if(URL_PLANILLA){
+  datos.config = datos.config || {};
+  if(datos.config.hojaUrl !== URL_PLANILLA){ datos.config.hojaUrl = URL_PLANILLA; guardar(true) }
+}
+
 if(hojaUrl()){
   traerDePlanilla(false, true);
   setInterval(()=>{ if(!document.querySelector('.overlay.abierto') && !arrastre) traerDePlanilla() }, 60*1000);
