@@ -1,773 +1,1756 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planificador Semanal — GIRI Ambipar Chile</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#031716" />
+<title>Planificador GIRI · Ambipar Chile</title>
+
+<!-- =========================================================================
+     NEO SANS — hoja de estilos de Monotype
+     -------------------------------------------------------------------------
+     Monotype entrega una URL propia por proyecto, del tipo:
+        https://fast.fonts.net/t/1.css?apiType=css&projectid=XXXXXXXX
+     Reemplaza la línea comentada por esa URL cuando tengas la licencia.
+     Mientras tanto se usa Barlow Semi Condensed, la alternativa libre
+     más parecida a la tipografía del sitio de Ambipar.
+     ========================================================================= -->
+<!-- <link rel="stylesheet" href="https://fast.fonts.net/t/1.css?apiType=css&projectid=TU-PROYECTO"> -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
-:root {
-  --g1:#1B5E3B; --g2:#2E7D52; --g3:#388E3C; --gBg:#E8F5E9; --gL:#A5D6A7;
-  --b1:#0D47A1; --b2:#1565C0; --b3:#1976D2; --bBg:#E3F2FD; --bL:#90CAF9;
-  --o:#BF360C; --oBg:#FBE9E7;
-  --p:#6A1B9A; --pBg:#F3E5F5;
-  --r:#B71C1C; --rBg:#FFEBEE;
-  --sl:#455A64; --slBg:#ECEFF1;
-  --surface:#F4F6F4; --white:#fff;
-  --dark:#1C1C1E; --muted:#6E6E73; --border:rgba(0,0,0,0.09);
+/* =========================================================================
+   SISTEMA DE DISEÑO — el mismo de index.html (Sistema Trazabilidad)
+   neón #CCFF00 · tinta #031716 · grises zinc · Barlow Semi Condensed
+   Forma: contenedores grandes redondeados (8px); todo lo de color, recto.
+   ========================================================================= */
+:root{
+  --neon:#CCFF00; --neon-suave:#FBFFE8; --tinta:#031716;
+  --z50:#FAFAFA; --z100:#F4F4F5; --z200:#E4E4E7; --z300:#D4D4D8;
+  --z400:#A1A1AA; --z500:#71717A; --z600:#52525B; --z700:#3F3F46;
+  --rojo:#C0392B; --rojoBg:#FCEDEB; --ambar:#E8A33D;
+  --slot:34px;              /* alto de cada bloque de 30 minutos */
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--surface);color:var(--dark);min-height:100vh;font-size:13px;}
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0 }
+html,body{ overflow-x:hidden }
+body{
+  font-family:'Neo Sans','Neo Sans W01','Barlow Semi Condensed',system-ui,sans-serif;
+  background:#F4F4F5; color:var(--tinta); -webkit-font-smoothing:antialiased;
+  font-size:13px; min-height:100vh;
+}
+.premium-heading{ letter-spacing:-0.01em }
+::selection{ background:var(--neon); color:var(--tinta) }
+a,button,label,summary,[role=button]{ cursor:pointer }
+button:disabled{ cursor:not-allowed }
+input,select,textarea{ cursor:text; font-family:inherit }
 
-/* HEADER */
-.hdr{background:var(--g1);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-.hdr-left{display:flex;flex-direction:column;gap:2px;}
-.hdr-label{font-size:9px;letter-spacing:2px;color:#81C784;text-transform:uppercase;font-weight:700;}
-.hdr-title{font-size:17px;font-weight:800;color:#fff;}
-.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.week-nav{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);border-radius:10px;padding:6px 12px;}
-.week-nav button{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-.week-nav button:hover{background:rgba(255,255,255,0.35);}
-.week-label{font-size:12px;font-weight:700;color:#fff;min-width:170px;text-align:center;}
-.hdr-btns{display:flex;gap:6px;}
-.hdr-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:6px 14px;font-size:11px;cursor:pointer;font-weight:600;}
-.hdr-btn:hover{background:rgba(255,255,255,0.25);}
+/* ---------- MARCA DE AGUA: la "a" del logo en megazoom ---------- */
+.marca-agua{
+  pointer-events:none; position:fixed; left:-277px; top:-18px; z-index:-10;
+  height:716px; width:716px; user-select:none; opacity:.17;
+}
+.marca-agua img,.marca-agua svg{ height:100%; width:100%; object-fit:contain; display:block }
+#a-respaldo{ display:none; padding:18% }
 
-/* LEGEND */
-.legend{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-.leg-title{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-right:4px;}
-.leg-chip{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
-.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.legend-sep{width:1px;height:16px;background:var(--border);margin:0 4px;}
+/* ---------- BARRA SUPERIOR ---------- */
+header.barra{ position:sticky; top:0; z-index:60; background:var(--neon) }
+.barra-in{ margin:0 auto; max-width:1500px; display:flex; align-items:center; gap:1.5rem; height:5rem; padding:0 1.5rem; flex-wrap:wrap }
+.barra-in .logo{ height:2rem; width:auto; display:block; flex:0 0 auto }
+.barra-in svg.logo{ width:181px }         /* razón 260×46 del respaldo */
+.sep-v{ height:2.25rem; width:1px; background:rgba(3,23,22,.25) }
+.titulo-sis{ min-width:0; line-height:1.25 }
+.titulo-sis p:first-child{ font-size:17px; font-weight:500; color:var(--tinta); letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.titulo-sis p:last-child{ margin-top:.125rem; font-size:13px; color:rgba(3,23,22,.7) }
+.barra-der{ margin-left:auto; display:flex; align-items:center; gap:.625rem; flex-wrap:wrap }
+.pill-tinta{ display:flex; align-items:center; gap:.5rem; border-radius:6px; background:var(--tinta); color:#fff; padding:.5rem .75rem; font-size:12px }
+.punto{ width:6px; height:6px; border-radius:9999px; background:var(--neon); flex-shrink:0; animation:latir 2.4s ease-in-out infinite }
+@keyframes latir{ 0%,100%{opacity:1} 50%{opacity:.35} }
 
-/* TOOLBAR */
-.toolbar{padding:10px 24px;display:flex;align-items:center;gap:8px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap;}
-.btn-add-client{background:var(--g1);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:11px;font-weight:700;cursor:pointer;}
-.btn-add-client:hover{background:var(--g2);}
-.btn-clear{background:var(--rBg);color:var(--r);border:1px solid #FFCDD2;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;}
-.btn-clear:hover{background:#FFCDD2;}
-.btn-manage-reg{background:var(--slBg);color:var(--sl);border:1px solid #CFD8DC;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;}
-.btn-manage-reg:hover{background:#CFD8DC;}
-.toolbar-right{margin-left:auto;font-size:11px;color:var(--muted);}
-.toolbar-right strong{color:var(--dark);}
+/* ---------- LIENZO ---------- */
+.lienzo{ margin:0 auto; max-width:1500px; padding:2.5rem 1.5rem 3rem }
+.encabezado{ margin-bottom:1.5rem }
+.regla-neon{ display:block; height:3px; width:2.5rem; background:var(--neon); margin-bottom:1rem }
+h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
+.bajada{ margin-top:.625rem; max-width:38rem; font-size:14px; line-height:1.625; color:var(--z500) }
 
-/* CALENDAR GRID */
-.cal-wrap{overflow-x:auto;padding:14px 24px 20px;}
-.cal-grid{display:grid;grid-template-columns:60px repeat(6,1fr);min-width:860px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;}
+.malla{ display:grid; grid-template-columns:1fr; gap:1.5rem; align-items:start }
+@media (min-width:1240px){ .malla{ grid-template-columns:minmax(0,1fr) 280px } }
 
-.cal-corner{background:var(--g1);}
-.day-hdr{background:var(--g1);padding:10px 8px;text-align:center;border-left:1px solid rgba(255,255,255,0.12);}
-.day-hdr .day-name{font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.5px;}
-.day-hdr .day-date{font-size:10px;color:#A5D6A7;margin-top:2px;}
-.day-hdr.today{background:var(--g2);}
+/* ---------- TARJETAS ---------- */
+.tarjeta{ border:1px solid var(--z200); border-left:3px solid var(--z200); border-radius:8px; background:#fff; padding:1.25rem 1.5rem 1.5rem; transition:all .3s ease-in-out }
+.tarjeta:hover{ border-left-color:var(--neon); box-shadow:0 8px 30px rgb(0 0 0 / .04) }
+.tarjeta + .tarjeta{ margin-top:1.25rem }
+.tarjeta-cab{ display:flex; align-items:baseline; gap:.75rem; flex-wrap:wrap }
+.num{ display:inline-flex; height:1.25rem; width:1.5rem; align-items:center; justify-content:center; border-radius:3px; background:var(--z100); font-size:10px; font-weight:600; color:var(--z500); transition:.3s }
+.tarjeta:hover .num{ background:var(--neon); color:var(--tinta) }
+.tarjeta h2{ font-size:15px; font-weight:500; letter-spacing:-.01em }
+.nota{ margin-top:.375rem; max-width:44rem; font-size:13px; line-height:1.625; color:var(--z500) }
+.marca-chip{ border-radius:4px; background:var(--z100); padding:.125rem .5rem; font-size:10px; font-weight:500; letter-spacing:.12em; color:var(--z500) }
 
-.period-label{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border-top:1px solid var(--border);}
-.period-label.am{background:#F0F7F0;}
-.period-label.pm{background:var(--surface);}
-.period-label.sal{background:#FFF5F5;}
-.pl-tag{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
-.period-label.am .pl-tag{color:var(--g2);}
-.period-label.pm .pl-tag{color:var(--sl);}
-.period-label.sal .pl-tag{color:var(--r);font-size:9px;}
-.pl-time{font-size:8px;color:var(--muted);margin-top:2px;text-align:center;}
+/* ---------- BOTONES ---------- */
+.btn{ display:inline-flex; align-items:center; justify-content:center; gap:.45rem; background:var(--neon); color:var(--tinta); border:1px solid var(--neon); border-radius:6px; padding:.55rem 1.05rem; font-size:12.5px; font-weight:600; font-family:inherit; transition:.15s ease }
+.btn:hover{ background:var(--tinta); color:var(--neon); border-color:var(--tinta); transform:translateY(-1px) }
+.btn:active{ transform:translateY(0) }
+.btn.secundario{ background:#fff; color:var(--tinta); border-color:var(--z200); font-weight:500 }
+.btn.secundario:hover{ border-color:var(--neon); background:var(--neon-suave); color:var(--tinta) }
+.btn.peligro{ background:#fff; color:var(--rojo); border-color:#EFCFCB; font-weight:500 }
+.btn.peligro:hover{ background:var(--rojo); color:#fff; border-color:var(--rojo) }
+.btn svg{ width:14px; height:14px; flex:0 0 auto }
+.quitar{ background:none; border:0; padding:2px 4px; font-family:inherit; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--z400) }
+.quitar:hover{ color:var(--tinta) }
 
-/* CELLS */
-.cal-cell{border-left:1px solid var(--border);border-top:1px solid var(--border);padding:7px;min-height:95px;cursor:pointer;transition:background 0.12s;}
-.cal-cell:hover{background:#F6FBF6;}
-.cal-cell.am{background:#FAFFF9;}
-.cal-cell.pm{background:#fff;}
-.cal-cell.sal{background:#FEFAFA;min-height:58px;}
-.cal-cell.today-col{border-left:2px solid var(--g3);}
+/* ---------- BARRA DE CONTROL ---------- */
+.control{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-top:1.1rem }
+.nav-fecha{ display:flex; align-items:center; gap:.15rem; border:1px solid var(--z200); border-radius:6px; padding:2px; background:#fff }
+.nav-fecha button{ background:none; border:0; color:var(--tinta); width:28px; height:28px; font-size:15px; border-radius:4px; transition:.15s }
+.nav-fecha button:hover{ background:var(--neon) }
+#etiqueta-fecha{ font-size:12.5px; font-weight:500; min-width:210px; text-align:center }
+.switch{ display:inline-flex; border:1px solid var(--z200); border-radius:6px; padding:2px; background:#fff }
+.switch button{ border:0; background:none; padding:.4rem .95rem; font-size:12.5px; font-family:inherit; color:var(--z500); border-radius:4px; transition:.15s }
+.switch button:hover{ background:var(--z50); color:var(--tinta) }
+.switch button[aria-pressed=true]{ background:var(--neon); color:var(--tinta); font-weight:500 }
+.control .der{ margin-left:auto; display:flex; gap:.5rem; flex-wrap:wrap }
 
-.cap-bar{height:4px;border-radius:2px;background:#EAEAEA;margin-bottom:6px;overflow:hidden;}
-.cap-fill{height:100%;border-radius:2px;transition:width 0.3s;}
+/* ---------- AYUDA ---------- */
+.ayuda{ margin-top:1rem; border:1px solid var(--z200); border-left:3px solid var(--neon);
+  border-radius:0 6px 6px 0; background:var(--z50); padding:.6rem .9rem;
+  display:flex; align-items:center; gap:1.1rem; flex-wrap:wrap }
+.ayuda-tit{ font-size:10px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--z400) }
+.ayuda ol{ display:flex; gap:1.4rem; flex-wrap:wrap; font-size:12.5px; color:var(--z600) }
+.ayuda li{ list-style:none; display:flex; align-items:baseline; gap:.4rem }
+.ayuda li b{ font-weight:600; color:var(--tinta); font-size:10px; background:var(--neon);
+  width:15px; height:15px; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto }
 
-/* CHIPS */
-.chips{display:flex;flex-direction:column;gap:4px;}
-.chip{border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;display:flex;align-items:flex-start;gap:5px;cursor:pointer;position:relative;transition:opacity 0.15s;}
-.chip:hover{opacity:0.82;}
-.chip-icon{font-size:12px;flex-shrink:0;margin-top:1px;}
-.chip-body{flex:1;min-width:0;}
-.chip-name{line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.chip-meta{display:flex;gap:6px;margin-top:3px;flex-wrap:wrap;}
-.chip-badge{font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:10px;background:rgba(0,0,0,0.08);white-space:nowrap;}
-.chip-reg{font-size:8px;opacity:0.65;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
-.chip-del{position:absolute;right:4px;top:4px;background:rgba(0,0,0,0.18);color:#fff;border-radius:50%;width:14px;height:14px;display:none;align-items:center;justify-content:center;font-size:10px;font-weight:900;cursor:pointer;line-height:1;}
-.chip:hover .chip-del{display:flex;}
-.chip.rampla{border:1.5px dashed;}
-.chip.salida{border:1.5px dashed;background:#fff!important;}
+/* ---------- AVISO DE CRUCES ---------- */
+#aviso{ display:none; margin-top:1rem; border:1px solid #EFCFCB; border-left:3px solid var(--rojo); border-radius:0 6px 6px 0; background:var(--rojoBg); padding:.7rem .9rem; font-size:12.5px; color:#7B2318 }
+#aviso.on{ display:block }
+#aviso b{ font-weight:600 }
+#aviso ul{ list-style:none; margin-top:.35rem; display:flex; flex-direction:column; gap:.2rem }
+#aviso li button{ background:none; border:0; padding:0; font-family:inherit; font-size:12.5px; color:#7B2318; text-decoration:underline; text-underline-offset:2px }
 
-.cell-add{margin-top:5px;display:flex;align-items:center;gap:4px;color:var(--muted);font-size:10px;opacity:0;transition:opacity 0.15s;}
-.cal-cell:hover .cell-add{opacity:0.7;}
-.cell-add-icon{width:16px;height:16px;border-radius:4px;border:1.5px dashed var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;}
+/* =========================================================================
+   GRILLA HORARIA
+   ========================================================================= */
+.grilla-caja{ border:1px solid var(--z200); border-radius:8px; background:#fff; overflow:hidden; margin-top:1.1rem }
+.grilla-scroll{ overflow-x:auto }
+.grilla{ min-width:820px }
+/* Ojo: no puede ser sticky. El contenedor tiene overflow-x, así que el
+   encabezado se despegaría hacia abajo y taparía las primeras horas. */
+.g-cab{ display:grid; position:relative; z-index:20 }
+.g-cab > div{ background:var(--neon); padding:.55rem .5rem; text-align:center; border-left:1px solid rgba(3,23,22,.12) }
+.g-cab > div:first-child{ border-left:0 }
+.g-cab .c-nom{ font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--tinta); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.g-cab .c-sub{ font-size:10.5px; color:rgba(3,23,22,.6); margin-top:1px; font-variant-numeric:tabular-nums }
+.g-cab .hoy{ background:var(--tinta) }
+.g-cab .hoy .c-nom{ color:var(--neon) }
+.g-cab .hoy .c-sub{ color:rgba(255,255,255,.65) }
 
-/* SUMMARY */
-.summary-section{background:#fff;border-top:2px solid var(--border);padding:14px 24px;}
-.sum-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.sum-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;}
-.sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
-.sum-card{border-radius:10px;padding:10px 14px;border:1px solid var(--border);}
-.sum-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
-.sum-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.sum-name{font-size:11px;font-weight:700;color:var(--dark);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sum-stats{display:flex;gap:10px;}
-.sum-stat{display:flex;flex-direction:column;}
-.sum-val{font-size:16px;font-weight:800;line-height:1;}
-.sum-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;margin-top:1px;}
+.g-cuerpo{ display:grid; border-top:1px solid var(--z200) }
+.col-horas{ background:var(--z50); border-right:1px solid var(--z200) }
+.hora{ height:var(--slot); font-size:10px; color:var(--z400); text-align:right; padding:1px 7px 0 0; font-variant-numeric:tabular-nums; border-top:1px solid var(--z200) }
+.hora.media{ color:transparent; border-top-style:dotted }
+.hora:first-child{ border-top:0 }
 
-/* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:100;display:none;align-items:center;justify-content:center;}
-.overlay.open{display:flex;}
-.modal{background:#fff;border-radius:16px;padding:24px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.22);max-height:90vh;overflow-y:auto;}
-.modal h3{font-size:16px;font-weight:800;color:var(--dark);margin-bottom:3px;}
-.modal-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
-.form-group{margin-bottom:13px;}
-.form-group label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:4px;}
-.form-group select,.form-group input,.form-group textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--dark);font-family:inherit;background:#fff;outline:none;transition:border-color 0.15s;}
-.form-group select:focus,.form-group input:focus{border-color:var(--g2);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.modal-btns{display:flex;gap:8px;margin-top:16px;}
-.btn-ok{flex:1;background:var(--g1);color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;}
-.btn-ok:hover{background:var(--g2);}
-.btn-cancel{background:var(--slBg);color:var(--sl);border:none;border-radius:9px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;}
+.col{ position:relative; border-left:1px solid var(--z200) }
+.col::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(180deg,
+    var(--z200) 0 1px, transparent 1px calc(var(--slot)*2));
+  background-position:0 var(--slot);
+}
+.col::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(180deg,
+    transparent 0 var(--slot), #F1F1F3 var(--slot) calc(var(--slot) + 1px), transparent calc(var(--slot) + 1px) calc(var(--slot)*2));
+  background-position:0 var(--slot);
+}
+.col.destino{ background:var(--neon-suave) }
+.col.hoy-col{ box-shadow:inset 2px 0 0 var(--neon) }
+/* Franjas bloqueadas: colación, mantención, nave cerrada */
+.bloqueo{ position:absolute; left:0; right:0; z-index:3; pointer-events:none;
+  background:repeating-linear-gradient(135deg, #F1F1F3 0 7px, #E7E7EA 7px 14px);
+  border-top:1px solid var(--z300); border-bottom:1px solid var(--z300);
+  display:flex; align-items:center; justify-content:center; overflow:hidden }
+.bloqueo span{ font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--z500);
+  background:#fff; padding:1px 6px; border:1px solid var(--z300) }
 
-/* SECTION DIVIDER IN MODAL */
-.form-divider{border:none;border-top:1px solid var(--border);margin:14px 0 10px;}
-.form-section-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;}
+/* Registro real */
+.bloque.llegado{ box-shadow:inset 3px 0 0 #1E8E4E }
+.bloque.nollego{ opacity:.5 }
+.bloque.nollego .b-cli{ text-decoration:line-through }
+.b-real{ display:block; font-size:9.5px; font-weight:600; font-variant-numeric:tabular-nums }
+.b-ok{ position:absolute; right:3px; top:2px; font-size:10px; font-weight:700; color:#1E8E4E }
 
-/* CLIENT MODAL */
-.color-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
-.color-swatch{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2.5px solid transparent;transition:transform 0.1s;}
-.color-swatch.selected{border-color:var(--dark);transform:scale(1.18);}
-.cat-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
-.cat-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;background:transparent;color:var(--dark);}
-.cat-btn.selected{background:var(--g1);color:#fff;border-color:var(--g1);}
+.linea-ahora{ position:absolute; left:0; right:0; height:1px; background:var(--rojo); z-index:6; pointer-events:none }
+.linea-ahora::before{ content:''; position:absolute; left:0; top:-2px; width:5px; height:5px; background:var(--rojo) }
+.fantasma{ position:absolute; left:2px; right:2px; border:1px dashed var(--tinta); background:rgba(204,255,0,.35); z-index:7; pointer-events:none; display:none }
 
-/* MANAGE REGISTRADORES */
-.reg-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:200px;overflow-y:auto;}
-.reg-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--slBg);border-radius:8px;}
-.reg-item span{flex:1;font-size:12px;}
-.reg-del{background:transparent;border:none;color:var(--r);cursor:pointer;font-size:14px;font-weight:900;padding:0 4px;}
-.reg-add-row{display:flex;gap:8px;}
-.reg-add-row input{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:7px 11px;font-size:13px;font-family:inherit;outline:none;}
-.reg-add-row input:focus{border-color:var(--g2);}
-.reg-add-btn{background:var(--g1);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;}
+/* ---------- BLOQUES ---------- */
+.bloque{
+  position:absolute; left:2px; right:2px; z-index:8; overflow:hidden;
+  border-radius:0; border:1px solid; border-left-width:4px; background:#fff;
+  padding:3px 5px; font-size:10.5px; line-height:1.25; user-select:none;
+  cursor:grab; transition:box-shadow .15s;
+}
+.bloque:hover{ box-shadow:0 3px 12px rgb(0 0 0 / .12); z-index:9 }
+.bloque.arrastrando{ opacity:.4; cursor:grabbing }
+.bloque.tentativo{ border-style:dashed; background:repeating-linear-gradient(135deg,#fff 0 6px,rgba(0,0,0,.035) 6px 12px) }
+.bloque.cruce{ border-color:var(--rojo)!important; background:var(--rojoBg)!important; color:var(--rojo)!important }
+.bloque.cruce .b-res,.bloque.cruce .b-meta{ color:var(--rojo) }
+.b-cli{ font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block }
+.b-res{ display:block; color:var(--z600); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.b-meta{ display:block; color:var(--z400); font-size:9.5px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.b-corto{ display:flex; gap:5px; align-items:baseline }
+.b-corto .b-meta{ margin-left:auto }
+.b-alerta{ position:absolute; right:3px; top:2px; font-size:11px; font-weight:700; color:var(--rojo) }
+.b-tirador{ position:absolute; left:0; right:0; bottom:0; height:7px; cursor:ns-resize }
+.b-tirador::after{ content:''; position:absolute; left:50%; bottom:2px; width:16px; height:2px; margin-left:-8px; background:currentColor; opacity:0; transition:.15s }
+.bloque:hover .b-tirador::after{ opacity:.35 }
 
-/* TOOLTIP */
-.tooltip{position:fixed;background:var(--dark);color:#fff;font-size:11px;padding:6px 12px;border-radius:6px;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:999;white-space:nowrap;}
+/* ---------- RESUMEN / OCUPACIÓN ---------- */
+.ocupa{ display:flex; flex-direction:column; gap:.6rem; margin-top:.75rem }
+.ocupa-fila{ font-size:12px; color:var(--z600) }
+.ocupa-top{ display:flex; align-items:baseline; gap:.4rem }
+.ocupa-top b{ font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.ocupa-top span{ font-size:11px; color:var(--z400); font-variant-numeric:tabular-nums }
+.barra-oc{ height:3px; background:var(--z200); margin-top:4px }
+.barra-oc i{ display:block; height:100% }
 
-/* FOOTER */
-.footer{padding:10px 24px;font-size:9px;color:var(--muted);border-top:1px solid var(--border);background:#fff;display:flex;justify-content:space-between;}
+.kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:.5rem; margin-top:1.1rem }
+.kpi{ border:1px solid var(--z200); border-left:3px solid var(--neon); padding:.6rem .8rem; background:var(--neon-suave) }
+.kpi b{ display:block; font-size:19px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums }
+.kpi span{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--z500); margin-top:4px }
+
+/* ---------- COLUMNA TÉCNICA ---------- */
+aside{ position:sticky; top:6.5rem }
+.blq + .blq{ margin-top:1.75rem }
+.blq{ transition:transform .3s }
+.blq:hover{ transform:translateX(2px) }
+.blq-tit{ display:flex; align-items:center; gap:.5rem; font-size:10px; font-weight:500; letter-spacing:.18em; color:var(--z400) }
+.blq-tit span.pt{ height:6px; width:6px; border-radius:1px; background:var(--z300); transition:.3s }
+.blq:hover .blq-tit span.pt{ background:var(--neon) }
+.blq p{ margin-top:.6rem; font-size:12.5px; line-height:1.625; color:var(--z600) }
+.blq p b{ font-weight:500; color:var(--tinta) }
+.leg{ margin-top:.7rem; display:flex; flex-direction:column; gap:.45rem }
+.leg-i{ display:flex; align-items:center; gap:.5rem; font-size:12px; color:var(--z600) }
+.leg-c{ width:11px; height:11px; flex:0 0 auto; border:1px solid }
+
+/* ---------- MODAL ---------- */
+.overlay{ position:fixed; inset:0; background:rgba(3,23,22,.45); z-index:100; display:none; align-items:center; justify-content:center; padding:1rem }
+.overlay.abierto{ display:flex }
+.modal{ background:#fff; border-radius:8px; border-top:3px solid var(--neon); padding:1.5rem; width:520px; max-width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 24px 60px rgb(0 0 0 / .18) }
+.modal h3{ font-size:18px; font-weight:500; letter-spacing:-.01em }
+.modal .sub{ font-size:12.5px; color:var(--z500); margin:.2rem 0 1.2rem }
+.sec-lbl{ font-size:10px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--tinta); margin:1.2rem 0 .8rem; padding-bottom:.45rem; border-bottom:1px solid var(--z200) }
+.sec-lbl:first-of-type{ margin-top:0 }
+.grupo{ margin-bottom:.8rem }
+.grupo label{ display:block; font-size:10px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--z400); margin-bottom:.3rem }
+.grupo label i{ font-style:normal; color:var(--z300); text-transform:none; letter-spacing:0 }
+.grupo input,.grupo select{ width:100%; border:1px solid var(--z200); border-radius:6px; padding:.5rem .7rem; font-size:13px; color:var(--tinta); background:#fff; outline:none; transition:.15s }
+.grupo input:focus,.grupo select:focus{ border-color:var(--neon); box-shadow:0 0 0 3px rgba(204,255,0,.3) }
+.fila2{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem }
+.fila3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:.7rem }
+.pastillas{ display:flex; gap:.4rem; flex-wrap:wrap }
+.pastilla{ padding:.35rem .8rem; border:1px solid var(--z200); border-radius:4px; background:#fff; font-size:12px; font-family:inherit; color:var(--z600); transition:.15s }
+.pastilla:hover{ border-color:var(--neon) }
+.pastilla[aria-pressed=true]{ background:var(--neon); border-color:var(--neon); color:var(--tinta); font-weight:500 }
+.item-fila{ display:grid; grid-template-columns:1fr 96px 26px; gap:.4rem; margin-bottom:.35rem; align-items:center }
+.item-fila .quitar-item{ border:0; background:none; color:var(--z400); font-size:15px; line-height:1; padding:0 }
+.item-fila .quitar-item:hover{ color:var(--rojo) }
+.item-total{ display:flex; align-items:baseline; gap:.5rem; margin-top:.5rem; font-size:12px; color:var(--z500) }
+.item-total b{ font-size:15px; font-weight:600; color:var(--tinta); font-variant-numeric:tabular-nums }
+.item-total .btn{ margin-left:auto; padding:.35rem .8rem; font-size:11.5px }
+.chip-sug{ display:flex; gap:.3rem; flex-wrap:wrap; margin-top:.5rem }
+.chip-sug button{ border:1px solid var(--z200); background:var(--z50); border-radius:3px; padding:.2rem .5rem; font-size:11px; font-family:inherit; color:var(--z600) }
+.chip-sug button:hover{ border-color:var(--neon); background:var(--neon-suave); color:var(--tinta) }
+.alerta-modal{ display:none; margin-top:.8rem; border-left:3px solid var(--rojo); background:var(--rojoBg); padding:.55rem .8rem; font-size:12px; color:#7B2318 }
+.alerta-modal.on{ display:block }
+.modal-btns{ display:flex; gap:.5rem; margin-top:1.4rem; align-items:center }
+.modal-btns .crece{ flex:1 }
+
+/* ---------- AVISO FLOTANTE ---------- */
+#toast{ position:fixed; left:1.5rem; bottom:1.5rem; z-index:200; background:var(--tinta); color:#fff; border-left:3px solid var(--neon); padding:.7rem 1rem; font-size:12.5px; max-width:340px; opacity:0; transform:translateY(8px); pointer-events:none; transition:.2s }
+#toast.on{ opacity:1; transform:none }
+#toast.malo{ border-left-color:var(--rojo) }
+
+/* ---------- PIE ---------- */
+footer.pie{ border-top:1px solid var(--z200); background:#fff }
+.pie-in{ margin:0 auto; max-width:1500px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:1.5rem; font-size:12px; color:var(--z400) }
 
 @media print{
-  .toolbar,.hdr-btns,.cell-add,.chip-del,.summary-section{display:none!important;}
-  body{background:#fff;}
-  .cal-wrap{padding:0;}
+  .barra-der,.control,.ayuda,aside,footer.pie,.b-tirador,#toast{ display:none!important }
+  body{ background:#fff }
+  .lienzo{ padding:0; max-width:none }
+  .malla{ display:block }
+  .tarjeta{ border:0; box-shadow:none; padding:0 }
+  .g-cab{ position:static }
+  header.barra{ position:static }
 }
 </style>
 </head>
+
 <body>
 
-<!-- HEADER -->
-<div class="hdr">
-  <div class="hdr-left">
-    <span class="hdr-label">Ambipar Chile · GIRI</span>
-    <div class="hdr-title">Planificador Semanal de Operaciones</div>
+<!-- MARCA DE AGUA: la "a" del logo Ambipar en megazoom -->
+<div aria-hidden="true" class="marca-agua">
+  <img src="ambipar-a-verde.png" alt=""
+       onerror="this.style.display='none';document.getElementById('a-respaldo').style.display='block'">
+  <div id="a-respaldo">
+    <svg viewBox="0 0 100 100">
+      <g fill="none" stroke="#CCFF00" stroke-linecap="butt">
+        <rect x="22" y="22" width="56" height="56" rx="13" transform="rotate(45 50 50)" stroke-width="7"/>
+        <circle cx="48.5" cy="55" r="10.5" stroke-width="6.5"/>
+        <path d="M59 41.5 V 68.5" stroke-width="6.5"/>
+      </g>
+    </svg>
   </div>
-  <div class="hdr-right">
-    <div class="week-nav">
-      <button onclick="shiftWeek(-1)">&#8249;</button>
-      <span class="week-label" id="weekLabel"></span>
-      <button onclick="shiftWeek(1)">&#8250;</button>
+</div>
+
+<!-- ========================= BARRA SUPERIOR ========================= -->
+<header class="barra">
+  <div class="barra-in">
+    <img src="ambipar-logo.png" alt="Ambipar" class="logo"
+         onerror="this.style.display='none';document.getElementById('logo-respaldo').style.display='block'">
+    <svg id="logo-respaldo" viewBox="0 0 260 46" class="logo" style="display:none" aria-label="Ambipar">
+      <text x="0" y="35" font-family="'Barlow Semi Condensed', sans-serif" font-size="42"
+            font-weight="600" letter-spacing="-1" fill="#031716">ambipar</text>
+      <g transform="translate(220 3)" fill="none" stroke="#031716" stroke-linecap="butt">
+        <rect x="5" y="5" width="26" height="26" rx="6" transform="rotate(45 18 18)" stroke-width="3.2"/>
+        <circle cx="17.4" cy="19.8" r="4.9" stroke-width="3"/>
+        <path d="M22.3 13.4 V 26.2" stroke-width="3"/>
+      </g>
+    </svg>
+
+    <span class="sep-v"></span>
+
+    <div class="titulo-sis">
+      <p class="premium-heading">Planificador GIRI</p>
+      <p>GIRI · Chile</p>
     </div>
-    <div class="hdr-btns">
-      <button class="hdr-btn" onclick="window.print()">🖨 Imprimir</button>
-      <button class="hdr-btn" onclick="exportCSV()">📥 Exportar CSV</button>
+
+    <div class="barra-der">
+      <div class="pill-tinta"><span class="punto"></span><span id="txt-estado">Guardado en este equipo</span></div>
     </div>
   </div>
-</div>
+</header>
 
-<!-- LEGEND -->
-<div class="legend">
-  <span class="leg-title">Ingresos:</span>
-  <span class="leg-chip" style="background:#E8F5E9;color:#1B5E3B"><span class="leg-dot" style="background:#2E7D52"></span>RESIMPLE</span>
-  <span class="leg-chip" style="background:#F1F8E9;color:#33691E"><span class="leg-dot" style="background:#558B2F"></span>Otros val.</span>
-  <span class="leg-chip" style="background:#E3F2FD;color:#0D47A1"><span class="leg-dot" style="background:#1565C0"></span>CDR</span>
-  <span class="leg-chip" style="background:#F3E5F5;color:#6A1B9A"><span class="leg-dot" style="background:#7B1FA2"></span>Mineras</span>
-  <span class="leg-chip" style="background:#FBE9E7;color:#BF360C"><span class="leg-dot" style="background:#BF360C"></span>Envase-Prod.</span>
-  <span class="legend-sep"></span>
-  <span class="leg-title">Salidas:</span>
-  <span class="leg-chip" style="border:1.5px dashed #2E7D52;color:#2E7D52"><span class="leg-dot" style="background:#2E7D52"></span>Valorizables</span>
-  <span class="leg-chip" style="border:1.5px dashed #1565C0;color:#1565C0"><span class="leg-dot" style="background:#1565C0"></span>CDR</span>
-  <span class="leg-chip" style="border:1.5px dashed #B71C1C;color:#B71C1C"><span class="leg-dot" style="background:#B71C1C"></span>Disp. Final</span>
-</div>
+<div class="lienzo">
 
-<!-- TOOLBAR -->
-<div class="toolbar">
-  <button class="btn-add-client" onclick="openClientModal()">＋ Nuevo cliente</button>
-  <button class="btn-manage-reg" onclick="openRegModal()">👤 Registradores</button>
-  <button class="btn-clear" onclick="clearWeek()">Limpiar semana</button>
-  <div class="toolbar-right">Capacidad por franja: <strong>3–4 camiones</strong> según zona de descarga</div>
-</div>
-
-<!-- CALENDAR -->
-<div class="cal-wrap">
-  <div class="cal-grid" id="calGrid"></div>
-</div>
-
-<!-- SUMMARY -->
-<div class="summary-section" id="summarySection">
-  <div class="sum-header">
-    <span class="sum-title">Resumen semana</span>
+  <div class="encabezado">
+    <span class="regla-neon"></span>
+    <h1 class="premium-heading">Planificación GIRI.</h1>
   </div>
-  <div class="sum-grid" id="sumGrid"></div>
+
+  <div class="malla">
+    <div style="min-width:0">
+
+      <!-- ============== TARJETA PRINCIPAL: AGENDA ============== -->
+      <section class="tarjeta">
+        <div class="tarjeta-cab">
+          <span class="num">01</span>
+          <h2 id="titulo-vista">Agenda del día</h2>
+          <span class="marca-chip" id="chip-rango">—</span>
+        </div>
+
+        <div class="control">
+          <button class="btn" onclick="nuevoRapido()">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v10M2 7h10"/></svg>
+            Agendar ingreso
+          </button>
+
+          <div class="nav-fecha">
+            <button onclick="mover(-1)" title="Anterior">&#8249;</button>
+            <span id="etiqueta-fecha"></span>
+            <button onclick="mover(1)" title="Siguiente">&#8250;</button>
+          </div>
+          <button class="btn secundario" onclick="irHoy()">Hoy</button>
+
+          <div class="switch" id="switch-vista">
+            <button onclick="setVista('dia')"    aria-pressed="true">Día</button>
+            <button onclick="setVista('semana')" aria-pressed="false">Semana</button>
+          </div>
+
+          <button class="btn secundario" onclick="abrirBloqueo()" title="Colación, mantención o nave cerrada">
+            Bloquear horario
+          </button>
+
+          <div class="der">
+            <button class="btn secundario" onclick="descargarExcel()" title="Descarga un archivo .xlsx con toda la semana">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1v8M4 6l3 3 3-3M2 12h10"/></svg>
+              Descargar Excel
+            </button>
+            <button class="btn secundario" onclick="window.print()" title="Imprime la vista que estás viendo">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 5V1.5h6V5M3 5h8v5H3zM4.5 8.5h5V13h-5z"/></svg>
+              Imprimir
+            </button>
+          </div>
+        </div>
+
+        <div class="ayuda">
+          <span class="ayuda-tit">Cómo se usa</span>
+          <ol>
+            <li><b>1</b> Haz clic en el punto de descarga y la hora que quieras.</li>
+            <li><b>2</b> Anota el cliente y elige el tipo de residuo.</li>
+            <li><b>3</b> Arrastra el bloque para cambiarlo de hora o de punto.</li>
+            <li><b>4</b> Cuando llegue el camión, ábrelo y marca la llegada.</li>
+          </ol>
+        </div>
+
+        <div id="aviso"></div>
+
+        <div class="grilla-caja">
+          <div class="grilla-scroll">
+            <div class="grilla">
+              <div class="g-cab" id="g-cab"></div>
+              <div class="g-cuerpo" id="g-cuerpo"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpis" id="kpis"></div>
+      </section>
+
+      <!-- ============== TARJETA: DETALLE ============== -->
+      <section class="tarjeta">
+        <div class="tarjeta-cab">
+          <span class="num">02</span>
+          <h2>Carga por punto de descarga</h2>
+          <span class="marca-chip" id="chip-ocupa">—</span>
+        </div>
+        <p class="nota">Camiones agendados y toneladas comprometidas en cada punto de descarga. La barra los compara entre sí.</p>
+        <div class="ocupa" id="ocupa"></div>
+      </section>
+    </div>
+
+    <!-- ---------------- COLUMNA TÉCNICA ---------------- -->
+    <aside>
+      <div class="blq">
+        <p class="blq-tit"><span class="pt"></span>PUNTOS DE DESCARGA</p>
+        <div class="leg" id="leg-naves"></div>
+      </div>
+      <div class="blq">
+        <p class="blq-tit"><span class="pt"></span>ESTADO DEL INGRESO</p>
+        <div class="leg">
+          <div class="leg-i"><span class="leg-c" style="background:#fff;border-color:var(--tinta)"></span>Confirmado</div>
+          <div class="leg-i"><span class="leg-c" style="background:repeating-linear-gradient(135deg,#fff 0 3px,#ddd 3px 6px);border-color:var(--z400);border-style:dashed"></span>Por confirmar</div>
+          <div class="leg-i"><span class="leg-c" style="background:#fff;border-color:#1E8E4E;box-shadow:inset 3px 0 0 #1E8E4E"></span>Llegó · registrado</div>
+          <div class="leg-i"><span class="leg-c" style="background:var(--rojoBg);border-color:var(--rojo)"></span>Cruce u horario bloqueado</div>
+          <div class="leg-i"><span class="leg-c" style="background:repeating-linear-gradient(135deg,#F1F1F3 0 3px,#E0E0E4 3px 6px);border-color:var(--z300)"></span>Bloqueado (colación, mantención)</div>
+        </div>
+      </div>
+      <div class="blq">
+        <p class="blq-tit"><span class="pt"></span>HORARIO</p>
+        <p>08:30 a 18:30, en bloques de 30 minutos. Lunes a sábado.</p>
+      </div>
+    </aside>
+  </div>
 </div>
 
-<!-- FOOTER -->
-<div class="footer">
-  <span>GIRI — Planificador Operacional · SGI Trinorma · Ambipar Chile</span>
-  <span>Los datos son de planificación · actualizar con registros reales</span>
-</div>
+<footer class="pie">
+  <div class="pie-in">
+    <span>Ambipar Chile · GIRI — Planificador Operacional</span>
+    <span>Planificación referencial · confirmar con báscula y guías</span>
+  </div>
+</footer>
 
-<!-- TOOLTIP -->
-<div class="tooltip" id="tooltip"></div>
-
-<!-- ══ MODAL: AGREGAR ENTRADA ══ -->
-<div class="overlay" id="addOverlay">
+<!-- ══════════════ MODAL: FICHA DEL INGRESO ══════════════ -->
+<div class="overlay" id="ov">
   <div class="modal">
-    <h3 id="modalTitle">Agregar entrada</h3>
-    <div class="modal-sub" id="modalSub"></div>
+    <h3 id="m-tit">Agendar ingreso</h3>
+    <div class="sub" id="m-sub"></div>
 
-    <div class="form-section-lbl">Datos del ingreso / salida</div>
-    <div class="form-group">
-      <label>Cliente / Corriente</label>
-      <select id="selClient"></select>
+    <div class="sec-lbl">Qué llega</div>
+    <div class="grupo">
+      <label>Cliente</label>
+      <input type="text" id="f-cliente" list="dl-clientes" placeholder="Escribe el nombre del cliente" autocomplete="off">
+      <datalist id="dl-clientes"></datalist>
+    </div>
+    <div class="grupo">
+      <label>Residuos que trae <i>— uno o varios, con sus toneladas</i></label>
+      <input type="text" id="f-buscar" placeholder="Buscar en la lista…" autocomplete="off"
+             oninput="filtrarItems()" style="margin-bottom:.45rem">
+      <div id="f-items"></div>
+      <div class="item-total">
+        Total del camión: <b id="f-total">0,0</b> t
+        <button type="button" class="btn secundario" onclick="agregarItem()">＋ Otro residuo</button>
+      </div>
+      <div class="chip-sug" id="sug-residuos"></div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Tipo de vehículo</label>
-        <select id="selVehicle">
-          <option value="camion">🚚 Camión</option>
-          <option value="rampla">🚛 Rampla (fardos)</option>
-          <option value="mixer">🚜 Mixer / Tolva</option>
-          <option value="furgon">🚐 Furgón</option>
+    <div class="sec-lbl">Dónde y cuándo</div>
+    <div class="grupo">
+      <label>Punto de descarga</label>
+      <div class="pastillas" id="f-naves"></div>
+    </div>
+    <div class="fila3">
+      <div class="grupo">
+        <label>Día</label>
+        <select id="f-dia"></select>
+      </div>
+      <div class="grupo">
+        <label>Hora de llegada</label>
+        <select id="f-hora"></select>
+      </div>
+      <div class="grupo">
+        <label>Duración</label>
+        <select id="f-dur">
+          <option value="30">30 min</option>
+          <option value="60" selected>1 hora</option>
+          <option value="90">1 h 30</option>
+          <option value="120">2 horas</option>
+          <option value="180">3 horas</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Cantidad de vehículos</label>
-        <input type="number" id="inpTrucks" min="1" max="6" value="1" placeholder="1">
-      </div>
     </div>
+    <div class="alerta-modal" id="m-alerta"></div>
 
-    <hr class="form-divider">
-    <div class="form-section-lbl">Peso y registro</div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Toneladas estimadas (ton)</label>
-        <input type="number" id="inpTons" min="0" step="0.1" placeholder="Ej: 12.5">
-      </div>
-      <div class="form-group">
-        <label>Registrado por</label>
-        <select id="selRegistrador">
-          <option value="">— Sin asignar —</option>
+    <div class="sec-lbl">Camión</div>
+    <div class="fila2">
+      <div class="grupo">
+        <label>Vehículo</label>
+        <select id="f-veh">
+          <option>Camión</option><option>Rampla</option><option>Mixer / Tolva</option>
+          <option>Furgón</option><option>Camioneta</option>
         </select>
       </div>
+      <div class="grupo">
+        <label>Agendado por</label>
+        <input type="text" id="f-quien" list="dl-quien" placeholder="Tu nombre" autocomplete="off">
+        <datalist id="dl-quien"></datalist>
+      </div>
+    </div>
+    <div class="grupo">
+      <label>Estado</label>
+      <div class="pastillas">
+        <button class="pastilla" id="est-conf" aria-pressed="true"  onclick="setEstado('confirmado')">Confirmado</button>
+        <button class="pastilla" id="est-tent" aria-pressed="false" onclick="setEstado('tentativo')">Por confirmar</button>
+      </div>
+    </div>
+    <div class="grupo">
+      <label>Notas <i>— opcional</i></label>
+      <input type="text" id="f-notas" placeholder="Ej: requiere pesaje doble, llega con guía manual">
     </div>
 
-    <div class="form-group">
-      <label>Notas (opcional)</label>
-      <input type="text" id="inpNotes" placeholder="Ej: confirmar hora de llegada, requiere báscula">
+    <div class="sec-lbl" id="lbl-real">Lo que pasó</div>
+    <div id="caja-real">
+      <div class="pastillas">
+        <button class="pastilla" type="button" id="btn-llego"   onclick="setReal('llego')">Llegó</button>
+        <button class="pastilla" type="button" id="btn-nollego" onclick="setReal('nollego')">No llegó</button>
+        <button class="pastilla" type="button" id="btn-sinreg"  onclick="setReal(null)">Sin registrar</button>
+      </div>
     </div>
 
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeAddModal()">Cancelar</button>
-      <button class="btn-ok" onclick="saveEntry()">Agregar</button>
+      <button class="btn peligro" id="btn-borrar" onclick="borrarActual()" style="display:none">Eliminar</button>
+      <button class="btn secundario" id="btn-duplicar" onclick="duplicarActual()" style="display:none"
+              title="Crea una copia en el próximo espacio libre del mismo punto">Duplicar</button>
+      <span style="flex:1"></span>
+      <button class="btn secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn" onclick="guardarFicha()" id="btn-guardar">Agendar</button>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL: NUEVO CLIENTE ══ -->
-<div class="overlay" id="clientOverlay">
-  <div class="modal">
-    <h3>Nuevo cliente / corriente</h3>
-    <div class="modal-sub">Se agrega a la paleta del planificador</div>
-    <div class="form-group">
-      <label>Nombre del cliente</label>
-      <input type="text" id="inpClientName" placeholder="Ej: Minera Los Andes">
+<!-- ══════════════ MODAL: BLOQUEAR HORARIO ══════════════ -->
+<div class="overlay" id="ov-bloq">
+  <div class="modal" style="width:440px">
+    <h3>Bloquear un horario</h3>
+    <div class="sub">Colación, mantención o nave cerrada. Nadie debería agendar ahí.</div>
+
+    <div class="grupo">
+      <label>Motivo</label>
+      <div class="pastillas" id="bq-motivos"></div>
     </div>
-    <div class="form-group">
-      <label>Categoría</label>
-      <div class="cat-row" id="catRow">
-        <button class="cat-btn selected" data-cat="valorizable" onclick="selCat(this)">Valorizable</button>
-        <button class="cat-btn" data-cat="cdr" onclick="selCat(this)">CDR</button>
-        <button class="cat-btn" data-cat="minera" onclick="selCat(this)">Minera</button>
-        <button class="cat-btn" data-cat="envase" onclick="selCat(this)">Envase-Producto</button>
-        <button class="cat-btn" data-cat="salida" onclick="selCat(this)">Salida</button>
-        <button class="cat-btn" data-cat="otro" onclick="selCat(this)">Otro</button>
+    <div class="grupo">
+      <label>Punto de descarga</label>
+      <select id="bq-nave"></select>
+    </div>
+    <div class="fila3">
+      <div class="grupo">
+        <label>Cuándo</label>
+        <select id="bq-cuando"></select>
+      </div>
+      <div class="grupo">
+        <label>Desde</label>
+        <select id="bq-ini"></select>
+      </div>
+      <div class="grupo">
+        <label>Duración</label>
+        <select id="bq-dur">
+          <option value="30">30 min</option><option value="60" selected>1 hora</option>
+          <option value="90">1 h 30</option><option value="120">2 horas</option>
+          <option value="240">4 horas</option><option value="720">Todo el día</option>
+        </select>
       </div>
     </div>
-    <div class="form-group">
-      <label>Toneladas típicas por camión</label>
-      <input type="number" id="inpClientTons" placeholder="Ej: 8" min="0" step="0.5">
-    </div>
-    <div class="form-group">
-      <label>Color de identificación</label>
-      <div class="color-row" id="colorRow"></div>
-    </div>
+
+    <div class="sec-lbl">Bloqueos activos</div>
+    <div id="bq-lista" style="display:flex;flex-direction:column;gap:.35rem;max-height:190px;overflow:auto"></div>
+
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeClientModal()">Cancelar</button>
-      <button class="btn-ok" onclick="saveClient()">Agregar cliente</button>
+      <span style="flex:1"></span>
+      <button class="btn secundario" onclick="cerrar('ov-bloq')">Cerrar</button>
+      <button class="btn" onclick="guardarBloqueo()">Agregar bloqueo</button>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL: REGISTRADORES ══ -->
-<div class="overlay" id="regOverlay">
-  <div class="modal">
-    <h3>Gestión de Registradores</h3>
-    <div class="modal-sub">Personas que registran ingresos y salidas en la planta</div>
-    <div class="reg-list" id="regList"></div>
-    <div class="reg-add-row">
-      <input type="text" id="inpRegName" placeholder="Nombre del registrador" onkeydown="if(event.key==='Enter')addRegistrador()">
-      <button class="reg-add-btn" onclick="addRegistrador()">Agregar</button>
-    </div>
-    <div class="modal-btns" style="margin-top:14px">
-      <button class="btn-ok" onclick="closeRegModal()">Listo</button>
-    </div>
-  </div>
-</div>
+<div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════════════════════════════
-const COLORS_PALETTE = [
-  '#2E7D52','#558B2F','#1565C0','#1976D2','#42A5F5','#7B1FA2',
-  '#BF360C','#E65100','#F57F17','#B71C1C','#455A64','#00695C',
-  '#0277BD','#AD1457','#4527A0','#006064',
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · CONFIGURACIÓN
+   ══════════════════════════════════════════════════════════════════════════ */
+/* Puntos de descarga que sí se pueden planificar. No todos son naves: la
+   recepción de madera para Arauco es un patio aparte, pero se agenda igual.
+   La Nave Clasificación queda fuera: los ingresos de Resimple no se pueden
+   anticipar en cantidad de camiones.
+   (En el código el campo se sigue llamando "nave" por compatibilidad con los
+    datos ya guardados.) */
+const NAVES = [
+  { id:'cdr',    nom:'Nave CDR',                        col:'#1565C0', bg:'#E7EFF8' },
+  { id:'envase', nom:'Nave Separación Envase-Producto', col:'#BF360C', bg:'#F9EAE5' },
+  { id:'madera', nom:'Recepción Madera para Arauco',    col:'#8A6A2F', bg:'#F4F0E5' },
 ];
 
-let CLIENTS = [
-  { id:'resimple',   name:'RESIMPLE',               color:'#2E7D52', bg:'#E8F5E9', cat:'valorizable', icon:'♻️',  isOut:false, typTons:8  },
-  { id:'otros_val',  name:'Otros valorizables',      color:'#558B2F', bg:'#F1F8E9', cat:'valorizable', icon:'♻️',  isOut:false, typTons:10 },
-  { id:'cdr_env',    name:'CDR — Envases contam.',   color:'#1565C0', bg:'#E3F2FD', cat:'cdr',         icon:'🔵', isOut:false, typTons:6  },
-  { id:'cdr_plas',   name:'CDR — Plástico / Film',   color:'#1976D2', bg:'#EDE7F6', cat:'cdr',         icon:'🔵', isOut:false, typTons:7  },
-  { id:'cdr_mad',    name:'CDR — Madera / Pallets',  color:'#1E88E5', bg:'#E1F5FE', cat:'cdr',         icon:'🔵', isOut:false, typTons:9  },
-  { id:'cdr_rp',     name:'CDR — Res. peligrosos',   color:'#0D47A1', bg:'#E8EAF6', cat:'cdr',         icon:'⚠️', isOut:false, typTons:5  },
-  { id:'cdr_cen',    name:'CDR — Cenizas',           color:'#607D8B', bg:'#ECEFF1', cat:'cdr',         icon:'⬜', isOut:false, typTons:12 },
-  { id:'cdr_otros',  name:'CDR — Otros materiales',  color:'#42A5F5', bg:'#E1F5FE', cat:'cdr',         icon:'🔵', isOut:false, typTons:6  },
-  { id:'minera',     name:'Mineras',                 color:'#7B1FA2', bg:'#F3E5F5', cat:'minera',       icon:'⛏️', isOut:false, typTons:15 },
-  { id:'env_prod',   name:'Segreg. Envase-Producto', color:'#BF360C', bg:'#FBE9E7', cat:'envase',       icon:'🪣', isOut:false, typTons:5  },
-  { id:'sal_val',    name:'Salida Valorizables',     color:'#2E7D52', bg:'#fff',    cat:'salida',       icon:'🚛', isOut:true,  typTons:20 },
-  { id:'sal_cdr',    name:'Salida CDR',              color:'#1565C0', bg:'#fff',    cat:'salida',       icon:'🚛', isOut:true,  typTons:20 },
-  { id:'sal_df',     name:'Salida Disp. Final',      color:'#B71C1C', bg:'#fff',    cat:'salida',       icon:'🚛', isOut:true,  typTons:15 },
+/* Catálogo de residuos. Todo en mayúsculas, como en los registros de planta. */
+const RESIDUOS_RESIMPLE = [
+  'PP FLEXIBLE', 'PE FLEXIBLE', 'PET TRANSPARENTE', 'PET COLOR', 'PP RÍGIDO', 'PE RÍGIDO',
+  'METAL NO FERROSO (ALUMINIO)', 'METAL FERROSO (HOJALATA)', 'PAPEL Y CARTÓN', 'CARTÓN',
+  'CARTÓN PARA LÍQUIDOS'
 ];
 
-let REGISTRADORES = ['Jefe de turno','Operador báscula','Técnico receptor','Patricia Morales'];
-
-const DAYS   = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const DAYS_S = ['Lun','Mar','Mié','Jue','Vie','Sáb'];
-const PERIODS = [
-  { key:'am',  label:'AM',      time:'08:00–12:30', cls:'am'  },
-  { key:'pm',  label:'PM',      time:'13:00–18:00', cls:'pm'  },
-  { key:'sal', label:'SALIDAS', time:'',             cls:'sal' },
+const RESIDUOS_GENERAL = [
+  'BOTELLA TRANSPARENTE', 'BOTELLA COLOR', 'BOTELLAS FLAKE', 'CLAMSHELL ENTERO',
+  'CLAMSHELL FLAKE', 'GARRAFÓN MOLIDO', 'IMPRESO', 'PREFORMA ENTERA', 'PREFORMA MOLIDA', 'REDES',
+  'RESINA O FILTRADO', 'TORTA', 'ZUNCHO PET', 'BANDEJA NEGRA',
+  'ROLLO PLÁSTICO DESDE VIÑA SANTA RITA', 'BANDEJAS ENTERAS', 'BANDEJAS TRITURADAS',
+  'BALDES ENTEROS', 'BALDES TRITURADOS', 'TAPAS ENTEROS', 'BIDONES ENTEROS SIN PROCESAR',
+  'BIDONES TRITURADOS', 'TAMBORES ENTEROS', 'BINS', 'BINS TRITURADOS', 'BOYAS ENTERAS',
+  'BOYAS TRITURADAS', 'PALLETS ENTEROS', 'PALLETS TRITURADOS', 'SOPLADO ENTERO',
+  'TUBERÍAS ENTERAS', 'TUBERÍAS TRITURADAS', 'TAPAS DE GARRAFÓN ENTERAS',
+  'TAPAS DE GARRAFÓN TRITURADAS', 'ROTOMOLDEO TRITURADO', 'ENVASES HDPE', 'FLOTADORES TRITURADOS',
+  'FLOTADORES ENTEROS', 'BOTAS', 'BLISTER', 'LAMAS', 'VENTANAS', 'TUBERÍAS', 'CÁPSULA VINO',
+  'FILM PESCADO', 'PEBD COLOR', 'PEBD TRANSPARENTE', 'MANGUERA RIEGO ENTERA',
+  'MANGUERA RIEGO TRITURADA', 'TAPA GARRAFÓN ENTERO', 'TAPA GARRAFÓN MOLIDA', 'STRETCH FILM',
+  'PE EXPANDIDO', 'PP RÍGIDO ENTERO', 'PP RÍGIDO TRITURADO', 'CABOS ENTEROS (PTO MONTT)',
+  'CABOS TRITURADOS', 'GANCHO ROPA', 'FILM', 'MALLA RASCHEL', 'MAXISACOS', 'RAFIA BLANCA',
+  'RAFIA CARBÓN', 'RAFIA CHICA', 'RAFIA COLOR', 'RAFIA GRIS', 'RAFIA NEGRA',
+  'RAFIA BLANCA + PEBD (BBL)', 'COTONA', 'CARPETA', 'CARRETE MOLIDO', 'CARRETE ENTERO',
+  'ZUNCHO PP', 'EPS SIN PROCESAR', 'EPS TORTA', 'EPS GRANEL', 'EPS TORTA COLOR',
+  'EPS TORTA NEGRO', 'EPS FILTRADO', 'EPS TORTA FILTRADO', 'EPS ALMACIGUERA',
+  'EPS TORTA ALMACIGUERA', 'EPS TORTA ALMACIGUERA ANTIGUAS', 'PAI FARDO CHICOS', 'PAI FARDO',
+  'PAI RAMAS NESTLÉ RECUPAC', 'PAI FARDO NESTLÉ RECUPAC', 'PAI FARDO POST CONSUMO',
+  'PAI ESTRELLA', 'PAI ESTRELLA NESTLÉ RECUPAC', 'PAI RAMA', 'PAI PROCESADO',
+  'PAI CARRETE ENTERO', 'PAI CARRETE MOLIDO', 'PAI DESCARTE', 'CRISTAL MOLIDO',
+  'CRISTAL ENTERO ANILLO', 'PAI BANDEJAS ENTERAS', 'PAI PROCESADO BANDEJAS SOPROLE', 'PAI ROLLOS',
+  'PAI ROLLOS TRITURADOS BLANCO', 'PAI POST CONSUMO', 'EPS BLOQUE', 'GARRAFÓN ENTERO', 'CD',
+  'LAMINA', 'RAMA', 'TORTAS Y RAMAS', 'FIBRA', 'ROLLOS POLIAMIDA', 'REDES NYLON', 'VIRUTA',
+  'ALARMAS', 'FARDOS', 'TRITURADO', 'MOLIDO', 'ENTERO', 'RAFIA + PA FILM', 'CORCHO',
+  'CARTÓN CORRUGADO', 'PUERTO MONTT (SIN PROCESAR)', 'CON CERA', 'ESQUINERO', 'CONO TRITURADO',
+  'CONO ENTERO SIN PROCESAR', 'CONO ENTERO', 'CARTÓN PARA LÍQUIDOS', 'BLANCO', 'REVISTA',
+  'DIARIO', 'CHATARRA', 'HOJALATA', 'CABLES ELÉCTRICOS', 'LATAS DE AEROSOLES', 'LATAS',
+  'CAPSULAS VINO', 'PALLETS BUENOS', 'PALLETS MALOS', 'DESPUNTES', 'OTRAS MADERAS',
+  'VIDRIO COLOR', 'VIDRIO', 'NEUMÁTICOS FUERA DE USO', 'TROZOS DE CAUCHO',
+  'CORREA TRANSPORTADORA ALMA NYLON', 'CORREA TRANSPORTADORA ALMA ACERO',
+  'RETAZOS DE CORREA TRANSPORTADORA', 'ROPA', 'ELECTRÓNICOS', 'PEQUEÑOS APARATOS',
+  'MONITORES, PANTALLAS', 'LÁMPARAS', 'PANELES FOTOVOLTAICOS', 'GRANDES APARATOS',
+  'APARATOS DE INTERCAMBIO DE TEMPERATURA', 'TIERRAS CONTAMINADAS', 'LODOS CONTAMINADOS',
+  'LODO PULPER', 'LODO PLANTA RILES', 'LODOS PTAS', 'LODOS ACUICULTURA', 'FÁRMACOS',
+  'ALIMENTO LÁCTEO', 'ALIMENTO PANADERÍA Y PASTELERÍA', 'ALIMENTO DESCARTADO', 'INVENTARIO',
+  'TEXTIL', 'MATERIAL CONSTRUCCIÓN', 'COSMÉTICOS', 'MATERIAS PRIMAS', 'DECOMISOS', 'TABACO',
+  'MEZCLA DE ENVASES Y EMBALAJES', 'MEZCLA DE METALES', 'MEZCLA DE PAPEL Y CARTÓN',
+  'MEZCLA DE PLÁSTICOS', 'PLÁSTICOS', 'PAPEL Y CARTÓN', 'METALES', 'MADERA',
+  'ASIMILABLE A DOMICILIARIO', 'INDUSTRIAL', 'ESCOMBROS', 'MULTICAPA', 'RESIDUOS ORGÁNICOS',
+  'SÓLIDOS CONTAMINADOS', 'ACEITES Y LUBRICANTES USADOS', 'BATERÍAS', 'CDR',
+  'RESIDUOS NO RECICLABLES', 'RESIDUOS LIQUÍDOS', 'AGUAS SERVIDAS'
 ];
 
-let schedule = {};
-let currentMonday = getThisMonday();
-let editTarget = null;
-let selectedColor = COLORS_PALETTE[0];
-let selectedCat = 'valorizable';
-let entryCounter = 0;
+/* Un solo catálogo para las dos naves: el general más los tipos de Resimple
+   que no estaban repetidos. */
+const RESIDUOS_TODOS = [...RESIDUOS_GENERAL,
+  ...RESIDUOS_RESIMPLE.filter(v=>!RESIDUOS_GENERAL.includes(v))];
 
-// ════════════════════════════════════════════════════════════════════
-// HELPERS
-// ════════════════════════════════════════════════════════════════════
-function getThisMonday(d) {
-  const now = d || new Date();
-  const day = now.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  const mon = new Date(now);
-  mon.setDate(now.getDate() + diff);
-  mon.setHours(0,0,0,0);
-  return mon;
-}
-function shiftWeek(dir) {
-  currentMonday = new Date(currentMonday);
-  currentMonday.setDate(currentMonday.getDate() + dir * 7);
-  schedule = {};
-  preloadResimple();
-  renderCal();
-}
-function fmtDate(d) { return d.toLocaleDateString('es-CL',{day:'numeric',month:'short'}); }
-function key(day, period) { return day + '_' + period; }
-function getEntries(day, period) { return schedule[key(day, period)] || []; }
-function addEntry(day, period, entry) {
-  const k = key(day, period);
-  if (!schedule[k]) schedule[k] = [];
-  schedule[k].push(entry);
-  renderCal();
-}
-function removeEntry(day, period, entryId) {
-  const k = key(day, period);
-  if (schedule[k]) schedule[k] = schedule[k].filter(e => e.id !== entryId);
-  renderCal();
-}
-function getTrucksUsed(day, period) {
-  return getEntries(day, period)
-    .filter(e => !(CLIENTS.find(c=>c.id===e.clientId)?.isOut))
-    .reduce((s, e) => s + (e.trucks || 1), 0);
-}
-function getTonsTotal(entries) {
-  return entries.reduce((s, e) => s + (parseFloat(e.tons) || 0), 0);
-}
+const CATALOGO = {
+  cdr:    { grupos:[['RESIDUOS', RESIDUOS_TODOS]],
+            rapidos:['CDR','RESIDUOS NO RECICLABLES','MEZCLA DE PLÁSTICOS','MADERA','TEXTIL','SÓLIDOS CONTAMINADOS','ESCOMBROS','ASIMILABLE A DOMICILIARIO'] },
+  envase: { grupos:[['RESIDUOS', RESIDUOS_TODOS]],
+            rapidos:['MEZCLA DE ENVASES Y EMBALAJES','ALIMENTO DESCARTADO','COSMÉTICOS','FÁRMACOS','INVENTARIO','DECOMISOS','MATERIAS PRIMAS','BALDES ENTEROS'] },
+  madera: { grupos:[['MADERA', ['PALLETS BUENOS','PALLETS MALOS','PALLETS ENTEROS','PALLETS TRITURADOS',
+                                'DESPUNTES','OTRAS MADERAS','MADERA','ESQUINERO','CARRETE ENTERO','CARRETE MOLIDO']],
+                    ['OTROS RESIDUOS', RESIDUOS_TODOS]],
+            rapidos:['PALLETS BUENOS','PALLETS MALOS','DESPUNTES','OTRAS MADERAS','MADERA','ESQUINERO'] },
+};
 
-// ════════════════════════════════════════════════════════════════════
-// PRELOAD RESIMPLE
-// ════════════════════════════════════════════════════════════════════
-function preloadResimple() {
-  // 6 camiones/día Lun-Vie (3 AM + 3 PM), Sáb 2 AM
-  [0,1,2,3,4].forEach(d => {
-    [['am',3,8],['pm',3,8]].forEach(([p,n,tons]) => {
-      for (let i=0; i<n; i++) {
-        const k = key(d,p);
-        if (!schedule[k]) schedule[k] = [];
-        schedule[k].push({id:'e'+(++entryCounter),clientId:'resimple',trucks:1,vehicle:'camion',tons,notes:'',registrador:'Operador báscula'});
+const H_INI = 8*60+30, H_FIN = 18*60+30, PASO = 30;   // 08:30 a 18:30, media hora
+const SLOTS = (H_FIN - H_INI) / PASO;
+const ALTO  = 34;                                      // px por bloque de 30 min
+const DIAS_N = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_C = ['Lun','Mar','Mié','Jue','Vie','Sáb'];
+const CLAVE = 'giri_planificador_v2';
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · ESTADO
+   ══════════════════════════════════════════════════════════════════════════ */
+let datos = {
+  reservas: [],   // {id,fecha,nave,ini,dur,cliente,items[],veh,patente,transp,quien,estado,notas,real}
+  bloqueos: [],   // {id,tipo:'diario'|'fecha',fecha,nave:'*'|id,ini,dur,motivo}
+  listas: { clientes:[], residuos:[], transp:[], quien:[] },
+};
+const MOTIVOS = ['Colación','Mantención','Nave cerrada','Otro'];
+let vista = 'dia';
+let dia   = hoyISO();                 // día visible en vista Día
+let lunes = lunesDe(new Date());      // lunes de la semana visible
+let editando = null;                  // id de la reserva en edición
+let estadoSel = 'confirmado';
+let naveSel = NAVES[0].id;
+let cruces = new Set();
+let chocanBloqueo = new Map();   // id de reserva → motivo del bloqueo
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · UTILIDADES DE FECHA Y HORA
+   ══════════════════════════════════════════════════════════════════════════ */
+function hoyISO(){ return aISO(new Date()) }
+function aISO(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function deISO(s){ const [a,m,d] = s.split('-').map(Number); return new Date(a,m-1,d) }
+function lunesDe(d){
+  const x = new Date(d), dow = x.getDay(), dif = dow===0 ? -6 : 1-dow;
+  x.setDate(x.getDate()+dif); x.setHours(0,0,0,0); return x;
+}
+function masDias(iso,n){ const d = deISO(iso); d.setDate(d.getDate()+n); return aISO(d) }
+function diasSemana(){
+  return [0,1,2,3,4,5].map(i=>{ const d=new Date(lunes); d.setDate(d.getDate()+i); return aISO(d) });
+}
+function hhmm(min){ return String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0') }
+function fechaLarga(iso){
+  const t = deISO(iso).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+function fechaCorta(iso){ return deISO(iso).toLocaleDateString('es-CL',{day:'numeric',month:'short'}) }
+function nave(id){ return NAVES.find(n=>n.id===id) || NAVES[0] }
+
+/* Un camión puede traer varios residuos: r.items = [{r:'RESIDUO', t:toneladas}] */
+function items(r){
+  if(Array.isArray(r.items) && r.items.length) return r.items;
+  return [{ r:(r.residuo||'').toUpperCase(), t:parseFloat(r.ton)||0 }];
+}
+function totalTon(r){ return items(r).reduce((s,i)=>s+(parseFloat(i.t)||0),0) }
+function resumenResiduos(r){
+  const l = items(r).filter(i=>i.r);
+  if(!l.length) return '—';
+  return l.length===1 ? l[0].r : `${l[0].r} +${l.length-1}`;
+}
+function detalleResiduos(r){
+  return items(r).filter(i=>i.r).map(i=>`${i.r}${i.t?` · ${i.t} t`:''}`).join('\n');
+}
+function num(n){ return (Math.round(n*10)/10).toFixed(1).replace('.',',') }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · GUARDADO EN EL NAVEGADOR
+   ══════════════════════════════════════════════════════════════════════════ */
+function guardar(){
+  try{ localStorage.setItem(CLAVE, JSON.stringify(datos)) }
+  catch(e){ /* modo privado o sin permiso: la sesión sigue funcionando igual */ }
+}
+function cargar(){
+  try{
+    const t = localStorage.getItem(CLAVE);
+    if(t){
+      const d = JSON.parse(t);
+      if(d && Array.isArray(d.reservas)){
+        datos = d;
+        datos.listas = datos.listas || {clientes:[],residuos:[],transp:[],quien:[]};
+        /* Compatibilidad: la antigua nave "Resimple" pasó a ser Nave Clasificación
+           y los residuos ahora van en mayúsculas. */
+        let mudados = 0;
+        datos.reservas.forEach(r=>{
+          if(!NAVES.some(n=>n.id===r.nave)){ r.nave = NAVES[0].id; mudados++ }
+          r.residuo = (r.residuo||'').toUpperCase();
+          if(!Array.isArray(r.items) || !r.items.length)
+            r.items = [{ r:r.residuo, t:parseFloat(r.ton)||0 }];
+          r.items.forEach(i=>{ i.r = String(i.r||'').toUpperCase(); i.t = parseFloat(i.t)||0 });
+          if(r.real && typeof r.real === 'object')
+            r.real = r.real.noLlego ? 'nollego' : (r.real.hora!=null ? 'llego' : null);
+        });
+        datos.listas.residuos = (datos.listas.residuos||[]).map(v=>String(v).toUpperCase());
+        if(!Array.isArray(datos.bloqueos)) datos.bloqueos = [colacionPorDefecto()];
+        datos.bloqueos.forEach(b=>{ if(b.nave!=='*' && !NAVES.some(n=>n.id===b.nave)) b.nave='*' });
+        if(mudados) setTimeout(()=>aviso(
+          `${mudados} ingreso${mudados>1?'s':''} que estaba${mudados>1?'n':''} en Nave Clasificación pasó a ${NAVES[0].nom}. Revísalos.`, true), 900);
+        return true;
       }
-    });
-  });
-  // Sáb 2 AM
-  const kS = key(5,'am'); if (!schedule[kS]) schedule[kS]=[];
-  for(let i=0;i<2;i++) schedule[kS].push({id:'e'+(++entryCounter),clientId:'resimple',trucks:1,vehicle:'camion',tons:8,notes:'',registrador:'Operador báscula'});
-  // Ramplas Lun PM, Mié PM, Vie PM
-  [[0,'pm'],[2,'pm'],[4,'pm']].forEach(([d,p]) => {
-    const k=key(d,p); if(!schedule[k]) schedule[k]=[];
-    schedule[k].push({id:'e'+(++entryCounter),clientId:'resimple',trucks:1,vehicle:'rampla',tons:25,notes:'Fardos valorizables',registrador:'Jefe de turno'});
-  });
+    }
+  }catch(e){}
+  return false;
+}
+/* La colación existe desde el primer día; se puede editar o borrar. */
+function colacionPorDefecto(){
+  return { id:'b-colacion', tipo:'diario', fecha:null, nave:'*', ini:12*60+30, dur:60, motivo:'Colación' };
+}
+function recordar(lista, valor){
+  if(!valor) return;
+  const L = datos.listas[lista] = datos.listas[lista] || [];
+  if(!L.some(v=>v.toLowerCase()===valor.toLowerCase())) L.push(valor);
 }
 
-// ════════════════════════════════════════════════════════════════════
-// RENDER CALENDAR
-// ════════════════════════════════════════════════════════════════════
-function renderCal() {
-  const sat = new Date(currentMonday); sat.setDate(sat.getDate()+5);
-  document.getElementById('weekLabel').textContent = 'Semana '+fmtDate(currentMonday)+' – '+fmtDate(sat);
-
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-  const todayStr = new Date().toDateString();
-
-  // Header
-  grid.appendChild(Object.assign(document.createElement('div'),{className:'cal-corner'}));
-  DAYS.forEach((name, di) => {
-    const d = new Date(currentMonday); d.setDate(d.getDate()+di);
-    const isToday = d.toDateString()===todayStr;
-    const el = document.createElement('div');
-    el.className='day-hdr'+(isToday?' today':'');
-    el.innerHTML=`<div class="day-name">${DAYS_S[di]}</div><div class="day-date">${fmtDate(d)}</div>`;
-    grid.appendChild(el);
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · EJEMPLO INICIAL — solo la primera vez que se abre
+   ══════════════════════════════════════════════════════════════════════════ */
+function ejemplo(){
+  const d = diasSemana();
+  const r = (fecha,nv,ini,dur,cliente,lista,estado)=>datos.reservas.push({
+    id:'r'+Math.random().toString(36).slice(2,9), fecha, nave:nv, ini, dur,
+    cliente, items:lista.map(([x,t])=>({r:x,t})), veh:'Camión', patente:'', transp:'',
+    quien:'Comercial', estado: estado||'confirmado', notas:''
   });
+  r(d[0],'cdr',    9*60,  60, 'Papelera del Sur',      [['RESIDUOS NO RECICLABLES',16]]);
+  r(d[0],'envase',10*60,  90, 'Nestlé Chile',          [['ALIMENTO DESCARTADO',6],['INVENTARIO',3]]);
+  r(d[0],'cdr',   11*60,  90, 'Cervecería CCU',        [['MEZCLA DE PLÁSTICOS',8]], 'tentativo');
+  r(d[1],'cdr',    9*60,  60, 'Minera Los Andes',      [['MADERA',18]]);
+  r(d[1],'envase',11*60,  60, 'Laboratorio Andrómaco', [['FÁRMACOS',2],['COSMÉTICOS',2]]);
+  r(d[2],'cdr',    9*60, 120, 'Retail Falabella',      [['TEXTIL',9],['MEZCLA DE ENVASES Y EMBALAJES',6]]);
+  r(d[2],'envase',14*60,  60, 'Viña Santa Rita',       [['ROLLO PLÁSTICO DESDE VIÑA SANTA RITA',5]], 'tentativo');
+  r(d[3],'cdr',   10*60,  60, 'Constructora Aconcagua',[['ESCOMBROS',20]]);
+  r(d[4],'envase', 9*60,  90, 'Soprole',               [['ALIMENTO LÁCTEO',7]]);
+  r(d[1],'madera',10*60,  60, 'Aserradero El Roble',   [['PALLETS BUENOS',14]]);
+  r(d[3],'madera',15*60,  90, 'CMPC Maderas',          [['DESPUNTES',11],['OTRAS MADERAS',6]], 'tentativo');
+  ['Cervecería CCU','Nestlé Chile','Minera Los Andes','Retail Falabella','Papelera del Sur',
+   'Laboratorio Andrómaco','Viña Santa Rita','Constructora Aconcagua','Soprole',
+   'Aserradero El Roble','CMPC Maderas']
+    .forEach(c=>recordar('clientes',c));
+}
 
-  // Period rows
-  PERIODS.forEach(({key:pk, label, time, cls}) => {
-    const lbl = document.createElement('div');
-    lbl.className='period-label '+cls;
-    lbl.innerHTML=`<span class="pl-tag">${label}</span>${time?`<span class="pl-time">${time}</span>`:''}`;
-    grid.appendChild(lbl);
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · CRUCES DE HORARIO
+   ══════════════════════════════════════════════════════════════════════════ */
+/* Bloqueos que aplican a una fecha y nave. nave '*' = todas. */
+function bloqueosDe(fecha, naveId){
+  return (datos.bloqueos||[]).filter(b=>
+    (b.tipo==='diario' || b.fecha===fecha) && (b.nave==='*' || b.nave===naveId));
+}
+function bloqueoQueChoca(fecha, naveId, ini, dur){
+  return bloqueosDe(fecha, naveId).find(b=> ini < b.ini + b.dur && b.ini < ini + dur) || null;
+}
 
-    DAYS.forEach((_, di) => {
-      const isToday=(()=>{const d=new Date(currentMonday);d.setDate(d.getDate()+di);return d.toDateString()===todayStr;})();
-      const cell = document.createElement('div');
-      cell.className='cal-cell '+cls+(isToday?' today-col':'');
-
-      const entries = getEntries(di, pk);
-
-      // Capacity bar
-      if (pk!=='sal') {
-        const used = getTrucksUsed(di,pk);
-        const pct = Math.min(100,(used/4)*100);
-        const col = used<=2?'#66BB6A':used<=3?'#FFA726':'#EF5350';
-        const tons = getTonsTotal(entries.filter(e=>!(CLIENTS.find(c=>c.id===e.clientId)?.isOut)));
-        cell.innerHTML=`<div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${col}"></div></div>`;
-        if(tons>0){
-          const tbar=document.createElement('div');
-          tbar.style.cssText='font-size:9px;color:var(--muted);margin-bottom:5px;font-weight:600;';
-          tbar.textContent=`${used} veh. · ${tons.toFixed(1)} ton`;
-          cell.appendChild(tbar);
-        }
+function calcularCruces(){
+  cruces = new Set();
+  chocanBloqueo = new Map();
+  datos.reservas.forEach(r=>{
+    const b = bloqueoQueChoca(r.fecha, r.nave, r.ini, r.dur);
+    if(b){ cruces.add(r.id); chocanBloqueo.set(r.id, b.motivo) }
+  });
+  const grupos = {};
+  datos.reservas.forEach(r=>{ (grupos[r.fecha+'|'+r.nave] = grupos[r.fecha+'|'+r.nave] || []).push(r) });
+  Object.values(grupos).forEach(list=>{
+    list.sort((a,b)=>a.ini-b.ini);
+    for(let i=0;i<list.length;i++)
+      for(let j=i+1;j<list.length;j++){
+        if(list[j].ini >= list[i].ini + list[i].dur) break;
+        cruces.add(list[i].id); cruces.add(list[j].id);
       }
-
-      // Chips
-      const chips = document.createElement('div');
-      chips.className='chips';
-      entries.forEach(entry => {
-        const cl = CLIENTS.find(c=>c.id===entry.clientId);
-        if(!cl) return;
-        const isRampla = entry.vehicle==='rampla';
-        const isOut = cl.isOut;
-        const chip = document.createElement('div');
-        chip.className='chip'+(isRampla?' rampla':'')+(isOut?' salida':'');
-        chip.style.background = isOut?'#fff':cl.bg;
-        chip.style.color = cl.color;
-        if(isRampla||isOut) chip.style.borderColor=cl.color;
-
-        const tonsStr = entry.tons ? `${parseFloat(entry.tons).toFixed(1)} ton` : '';
-        const vehStr = isRampla?'rmp':'cam';
-        const regStr = entry.registrador ? `👤 ${entry.registrador}` : '';
-
-        chip.innerHTML=`
-          <span class="chip-icon">${isOut?'🚛':isRampla?'🚚':cl.icon}</span>
-          <span class="chip-body">
-            <div class="chip-name">${cl.name}</div>
-            <div class="chip-meta">
-              <span class="chip-badge">×${entry.trucks} ${vehStr}</span>
-              ${tonsStr?`<span class="chip-badge" style="background:rgba(0,0,0,0.12)">${tonsStr}</span>`:''}
-            </div>
-            ${regStr?`<div class="chip-reg">${regStr}</div>`:''}
-            ${entry.notes?`<div class="chip-reg" style="font-style:italic">${entry.notes}</div>`:''}
-          </span>
-          <span class="chip-del" onclick="event.stopPropagation();removeEntry(${di},'${pk}','${entry.id}')">×</span>
-        `;
-        chips.appendChild(chip);
-      });
-      cell.appendChild(chips);
-
-      // Add button
-      const addBtn = document.createElement('div');
-      addBtn.className='cell-add';
-      addBtn.innerHTML=`<div class="cell-add-icon">+</div><span>Agregar</span>`;
-      addBtn.onclick=e=>{e.stopPropagation();openAddModal(di,pk);};
-      cell.appendChild(addBtn);
-      cell.onclick=()=>openAddModal(di,pk);
-      grid.appendChild(cell);
-    });
   });
-
-  renderSummary();
+  return cruces;
+}
+function chocaCon(fecha, naveId, ini, dur, ignorarId){
+  return datos.reservas.filter(r=>
+    r.id!==ignorarId && r.fecha===fecha && r.nave===naveId &&
+    ini < r.ini + r.dur && r.ini < ini + dur);
 }
 
-// ════════════════════════════════════════════════════════════════════
-// SUMMARY
-// ════════════════════════════════════════════════════════════════════
-function renderSummary() {
-  const totals = {};
-  Object.values(schedule).flat().forEach(e => {
-    if (!totals[e.clientId]) totals[e.clientId] = {trucks:0, tons:0};
-    totals[e.clientId].trucks += (e.trucks||1);
-    totals[e.clientId].tons   += parseFloat(e.tons||0);
-  });
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · PINTAR LA GRILLA
+   ══════════════════════════════════════════════════════════════════════════ */
+function columnas(){
+  return vista==='dia'
+    ? NAVES.map(n=>({ k:n.id, nom:n.nom, sub:'', hoy:false }))
+    : diasSemana().map((f,i)=>({ k:f, nom:DIAS_C[i], sub:fechaCorta(f), hoy:f===hoyISO() }));
+}
+function reservasVisibles(){
+  return vista==='dia'
+    ? datos.reservas.filter(r=>r.fecha===dia)
+    : datos.reservas.filter(r=>diasSemana().includes(r.fecha));
+}
+function claveColumna(r){ return vista==='dia' ? r.nave : r.fecha }
 
-  const grid = document.getElementById('sumGrid');
-  grid.innerHTML = '';
+function pintar(){
+  calcularCruces();
+  const cols = columnas();
+  const anchoCols = `64px repeat(${cols.length},minmax(150px,1fr))`;
 
-  // Total general
-  const allTons = Object.values(totals).reduce((s,t)=>s+t.tons,0);
-  const allTrucks = Object.values(totals).reduce((s,t)=>s+t.trucks,0);
-  if(allTrucks > 0) {
-    const tot = document.createElement('div');
-    tot.className='sum-card';
-    tot.style.cssText='background:var(--gBg);border-color:var(--gL);grid-column:1/-1;';
-    tot.innerHTML=`
-      <div class="sum-card-top">
-        <div class="sum-dot" style="background:var(--g1)"></div>
-        <span class="sum-name" style="font-size:12px">TOTAL SEMANA</span>
-      </div>
-      <div class="sum-stats">
-        <div class="sum-stat"><span class="sum-val" style="color:var(--g1)">${allTrucks}</span><span class="sum-lbl">Vehículos</span></div>
-        <div class="sum-stat"><span class="sum-val" style="color:var(--g1)">${allTons.toFixed(1)}</span><span class="sum-lbl">Toneladas</span></div>
+  /* --- encabezado --- */
+  const cab = document.getElementById('g-cab');
+  cab.style.gridTemplateColumns = anchoCols;
+  cab.innerHTML = '<div></div>' + cols.map(c=>{
+    const n = vista==='dia' ? nave(c.k) : null;
+    const punto = n ? `<span style="display:inline-block;width:8px;height:8px;background:${n.col};margin-right:5px;vertical-align:1px"></span>` : '';
+    return `<div class="${c.hoy?'hoy':''}">
+        <div class="c-nom">${punto}${c.nom}</div>
+        ${c.sub?`<div class="c-sub">${c.sub}</div>`:''}
       </div>`;
-    grid.appendChild(tot);
+  }).join('');
+
+  /* --- cuerpo --- */
+  const cuerpo = document.getElementById('g-cuerpo');
+  cuerpo.style.gridTemplateColumns = anchoCols;
+  cuerpo.innerHTML = '';
+
+  const horas = document.createElement('div');
+  horas.className = 'col-horas';
+  for(let s=0;s<SLOTS;s++){
+    const m = H_INI + s*PASO;
+    const h = document.createElement('div');
+    h.className = 'hora' + ((m%60 && s>0) ? ' media' : '');
+    h.textContent = hhmm(m);
+    horas.appendChild(h);
   }
+  cuerpo.appendChild(horas);
 
-  CLIENTS.forEach(cl => {
-    const t = totals[cl.id];
-    if (!t) return;
-    const card = document.createElement('div');
-    card.className='sum-card';
-    card.style.background = cl.bg || '#f5f5f5';
-    if(cl.isOut) { card.style.border='1.5px dashed '+cl.color; card.style.background='#fff'; }
-    card.innerHTML=`
-      <div class="sum-card-top">
-        <div class="sum-dot" style="background:${cl.color}"></div>
-        <span class="sum-name" style="color:${cl.color}">${cl.name}</span>
-      </div>
-      <div class="sum-stats">
-        <div class="sum-stat"><span class="sum-val" style="color:${cl.color}">${t.trucks}</span><span class="sum-lbl">${cl.isOut?'Salidas':'Vehículos'}</span></div>
-        <div class="sum-stat"><span class="sum-val" style="color:${cl.color}">${t.tons.toFixed(1)}</span><span class="sum-lbl">Toneladas</span></div>
-      </div>`;
-    grid.appendChild(card);
+  const visibles = reservasVisibles();
+
+  cols.forEach(c=>{
+    const col = document.createElement('div');
+    col.className = 'col' + (c.hoy?' hoy-col':'');
+    col.style.height = (SLOTS*ALTO)+'px';
+    col.dataset.k = c.k;
+
+    /* línea de la hora actual */
+    const iso = vista==='dia' ? dia : c.k;
+    if(iso===hoyISO()){
+      const ahora = new Date().getHours()*60 + new Date().getMinutes();
+      if(ahora>=H_INI && ahora<=H_FIN){
+        const l = document.createElement('div');
+        l.className='linea-ahora'; l.style.top = ((ahora-H_INI)/PASO*ALTO)+'px';
+        col.appendChild(l);
+      }
+    }
+
+    /* franjas bloqueadas */
+    const naveCol = vista==='dia' ? c.k : null;
+    const lista = vista==='dia'
+      ? bloqueosDe(dia, naveCol)
+      : bloqueosDe(c.k, '*').filter(b=>b.nave==='*');
+    lista.forEach(b=>{
+      const el = document.createElement('div');
+      el.className = 'bloqueo';
+      el.style.top = ((b.ini - H_INI)/PASO*ALTO)+'px';
+      el.style.height = (Math.min(b.dur, H_FIN-b.ini)/PASO*ALTO)+'px';
+      el.innerHTML = `<span>${esc(b.motivo)}</span>`;
+      col.appendChild(el);
+    });
+
+    /* fantasma que sigue al bloque mientras se arrastra */
+    const gh = document.createElement('div');
+    gh.className='fantasma'; col.appendChild(gh);
+
+    /* bloques, repartidos lado a lado cuando comparten horario */
+    const propias = visibles.filter(r=>claveColumna(r)===c.k);
+    repartirCarriles(propias).forEach(({r,carril,total})=>col.appendChild(hacerBloque(r,carril,total)));
+
+    /* clic en vacío = agendar ahí */
+    col.addEventListener('click', e=>{
+      if(e.target!==col) return;
+      const slot = Math.floor((e.clientY - col.getBoundingClientRect().top)/ALTO);
+      abrirModal(null, {
+        fecha: vista==='dia' ? dia : c.k,
+        nave:  vista==='dia' ? c.k : naveSel,
+        ini:   H_INI + Math.max(0,Math.min(SLOTS-1,slot))*PASO,
+      });
+    });
+
+    cuerpo.appendChild(col);
   });
+
+  pintarEncabezadoTexto();
+  pintarAviso();
+  pintarKPIs();
+  pintarOcupacion();
+  pintarLeyenda();
+  rellenarListas();
 }
 
-// ════════════════════════════════════════════════════════════════════
-// MODAL: AGREGAR ENTRADA
-// ════════════════════════════════════════════════════════════════════
-function openAddModal(day, period) {
-  editTarget = {day, period};
-  const used = getTrucksUsed(day, period);
-  const per = PERIODS.find(p=>p.key===period);
-  document.getElementById('modalTitle').textContent = `${DAYS[day]} — ${per.label}`;
-  document.getElementById('modalSub').textContent = period!=='sal'
-    ? `Capacidad disponible: ${4-used} de 4 slots · ${used} vehículos asignados`
-    : 'Registrar salida de mercadería';
+/* Reparte en carriles los bloques que comparten horario, para que ninguno
+   quede escondido detrás de otro (mismo criterio que Outlook o Google). */
+function repartirCarriles(list){
+  const orden = [...list].sort((a,b)=> a.ini-b.ini || b.dur-a.dur);
+  const salida = [];
+  let grupo = [], finGrupo = -1;
 
-  // Client select
-  const sel = document.getElementById('selClient');
-  sel.innerHTML='';
-  const ingresos = CLIENTS.filter(c=>!c.isOut);
-  const salidas  = CLIENTS.filter(c=>c.isOut);
-  if(period!=='sal') {
-    [['Ingresos — Valorizables', ingresos.filter(c=>c.cat==='valorizable')],
-     ['Ingresos — CDR',          ingresos.filter(c=>c.cat==='cdr')],
-     ['Ingresos — Otros',        ingresos.filter(c=>c.cat==='minera'||c.cat==='envase'||c.cat==='otro')]
-    ].forEach(([lbl,list]) => {
-      if(!list.length) return;
-      const grp=document.createElement('optgroup'); grp.label=lbl;
-      list.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;grp.appendChild(o);});
-      sel.appendChild(grp);
+  const cerrar = ()=>{
+    if(!grupo.length) return;
+    const carriles = [];                       // fin de cada carril
+    grupo.forEach(r=>{
+      let i = carriles.findIndex(fin=>fin<=r.ini);
+      if(i<0){ i = carriles.length; carriles.push(0) }
+      carriles[i] = r.ini + r.dur;
+      r._carril = i;
     });
+    grupo.forEach(r=>salida.push({ r, carril:r._carril, total:carriles.length }));
+    grupo = []; finGrupo = -1;
+  };
+
+  orden.forEach(r=>{
+    if(grupo.length && r.ini >= finGrupo) cerrar();
+    grupo.push(r);
+    finGrupo = Math.max(finGrupo, r.ini + r.dur);
+  });
+  cerrar();
+  return salida;
+}
+
+/* Arrastre con eventos de puntero: sirve con mouse y con dedo (tablet).
+   Se calcula la columna bajo el cursor y el bloque de 30 min más cercano. */
+let arrastre = null, redimensionando = false;
+
+function limpiarFantasmas(){
+  document.querySelectorAll('.fantasma').forEach(g=>g.style.display='none');
+  document.querySelectorAll('.col.destino').forEach(c=>c.classList.remove('destino'));
+}
+function slotEn(col, clientY, offsetDentro){
+  const y = clientY - col.getBoundingClientRect().top - (offsetDentro||0);
+  return Math.max(0, Math.min(SLOTS-1, Math.round(y/ALTO)));
+}
+function iniciarArrastre(e, b, r){
+  b.setPointerCapture(e.pointerId);
+  arrastre = {
+    id:r.id, dur:r.dur, x0:e.clientX, y0:e.clientY, movido:false,
+    dentro: e.clientY - b.getBoundingClientRect().top, destino:null, b
+  };
+}
+document.addEventListener('pointermove', e=>{
+  if(!arrastre) return;
+  if(!arrastre.movido && Math.abs(e.clientY-arrastre.y0)<4 && Math.abs(e.clientX-arrastre.x0)<4) return;
+  arrastre.movido = true;
+  arrastre.b.classList.add('arrastrando');
+  const bajo = document.elementFromPoint(e.clientX, e.clientY);
+  const col = bajo && bajo.closest ? bajo.closest('.col') : null;
+  limpiarFantasmas();
+  if(!col){ arrastre.destino = null; return }
+  const slot = slotEn(col, e.clientY, arrastre.dentro);
+  arrastre.destino = { k: col.dataset.k, slot };
+  col.classList.add('destino');
+  const g = col.querySelector('.fantasma');
+  if(g){
+    g.style.display = 'block';
+    g.style.top = (slot*ALTO)+'px';
+    g.style.height = (arrastre.dur/PASO*ALTO - 3)+'px';
+  }
+});
+document.addEventListener('pointerup', e=>{
+  if(!arrastre) return;
+  const a = arrastre; arrastre = null;
+  a.b.classList.remove('arrastrando');
+  limpiarFantasmas();
+  if(a.movido){
+    if(a.destino) soltar(a.id, a.destino.k, a.destino.slot);
+  } else if(!redimensionando){
+    abrirModal(a.id);
+  }
+});
+document.addEventListener('pointercancel', ()=>{ arrastre=null; limpiarFantasmas() });
+
+function hacerBloque(r, carril, total){
+  carril = carril||0; total = total||1;
+  const n = nave(r.nave);
+  const b = document.createElement('div');
+  const esCruce = cruces.has(r.id);
+  const real = estadoReal(r);
+  b.className = 'bloque' + (r.estado==='tentativo'?' tentativo':'') + (esCruce?' cruce':'')
+              + (real==='llego'?' llegado':'') + (real==='nollego'?' nollego':'');
+  b.style.top = ((r.ini - H_INI)/PASO*ALTO)+'px';
+  b.style.height = (r.dur/PASO*ALTO - 3)+'px';
+  if(total>1){
+    const ancho = 100/total;
+    b.style.left  = `calc(${carril*ancho}% + 2px)`;
+    b.style.right = `calc(${100-(carril+1)*ancho}% + 2px)`;
+  }
+  b.style.borderColor = n.col;
+  b.style.color = n.col;
+  if(!esCruce && r.estado!=='tentativo') b.style.background = n.bg;
+  b.dataset.id = r.id;
+  b.style.touchAction = 'none';
+  const tt = totalTon(r);
+  b.title = `${r.cliente}\n${detalleResiduos(r)}\n${hhmm(r.ini)}–${hhmm(r.ini+r.dur)} · ${n.nom}${tt?` · ${num(tt)} t en total`:''}`;
+
+  const rango = `${hhmm(r.ini)}–${hhmm(r.ini+r.dur)}`;
+  const extra = tt ? `${num(tt)} t` : '';
+  const naveTxt = (vista==='semana' && total<3) ? n.nom : '';
+
+  if(r.dur<=30){
+    b.innerHTML = `<div class="b-corto">
+        <b class="b-cli">${esc(r.cliente)}</b>
+        <span class="b-meta">${rango}</span>
+      </div>`;
   } else {
-    const grp=document.createElement('optgroup'); grp.label='Salidas';
-    salidas.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;grp.appendChild(o);});
-    sel.appendChild(grp);
+    const txtReal = real==='nollego' ? 'NO LLEGÓ' : real==='llego' ? 'LLEGÓ' : '';
+    b.innerHTML = `
+      <b class="b-cli">${esc(r.cliente)}</b>
+      <span class="b-res">${esc(resumenResiduos(r))}</span>
+      <span class="b-meta">${rango}${extra?' · '+esc(extra):''}${naveTxt?' · '+esc(naveTxt):''}</span>
+      ${txtReal?`<span class="b-real" style="color:${real==='nollego'?'var(--rojo)':'#1E8E4E'}">${txtReal}</span>`:''}`;
   }
+  if(esCruce) b.insertAdjacentHTML('beforeend',
+    `<span class="b-alerta" title="${esc(chocanBloqueo.get(r.id)||'Cruce de horario')}">!</span>`);
+  else if(real==='llego') b.insertAdjacentHTML('beforeend','<span class="b-ok" title="Llegó">✓</span>');
+  b.insertAdjacentHTML('beforeend','<span class="b-tirador" title="Estirar para cambiar la duración"></span>');
 
-  // Prefill typical tons
-  sel.addEventListener('change', prefillTons, {once:true});
-  prefillTons();
-
-  // Registradores select
-  const selReg = document.getElementById('selRegistrador');
-  selReg.innerHTML='<option value="">— Sin asignar —</option>';
-  REGISTRADORES.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;selReg.appendChild(o);});
-
-  document.getElementById('inpTrucks').value=1;
-  document.getElementById('inpNotes').value='';
-  document.getElementById('addOverlay').classList.add('open');
-}
-function prefillTons() {
-  const cid = document.getElementById('selClient').value;
-  const cl = CLIENTS.find(c=>c.id===cid);
-  if(cl?.typTons) document.getElementById('inpTons').value=cl.typTons;
-}
-function closeAddModal() {
-  document.getElementById('addOverlay').classList.remove('open');
-  editTarget=null;
-}
-function saveEntry() {
-  if(!editTarget) return;
-  const clientId  = document.getElementById('selClient').value;
-  const trucks    = parseInt(document.getElementById('inpTrucks').value)||1;
-  const vehicle   = document.getElementById('selVehicle').value;
-  const tons      = parseFloat(document.getElementById('inpTons').value)||0;
-  const registrador = document.getElementById('selRegistrador').value;
-  const notes     = document.getElementById('inpNotes').value.trim();
-  addEntry(editTarget.day, editTarget.period,
-    {id:'e'+(++entryCounter), clientId, trucks, vehicle, tons, registrador, notes});
-  closeAddModal();
-}
-
-// ════════════════════════════════════════════════════════════════════
-// MODAL: NUEVO CLIENTE
-// ════════════════════════════════════════════════════════════════════
-function openClientModal() {
-  const row=document.getElementById('colorRow');
-  row.innerHTML='';
-  COLORS_PALETTE.forEach(c=>{
-    const sw=document.createElement('div');
-    sw.className='color-swatch'+(c===selectedColor?' selected':'');
-    sw.style.background=c;
-    sw.onclick=()=>{ selectedColor=c; document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected')); sw.classList.add('selected'); };
-    row.appendChild(sw);
+  /* --- arrastrar (mouse o dedo) --- */
+  b.addEventListener('pointerdown', e=>{
+    if(e.target.classList.contains('b-tirador')) return;
+    e.preventDefault(); e.stopPropagation();
+    iniciarArrastre(e, b, r);
   });
-  document.getElementById('inpClientName').value='';
-  document.getElementById('inpClientTons').value='';
-  document.getElementById('clientOverlay').classList.add('open');
-}
-function selCat(btn) {
-  selectedCat=btn.dataset.cat;
-  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-}
-function closeClientModal() { document.getElementById('clientOverlay').classList.remove('open'); }
-function saveClient() {
-  const name=document.getElementById('inpClientName').value.trim();
-  if(!name){alert('Ingresa el nombre del cliente');return;}
-  const typTons=parseFloat(document.getElementById('inpClientTons').value)||0;
-  const isOut = selectedCat==='salida';
-  CLIENTS.push({id:'c'+Date.now(), name, color:selectedColor, bg:selectedColor+'22', cat:selectedCat, icon:'📦', isOut, typTons});
-  closeClientModal();
-  renderCal();
+  b.addEventListener('click', e=>e.stopPropagation());
+
+  /* --- estirar (duración) --- */
+  const tirador = b.querySelector('.b-tirador');
+  tirador.addEventListener('pointerdown', e=>{
+    e.preventDefault(); e.stopPropagation();
+    redimensionando = true;
+    const y0 = e.clientY, d0 = r.dur;
+    tirador.setPointerCapture(e.pointerId);
+    const mover = ev=>{
+      const pasos = Math.round((ev.clientY - y0)/ALTO);
+      const nd = Math.max(PASO, Math.min(H_FIN - r.ini, d0 + pasos*PASO));
+      b.style.height = (nd/PASO*ALTO - 3)+'px';
+      b.dataset.dur = nd;
+    };
+    const soltarT = ()=>{
+      tirador.removeEventListener('pointermove', mover);
+      tirador.removeEventListener('pointerup', soltarT);
+      const nd = parseInt(b.dataset.dur||r.dur);
+      if(nd!==r.dur){
+        r.dur = nd; guardar(); pintar();
+        const ch = chocaCon(r.fecha,r.nave,r.ini,r.dur,r.id);
+        if(ch.length) aviso(`Ojo: quedó cruzado con ${ch[0].cliente} en ${nave(r.nave).nom}.`, true);
+      }
+      setTimeout(()=>redimensionando=false,50);
+    };
+    tirador.addEventListener('pointermove', mover);
+    tirador.addEventListener('pointerup', soltarT);
+  });
+
+  return b;
 }
 
-// ════════════════════════════════════════════════════════════════════
-// MODAL: REGISTRADORES
-// ════════════════════════════════════════════════════════════════════
-function openRegModal() {
-  renderRegList();
-  document.getElementById('inpRegName').value='';
-  document.getElementById('regOverlay').classList.add('open');
+function soltar(id, colK, slot){
+  const r = datos.reservas.find(x=>x.id===id);
+  if(!r) return;
+  const nuevoIni = H_INI + slot*PASO;
+  if(nuevoIni + r.dur > H_FIN){ aviso(`Ese horario se pasa del cierre de planta (${hhmm(H_FIN)}).`, true); return }
+  const antes = {fecha:r.fecha, nave:r.nave, ini:r.ini};
+  if(vista==='dia') r.nave = colK; else r.fecha = colK;
+  r.ini = nuevoIni;
+  const ch = chocaCon(r.fecha, r.nave, r.ini, r.dur, r.id);
+  const bq = bloqueoQueChoca(r.fecha, r.nave, r.ini, r.dur);
+  guardar(); pintar();
+  if(bq){
+    aviso(`Ojo: ${r.cliente} quedó dentro del horario de ${bq.motivo.toLowerCase()}.`, true);
+  } else if(ch.length){
+    aviso(`Cruce en ${nave(r.nave).nom}: ${r.cliente} queda encima de ${ch[0].cliente} (${hhmm(ch[0].ini)}). Los dos quedaron marcados en rojo.`, true);
+  } else if(antes.fecha!==r.fecha || antes.nave!==r.nave || antes.ini!==r.ini){
+    aviso(`${r.cliente} movido a ${nave(r.nave).nom}, ${fechaCorta(r.fecha)} ${hhmm(r.ini)}.`);
+  }
 }
-function renderRegList() {
-  const list=document.getElementById('regList');
-  list.innerHTML='';
-  REGISTRADORES.forEach((r,i)=>{
-    const item=document.createElement('div'); item.className='reg-item';
-    item.innerHTML=`<span>${r}</span><button class="reg-del" onclick="removeReg(${i})">×</button>`;
-    list.appendChild(item);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · PANELES DE APOYO
+   ══════════════════════════════════════════════════════════════════════════ */
+function pintarEncabezadoTexto(){
+  const ds = diasSemana();
+  document.getElementById('titulo-vista').textContent = vista==='dia' ? 'Agenda del día' : 'Agenda de la semana';
+  document.getElementById('etiqueta-fecha').textContent = vista==='dia'
+    ? fechaLarga(dia)
+    : `${fechaCorta(ds[0])} – ${fechaCorta(ds[5])}`;
+  document.getElementById('chip-rango').textContent = (vista==='dia'
+    ? fechaLarga(dia) : `SEMANA ${fechaCorta(ds[0])} – ${fechaCorta(ds[5])}`).toUpperCase();
+  document.getElementById('chip-ocupa').textContent = (vista==='dia' ? fechaCorta(dia) : 'SEMANA').toUpperCase();
+  document.querySelectorAll('#switch-vista button').forEach((b,i)=>
+    b.setAttribute('aria-pressed', (i===0)===(vista==='dia')));
+}
+
+function pintarAviso(){
+  const caja = document.getElementById('aviso');
+  const visibles = reservasVisibles().filter(r=>cruces.has(r.id));
+  if(!visibles.length){ caja.className=''; caja.innerHTML=''; return }
+  const grupos = {};
+  visibles.filter(r=>!chocanBloqueo.has(r.id))
+          .forEach(r=>{ (grupos[r.fecha+'|'+r.nave] = grupos[r.fecha+'|'+r.nave] || []).push(r) });
+  const enBloqueo = visibles.filter(r=>chocanBloqueo.has(r.id));
+  const itemsBloq = enBloqueo.map(r=>
+    `<li>· <button onclick="irA('${r.fecha}','${r.id}')">${DIAS_C[(deISO(r.fecha).getDay()+6)%7]} ${fechaCorta(r.fecha)} · ${esc(r.cliente)} cae en ${esc(chocanBloqueo.get(r.id))}</button></li>`).join('');
+  const items = Object.entries(grupos).map(([k,list])=>{
+    const [f,n] = k.split('|');
+    list.sort((a,b)=>a.ini-b.ini);
+    const quienes = list.map(r=>`${r.cliente} (${hhmm(r.ini)})`).join(' y ');
+    return `<li>· <button onclick="irA('${f}','${list[0].id}')">${DIAS_C[(deISO(f).getDay()+6)%7]} ${fechaCorta(f)} · ${nave(n).nom}: ${esc(quienes)}</button></li>`;
+  }).join('');
+  const n = Object.keys(grupos).length + enBloqueo.length;
+  caja.className='on';
+  caja.innerHTML = `<b>Hay ${n} problema${n>1?'s':''} de horario.</b>
+    Camiones a la misma hora en el mismo punto de descarga, o dentro de un horario bloqueado.
+    Arrastra el bloque a otra hora para resolverlo.
+    <ul>${items}${itemsBloq}</ul>`;
+}
+function irA(fecha, id){
+  dia = fecha; lunes = lunesDe(deISO(fecha)); setVista('dia'); abrirModal(id);
+}
+
+function pintarKPIs(){
+  const list = reservasVisibles();
+  const ton  = list.reduce((s,r)=>s+totalTon(r),0);
+  const tent = list.filter(r=>r.estado==='tentativo').length;
+  const lleg = list.filter(r=>estadoReal(r)==='llego');
+  const nada = list.filter(r=>estadoReal(r)==='nollego').length;
+  const conflicto = list.filter(r=>cruces.has(r.id)).length;
+  const box = document.getElementById('kpis');
+  box.innerHTML = `
+    <div class="kpi"><b>${list.length}</b><span>Camiones agendados</span></div>
+    <div class="kpi"><b>${num(ton)}</b><span>Toneladas planificadas</span></div>
+    <div class="kpi" ${lleg.length?'style="border-left-color:#1E8E4E;background:#F1F8F3"':''}>
+      <b>${lleg.length}</b><span>Llegaron</span></div>
+    <div class="kpi" ${tent||nada?'style="border-left-color:var(--ambar);background:#FFF8EC"':''}>
+      <b>${tent}</b><span>Por confirmar${nada?` · ${nada} no llegó`:''}</span></div>
+    <div class="kpi" ${conflicto?'style="border-left-color:var(--rojo);background:var(--rojoBg)"':''}>
+      <b>${conflicto}</b><span>Con problema</span></div>`;
+}
+
+function pintarOcupacion(){
+  const list = reservasVisibles();
+  const porNave = NAVES.map(n=>{
+    const propias = list.filter(r=>r.nave===n.id);
+    return { n, cam:propias.length, ton:propias.reduce((s,r)=>s+totalTon(r),0),
+             lleg:propias.filter(r=>estadoReal(r)==='llego').length };
+  });
+  const maxCam = Math.max(1, ...porNave.map(x=>x.cam));
+  document.getElementById('ocupa').innerHTML = porNave.map(({n,cam,ton,lleg})=>`
+    <div class="ocupa-fila">
+      <div class="ocupa-top"><b style="color:${n.col}">${n.nom}</b>
+        <span>${cam} camión${cam===1?'':'es'} · ${num(ton)} t${lleg?` · ${lleg} llegó`:''}</span></div>
+      <div class="barra-oc"><i style="width:${cam/maxCam*100}%;background:${n.col}"></i></div>
+    </div>`).join('');
+}
+
+function pintarLeyenda(){
+  document.getElementById('leg-naves').innerHTML = NAVES.map(n=>
+    `<div class="leg-i"><span class="leg-c" style="background:${n.bg};border-color:${n.col}"></span>${n.nom}</div>`).join('');
+}
+
+function rellenarListas(){
+  const poner = (idDL, arr)=>{
+    document.getElementById(idDL).innerHTML = [...new Set(arr)].sort()
+      .map(v=>`<option value="${esc(v)}"></option>`).join('');
+  };
+  poner('dl-clientes', datos.listas.clientes);
+  poner('dl-quien',    datos.listas.quien);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · NAVEGACIÓN
+   ══════════════════════════════════════════════════════════════════════════ */
+function setVista(v){
+  vista = v;
+  if(v==='dia' && !diasSemana().includes(dia)) dia = diasSemana()[0];
+  pintar();
+}
+function mover(n){
+  if(vista==='dia'){
+    let f = dia;
+    do{ f = masDias(f, n) } while(deISO(f).getDay()===0);   // saltar domingos
+    dia = f; lunes = lunesDe(deISO(f));
+  } else {
+    lunes = new Date(lunes); lunes.setDate(lunes.getDate()+n*7);
+    dia = diasSemana()[0];
+  }
+  pintar();
+}
+function irHoy(){
+  const h = new Date();
+  lunes = lunesDe(h);
+  dia = h.getDay()===0 ? diasSemana()[0] : hoyISO();
+  pintar();
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   10 · FICHA DEL INGRESO
+   ══════════════════════════════════════════════════════════════════════════ */
+function nuevoRapido(){
+  abrirModal(null, { fecha: vista==='dia'?dia:diasSemana()[0], nave:naveSel, ini:H_INI+30 });
+}
+
+function abrirModal(id, pre){
+  editando = id || null;
+  const r = id ? datos.reservas.find(x=>x.id===id) : null;
+  const base = r || Object.assign({ fecha:dia, nave:NAVES[0].id, ini:8*60, dur:60,
+    cliente:'', items:[], veh:'Camión', quien:'', estado:'confirmado', notas:'' }, pre||{});
+  if(base.ini < H_INI) base.ini = H_INI;
+
+  document.getElementById('m-tit').textContent = r ? 'Ficha del ingreso' : 'Agendar ingreso';
+  document.getElementById('m-sub').textContent = r
+    ? 'Modifica lo que necesites. También puedes arrastrar el bloque en la agenda.'
+    : 'Reserva una hora de llegada en una nave. Queda visible para toda la planta.';
+  document.getElementById('btn-guardar').textContent = r ? 'Guardar cambios' : 'Agendar';
+  document.getElementById('btn-borrar').style.display = r ? 'inline-flex' : 'none';
+  document.getElementById('btn-duplicar').style.display = r ? 'inline-flex' : 'none';
+
+  /* día */
+  const selD = document.getElementById('f-dia');
+  selD.innerHTML = diasSemana().map(f=>
+    `<option value="${f}">${DIAS_N[(deISO(f).getDay()+6)%7]} ${fechaCorta(f)}</option>`).join('');
+  if(!diasSemana().includes(base.fecha))
+    selD.insertAdjacentHTML('afterbegin',`<option value="${base.fecha}">${fechaCorta(base.fecha)}</option>`);
+  selD.value = base.fecha;
+
+  /* hora */
+  const selH = document.getElementById('f-hora');
+  selH.innerHTML = Array.from({length:SLOTS},(_,s)=>{
+    const m = H_INI+s*PASO; return `<option value="${m}">${hhmm(m)}</option>`;
+  }).join('');
+  selH.value = base.ini;
+
+  document.getElementById('f-dur').value = base.dur;
+  document.getElementById('f-cliente').value = base.cliente;
+  document.getElementById('f-veh').value = base.veh || 'Camión';
+  document.getElementById('f-quien').value = base.quien || '';
+  document.getElementById('f-notas').value = base.notas || '';
+  setEstado(base.estado || 'confirmado');
+  document.getElementById('f-buscar').value = '';
+  pintarReal(r);
+  pintarNavesModal(base.nave);
+  pintarItems(base.items && base.items.length ? base.items
+              : (base.residuo ? [{r:base.residuo, t:base.ton||''}] : null));
+  revisarChoqueModal();
+
+  document.getElementById('ov').classList.add('abierto');
+  setTimeout(()=>document.getElementById('f-cliente').focus(),60);
+}
+
+/* Lo que pasó: llegó, no llegó, o todavía sin registrar. */
+let realSel = null;
+function pintarReal(r){
+  const hay = !!r;
+  document.getElementById('caja-real').style.display = hay ? 'block' : 'none';
+  document.getElementById('lbl-real').style.display  = hay ? 'block' : 'none';
+  setReal(hay ? estadoReal(r) : null);
+}
+function setReal(v){
+  realSel = v;
+  document.getElementById('btn-llego'  ).setAttribute('aria-pressed', v==='llego');
+  document.getElementById('btn-nollego').setAttribute('aria-pressed', v==='nollego');
+  document.getElementById('btn-sinreg' ).setAttribute('aria-pressed', v==null);
+}
+/* Acepta el formato antiguo (hora real / no llegó) y el nuevo. */
+function estadoReal(r){
+  const x = r.real;
+  if(!x) return null;
+  if(typeof x === 'string') return x;
+  if(x.noLlego) return 'nollego';
+  if(x.hora!=null || x.llego) return 'llego';
+  return null;
+}
+
+function pintarNavesModal(sel){
+  naveSel = sel;
+  document.getElementById('f-naves').innerHTML = NAVES.map(n=>
+    `<button class="pastilla" data-n="${n.id}" aria-pressed="${n.id===sel}"
+       style="${n.id===sel?`background:${n.bg};border-color:${n.col};color:${n.col};font-weight:600`:''}"
+       onclick="elegirNave('${n.id}')">${n.nom}</button>`).join('');
+  refrescarOpciones();
+}
+function elegirNave(id){
+  const actuales = leerItems();
+  pintarNavesModal(id);
+  pintarItems(actuales);
+  revisarChoqueModal();
+}
+/* ── Lista de residuos del camión ────────────────────────────────────────
+   Cada fila es un residuo con sus toneladas. Un camión puede traer varios.
+   El buscador de arriba filtra las opciones de todas las filas.            */
+function opcionesHTML(valor){
+  const cat = CATALOGO[naveSel] || CATALOGO.cdr;
+  const q = (document.getElementById('f-buscar').value||'').trim().toUpperCase();
+  const filtra = a => a.filter(v=>!q || v.includes(q));
+  const op = a => a.map(v=>`<option value="${esc(v)}"${v===valor?' selected':''}>${esc(v)}</option>`).join('');
+
+  let html = `<option value=""${!valor?' selected':''}>— Elige el residuo —</option>`;
+  cat.grupos.forEach(([nom,arr])=>{
+    const l = filtra(arr);
+    if(l.length) html += `<optgroup label="${nom}">${op(l)}</optgroup>`;
+  });
+  const propios = [...new Set(filtra((datos.listas.residuos||[]).map(v=>v.toUpperCase())
+    .filter(v=>!RESIDUOS_RESIMPLE.includes(v) && !RESIDUOS_GENERAL.includes(v))))];
+  if(propios.length) html += `<optgroup label="AGREGADOS AQUÍ">${op(propios)}</optgroup>`;
+  if(valor && !RESIDUOS_RESIMPLE.includes(valor) && !RESIDUOS_GENERAL.includes(valor) && !propios.includes(valor))
+    html += `<option value="${esc(valor)}" selected>${esc(valor)}</option>`;
+  html += '<option value="__otro">OTRO — ESCRIBIRLO…</option>';
+  return html;
+}
+
+function filaItem(valor, ton, escrito){
+  const fila = document.createElement('div');
+  fila.className = 'item-fila';
+  fila.innerHTML = escrito
+    ? `<input type="text" class="it-txt" value="${esc(valor||'')}" placeholder="ESCRIBE EL RESIDUO" style="text-transform:uppercase">`
+    : `<select class="it-sel">${opcionesHTML(valor||'')}</select>`;
+  fila.insertAdjacentHTML('beforeend',
+    `<input type="number" class="it-ton" min="0" step="0.1" placeholder="ton" value="${ton?ton:''}">
+     <button type="button" class="quitar-item" title="Quitar este residuo">×</button>`);
+
+  const sel = fila.querySelector('.it-sel');
+  if(sel) sel.addEventListener('change', ()=>{
+    if(sel.value==='__otro'){
+      const t = fila.querySelector('.it-ton').value;
+      fila.replaceWith(filaItem('', t, true));
+      document.querySelector('#f-items .item-fila:last-child .it-txt')?.focus();
+    }
+    totalItems();
+  });
+  fila.querySelector('.it-ton').addEventListener('input', totalItems);
+  fila.querySelector('.quitar-item').addEventListener('click', ()=>{
+    fila.remove();
+    if(!document.querySelectorAll('#f-items .item-fila').length) agregarItem();
+    totalItems();
+  });
+  return fila;
+}
+
+function pintarItems(lista){
+  const caja = document.getElementById('f-items');
+  caja.innerHTML = '';
+  const l = (lista && lista.length) ? lista : [{r:'',t:''}];
+  l.forEach(i=>{
+    const conocido = !i.r || RESIDUOS_RESIMPLE.includes(i.r) || RESIDUOS_GENERAL.includes(i.r)
+                     || (datos.listas.residuos||[]).map(v=>v.toUpperCase()).includes(i.r);
+    caja.appendChild(filaItem(i.r, i.t, false && !conocido));
+  });
+  totalItems();
+  const cat = CATALOGO[naveSel] || CATALOGO.cdr;
+  document.getElementById('sug-residuos').innerHTML =
+    (cat.rapidos||[]).map(v=>`<button type="button" onclick="ponResiduo(this)">${esc(v)}</button>`).join('');
+}
+
+function agregarItem(valor){
+  document.getElementById('f-items').appendChild(filaItem(valor||'', '', false));
+  totalItems();
+}
+/* Un chip rápido llena la primera fila vacía; si no hay, agrega una. */
+function ponResiduo(btn){
+  const v = btn.textContent;
+  document.getElementById('f-buscar').value = '';
+  refrescarOpciones();
+  const vacia = [...document.querySelectorAll('#f-items .it-sel')].find(s=>!s.value);
+  if(vacia) vacia.value = v; else agregarItem(v);
+  totalItems();
+}
+function filtrarItems(){ refrescarOpciones() }
+function refrescarOpciones(){
+  document.querySelectorAll('#f-items .it-sel').forEach(sel=>{
+    const v = sel.value==='__otro' ? '' : sel.value;
+    sel.innerHTML = opcionesHTML(v);
   });
 }
-function removeReg(i) { REGISTRADORES.splice(i,1); renderRegList(); }
-function addRegistrador() {
-  const v=document.getElementById('inpRegName').value.trim();
-  if(!v) return;
-  if(REGISTRADORES.includes(v)){alert('Ya existe');return;}
-  REGISTRADORES.push(v);
-  document.getElementById('inpRegName').value='';
-  renderRegList();
+function leerItems(){
+  return [...document.querySelectorAll('#f-items .item-fila')].map(f=>{
+    const sel = f.querySelector('.it-sel'), txt = f.querySelector('.it-txt');
+    const r = (sel ? (sel.value==='__otro' ? '' : sel.value) : txt.value).trim().toUpperCase();
+    return { r, t: parseFloat(f.querySelector('.it-ton').value)||0 };
+  }).filter(i=>i.r);
 }
-function closeRegModal() { document.getElementById('regOverlay').classList.remove('open'); }
-
-// ════════════════════════════════════════════════════════════════════
-// CLEAR / EXPORT
-// ════════════════════════════════════════════════════════════════════
-function clearWeek() {
-  if(!confirm('¿Limpiar toda la planificación de esta semana?')) return;
-  schedule={};
-  renderCal();
+function totalItems(){
+  const t = [...document.querySelectorAll('#f-items .it-ton')]
+    .reduce((s,i)=>s+(parseFloat(i.value)||0),0);
+  document.getElementById('f-total').textContent = num(t);
 }
 
-function exportCSV() {
-  const rows=[['Día','Franja','Cliente','Tipo Vehículo','Vehículos','Toneladas','Registrado por','Notas']];
-  DAYS.forEach((day,di)=>{
-    PERIODS.forEach(({key:pk,label})=>{
-      getEntries(di,pk).forEach(e=>{
-        const cl=CLIENTS.find(c=>c.id===e.clientId);
-        rows.push([day, label, cl?cl.name:e.clientId, e.vehicle, e.trucks, e.tons||0, e.registrador||'', e.notes||'']);
-      });
-    });
-  });
-  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
-  a.download='GIRI_Planificacion_semana.csv';
-  a.click();
+function setEstado(v){
+  estadoSel = v;
+  document.getElementById('est-conf').setAttribute('aria-pressed', v==='confirmado');
+  document.getElementById('est-tent').setAttribute('aria-pressed', v==='tentativo');
+}
+function revisarChoqueModal(){
+  const f = document.getElementById('f-dia').value;
+  const ini = parseInt(document.getElementById('f-hora').value);
+  const dur = parseInt(document.getElementById('f-dur').value);
+  const ch = chocaCon(f, naveSel, ini, dur, editando);
+  const bq = bloqueoQueChoca(f, naveSel, ini, dur);
+  const caja = document.getElementById('m-alerta');
+  if(bq){
+    caja.className='alerta-modal on';
+    caja.innerHTML = `<b>Horario bloqueado.</b> Ese espacio está marcado como
+      <b>${esc(bq.motivo)}</b> (${hhmm(bq.ini)}–${hhmm(bq.ini+bq.dur)}).
+      Puedes agendarlo igual: quedará marcado en rojo.`;
+  } else if(ch.length){
+    caja.className='alerta-modal on';
+    caja.innerHTML = `<b>Cruce de horario.</b> ${esc(ch[0].cliente)} ya está en ${nave(naveSel).nom}
+      de ${hhmm(ch[0].ini)} a ${hhmm(ch[0].ini+ch[0].dur)}. Puedes agendarlo igual: quedará marcado en rojo.`;
+  } else caja.className='alerta-modal';
+}
+['f-dia','f-hora','f-dur'].forEach(id=>
+  document.getElementById(id).addEventListener('change', revisarChoqueModal));
+
+function guardarFicha(){
+  const cliente = document.getElementById('f-cliente').value.trim();
+  if(!cliente){ aviso('Falta el nombre del cliente.', true); document.getElementById('f-cliente').focus(); return }
+  const obj = {
+    fecha: document.getElementById('f-dia').value,
+    nave: naveSel,
+    ini: parseInt(document.getElementById('f-hora').value),
+    dur: parseInt(document.getElementById('f-dur').value),
+    cliente,
+    items: leerItems(),
+    veh: document.getElementById('f-veh').value,
+    quien: document.getElementById('f-quien').value.trim(),
+    estado: estadoSel,
+    notas: document.getElementById('f-notas').value.trim(),
+    real: editando ? realSel : null,
+  };
+  if(obj.ini + obj.dur > H_FIN){ aviso(`La descarga terminaría después de las ${hhmm(H_FIN)}.`, true); return }
+  if(!obj.items.length){ aviso('Falta indicar al menos un tipo de residuo.', true); return }
+
+  obj.residuo = obj.items.length ? obj.items[0].r : '';   /* compatibilidad */
+  obj.ton = obj.items.reduce((s,i)=>s+i.t,0);
+
+  if(editando) Object.assign(datos.reservas.find(r=>r.id===editando), obj);
+  else datos.reservas.push(Object.assign({id:'r'+Math.random().toString(36).slice(2,9)}, obj));
+
+  recordar('clientes', obj.cliente);
+  obj.items.forEach(i=>recordar('residuos', i.r));
+  recordar('quien',    obj.quien);
+
+  guardar(); cerrarModal(); pintar();
+  const ch = chocaCon(obj.fecha, obj.nave, obj.ini, obj.dur, editando);
+  const bq = bloqueoQueChoca(obj.fecha, obj.nave, obj.ini, obj.dur);
+  aviso(bq ? `${obj.cliente} quedó dentro del horario de ${bq.motivo.toLowerCase()} (${hhmm(bq.ini)}–${hhmm(bq.ini+bq.dur)}).`
+     : ch.length ? `Agendado con cruce: revisa ${nave(obj.nave).nom} a las ${hhmm(obj.ini)}.`
+     : `${obj.cliente} agendado en ${nave(obj.nave).nom}, ${fechaCorta(obj.fecha)} a las ${hhmm(obj.ini)}.`,
+     !!(bq || ch.length));
+  editando = null;
+}
+/* Copia el ingreso en el próximo espacio libre del mismo punto y día. */
+function duplicarActual(){
+  if(!editando) return;
+  const r = datos.reservas.find(x=>x.id===editando);
+  const copia = JSON.parse(JSON.stringify(r));
+  copia.id = 'r'+Math.random().toString(36).slice(2,9);
+  let t = r.ini + r.dur;
+  while(t + r.dur <= H_FIN && chocaCon(r.fecha, r.nave, t, r.dur, null).length) t += PASO;
+  if(t + r.dur > H_FIN){ aviso('No queda espacio libre ese día en ese punto de descarga.', true); return }
+  copia.ini = t;
+  datos.reservas.push(copia);
+  guardar(); cerrarModal(); pintar();
+  aviso(`Copia de ${copia.cliente} creada a las ${hhmm(t)}. Ábrela para ajustarla.`);
 }
 
-// ════════════════════════════════════════════════════════════════════
-// CLOSE ON OVERLAY CLICK
-// ════════════════════════════════════════════════════════════════════
-['addOverlay','clientOverlay','regOverlay'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+function borrarActual(){
+  if(!editando) return;
+  const r = datos.reservas.find(x=>x.id===editando);
+  if(!confirm(`¿Eliminar el ingreso de ${r.cliente}?`)) return;
+  datos.reservas = datos.reservas.filter(x=>x.id!==editando);
+  editando = null; guardar(); cerrarModal(); pintar();
+  aviso('Ingreso eliminado.');
+}
+function cerrarModal(){ document.getElementById('ov').classList.remove('abierto'); editando = null }
+document.getElementById('ov').addEventListener('click', function(e){ if(e.target===this) cerrarModal() });
+document.getElementById('ov-bloq').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('abierto') });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ cerrarModal(); document.getElementById('ov-bloq').classList.remove('abierto') }
+  if(e.key==='Enter' && document.getElementById('ov').classList.contains('abierto')
+     && e.target.tagName==='INPUT'){ e.preventDefault(); guardarFicha() }
 });
 
-// ════════════════════════════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════════════════════════════
-preloadResimple();
-renderCal();
+/* ══════════════════════════════════════════════════════════════════════════
+   10b · BLOQUEOS DE HORARIO
+   ══════════════════════════════════════════════════════════════════════════ */
+let motivoSel = 'Colación';
+function abrirBloqueo(){
+  document.getElementById('bq-motivos').innerHTML = MOTIVOS.map(m=>
+    `<button type="button" class="pastilla" data-m="${m}" aria-pressed="${m===motivoSel}"
+      onclick="elegirMotivo('${m}')">${m}</button>`).join('');
+  document.getElementById('bq-nave').innerHTML =
+    `<option value="*">Todos los puntos</option>` +
+    NAVES.map(n=>`<option value="${n.id}">${n.nom}</option>`).join('');
+  document.getElementById('bq-cuando').innerHTML =
+    `<option value="diario">Todos los días</option>` +
+    diasSemana().map(f=>`<option value="${f}">${DIAS_C[(deISO(f).getDay()+6)%7]} ${fechaCorta(f)}</option>`).join('');
+  document.getElementById('bq-cuando').value = vista==='dia' ? dia : 'diario';
+  document.getElementById('bq-ini').innerHTML = Array.from({length:SLOTS},(_,i)=>{
+    const m = H_INI+i*PASO; return `<option value="${m}">${hhmm(m)}</option>`;
+  }).join('');
+  document.getElementById('bq-ini').value = 12*60+30;
+  pintarListaBloqueos();
+  document.getElementById('ov-bloq').classList.add('abierto');
+}
+function elegirMotivo(m){
+  motivoSel = m;
+  document.querySelectorAll('#bq-motivos .pastilla').forEach(b=>
+    b.setAttribute('aria-pressed', b.dataset.m===m));
+}
+function pintarListaBloqueos(){
+  const caja = document.getElementById('bq-lista');
+  if(!datos.bloqueos.length){ caja.innerHTML = '<p style="font-size:12px;color:var(--z400)">No hay bloqueos.</p>'; return }
+  caja.innerHTML = datos.bloqueos
+    .slice().sort((a,b)=>a.ini-b.ini)
+    .map(b=>`<div class="reg-item">
+        <span><b style="font-weight:600">${esc(b.motivo)}</b> · ${hhmm(b.ini)}–${hhmm(Math.min(H_FIN,b.ini+b.dur))}
+        · ${b.nave==='*'?'todos los puntos':esc(nave(b.nave).nom)}
+        · ${b.tipo==='diario'?'todos los días':fechaCorta(b.fecha)}</span>
+        <button class="quitar" onclick="borrarBloqueo('${b.id}')">Quitar</button>
+      </div>`).join('');
+}
+function borrarBloqueo(id){
+  datos.bloqueos = datos.bloqueos.filter(b=>b.id!==id);
+  guardar(); pintarListaBloqueos(); pintar();
+}
+function guardarBloqueo(){
+  const cuando = document.getElementById('bq-cuando').value;
+  const ini = parseInt(document.getElementById('bq-ini').value);
+  const dur = parseInt(document.getElementById('bq-dur').value);
+  datos.bloqueos.push({
+    id:'b'+Math.random().toString(36).slice(2,9),
+    tipo: cuando==='diario' ? 'diario' : 'fecha',
+    fecha: cuando==='diario' ? null : cuando,
+    nave: document.getElementById('bq-nave').value,
+    ini, dur, motivo: motivoSel,
+  });
+  guardar(); pintarListaBloqueos(); pintar();
+  aviso(`${motivoSel} bloqueado de ${hhmm(ini)} a ${hhmm(Math.min(H_FIN,ini+dur))}.`);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   11 · AVISO FLOTANTE
+   ══════════════════════════════════════════════════════════════════════════ */
+let tToast;
+function aviso(txt, malo){
+  const t = document.getElementById('toast');
+  t.textContent = txt;
+  t.className = 'on' + (malo?' malo':'');
+  clearTimeout(tToast);
+  tToast = setTimeout(()=>t.className='', 4200);
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   12 · EXCEL (.xlsx) — generador propio, sin librerías externas
+   ══════════════════════════════════════════════════════════════════════════ */
+const TABLA_CRC = (()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0 }
+  return t })();
+function crc32(u8){ let c=0xFFFFFFFF; for(let i=0;i<u8.length;i++) c = TABLA_CRC[(c^u8[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0 }
+function bytes(s){ return new TextEncoder().encode(s) }
+
+function zipStore(archivos){
+  const partes=[], central=[]; let offset=0;
+  archivos.forEach(f=>{
+    const nom = bytes(f.nombre), dat = f.datos, crc = crc32(dat);
+    const lh = new Uint8Array(30+nom.length), v = new DataView(lh.buffer);
+    v.setUint32(0,0x04034b50,true); v.setUint16(4,20,true); v.setUint16(6,0x0800,true);
+    v.setUint16(8,0,true); v.setUint16(10,0,true); v.setUint16(12,0x21,true);
+    v.setUint32(14,crc,true); v.setUint32(18,dat.length,true); v.setUint32(22,dat.length,true);
+    v.setUint16(26,nom.length,true); v.setUint16(28,0,true);
+    lh.set(nom,30);
+    partes.push(lh, dat);
+
+    const ch = new Uint8Array(46+nom.length), w = new DataView(ch.buffer);
+    w.setUint32(0,0x02014b50,true); w.setUint16(4,20,true); w.setUint16(6,20,true);
+    w.setUint16(8,0x0800,true); w.setUint16(10,0,true); w.setUint16(12,0,true); w.setUint16(14,0x21,true);
+    w.setUint32(16,crc,true); w.setUint32(20,dat.length,true); w.setUint32(24,dat.length,true);
+    w.setUint16(28,nom.length,true); w.setUint16(30,0,true); w.setUint16(32,0,true);
+    w.setUint16(34,0,true); w.setUint16(36,0,true); w.setUint32(38,0,true); w.setUint32(42,offset,true);
+    ch.set(nom,46);
+    central.push(ch);
+    offset += lh.length + dat.length;
+  });
+  const cdSize = central.reduce((s,c)=>s+c.length,0);
+  const eo = new Uint8Array(22), e = new DataView(eo.buffer);
+  e.setUint32(0,0x06054b50,true); e.setUint16(8,archivos.length,true); e.setUint16(10,archivos.length,true);
+  e.setUint32(12,cdSize,true); e.setUint32(16,offset,true);
+  const todo = [...partes, ...central, eo];
+  const total = todo.reduce((s,p)=>s+p.length,0);
+  const out = new Uint8Array(total); let p=0;
+  todo.forEach(x=>{ out.set(x,p); p+=x.length });
+  return out;
+}
+
+function letraCol(i){ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=(i-m-1)/26 } return s }
+function xmlEsc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])) }
+
+function hojaXML(filas, anchos){
+  const cols = anchos.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+  const rows = filas.map((fila,fi)=>{
+    const celdas = fila.map((v,ci)=>{
+      const ref = letraCol(ci)+(fi+1);
+      const st = fi===0 ? ' s="1"' : '';
+      if(typeof v === 'number' && isFinite(v)) return `<c r="${ref}"${st}><v>${v}</v></c>`;
+      if(v===''||v==null) return `<c r="${ref}"${st}/>`;
+      return `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+    }).join('');
+    return `<row r="${fi+1}">${celdas}</row>`;
+  }).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${cols}</cols><sheetData>${rows}</sheetData></worksheet>`;
+}
+
+function descargarExcel(){
+  const ds = diasSemana();
+  const filas = [[
+    'N° ingreso','Fecha','Día','Punto de descarga','Hora inicio','Hora término','Duración (min)','Cliente',
+    'Tipo de residuo','Toneladas del residuo','Total del camión (t)','Vehículo',
+    'Estado','Agendado por','Llegada','Problema','Notas'
+  ]];
+  let n = 0;
+  datos.reservas
+    .filter(r=>ds.includes(r.fecha))
+    .sort((a,b)=> a.fecha===b.fecha ? a.ini-b.ini : a.fecha.localeCompare(b.fecha))
+    .forEach(r=>{
+      n++;
+      const total = totalTon(r);
+      items(r).forEach(it=>filas.push([
+        n,
+        deISO(r.fecha).toLocaleDateString('es-CL'),
+        DIAS_N[(deISO(r.fecha).getDay()+6)%7],
+        nave(r.nave).nom, hhmm(r.ini), hhmm(r.ini+r.dur), r.dur,
+        r.cliente, it.r||'', parseFloat(it.t)||0, total, r.veh||'',
+        r.estado==='tentativo'?'Por confirmar':'Confirmado', r.quien||'',
+        estadoReal(r)==='nollego' ? 'No llegó' : estadoReal(r)==='llego' ? 'Llegó' : 'Sin registrar',
+        cruces.has(r.id) ? (chocanBloqueo.get(r.id) || 'Cruce de horario') : '',
+        r.notas||''
+      ]));
+    });
+  if(filas.length===1){ aviso('No hay ingresos agendados en esta semana.', true); return }
+
+  const anchos = [11,11,11,26,11,12,13,26,30,20,20,13,14,16,14,18,30];
+  const archivos = [
+    { nombre:'[Content_Types].xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`) },
+    { nombre:'_rels/.rels', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`) },
+    { nombre:'xl/workbook.xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Planificación" sheetId="1" r:id="rId1"/></sheets></workbook>`) },
+    { nombre:'xl/_rels/workbook.xml.rels', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`) },
+    { nombre:'xl/styles.xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF031716"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFCCFF00"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`) },
+    { nombre:'xl/worksheets/sheet1.xml', datos: bytes(hojaXML(filas, anchos)) },
+  ];
+  const blob = new Blob([zipStore(archivos)], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `GIRI_planificacion_${ds[0]}_a_${ds[5]}.xlsx`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  aviso('Excel descargado con los ingresos de la semana.');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   13 · INICIO
+   ══════════════════════════════════════════════════════════════════════════ */
+if(!cargar()){ datos.bloqueos = [colacionPorDefecto()]; ejemplo(); guardar() }
+if(new Date().getDay()===0) dia = masDias(hoyISO(),1);
+pintar();
+setInterval(()=>{ if(vista) pintar() }, 5*60*1000);   // refresca la línea de "ahora"
 </script>
 </body>
 </html>
