@@ -115,11 +115,11 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 
 /* ---------- AYUDA ---------- */
 .ayuda{ margin-top:1rem; border:1px solid var(--z200); border-left:3px solid var(--neon);
-  border-radius:0 6px 6px 0; background:var(--z50); padding:.6rem .9rem;
-  display:flex; align-items:center; gap:1.1rem; flex-wrap:wrap }
-.ayuda-tit{ font-size:10px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--z400) }
-.ayuda ol{ display:flex; gap:1.4rem; flex-wrap:wrap; font-size:12.5px; color:var(--z600) }
-.ayuda li{ list-style:none; display:flex; align-items:baseline; gap:.4rem }
+  border-radius:0 6px 6px 0; background:var(--z50); padding:.75rem .95rem }
+.ayuda-tit{ display:block; font-size:10px; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--z400); margin-bottom:.55rem }
+.ayuda ol{ display:flex; flex-direction:column; gap:.4rem; font-size:12.5px; color:var(--z600) }
+.ayuda li{ list-style:none; display:flex; align-items:baseline; gap:.5rem }
 .ayuda li b{ font-weight:600; color:var(--tinta); font-size:10px; background:var(--neon);
   width:15px; height:15px; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto }
 
@@ -176,12 +176,22 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .bloqueo span{ font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--z500);
   background:#fff; padding:1px 6px; border:1px solid var(--z300) }
 
-/* Registro real */
-.bloque.llegado{ box-shadow:inset 3px 0 0 #1E8E4E }
-.bloque.nollego{ opacity:.5 }
-.bloque.nollego .b-cli{ text-decoration:line-through }
-.b-real{ display:block; font-size:9.5px; font-weight:600; font-variant-numeric:tabular-nums }
-.b-ok{ position:absolute; right:3px; top:2px; font-size:10px; font-weight:700; color:#1E8E4E }
+/* Registro real: el que llegó se ve verde, no solo con un detalle */
+.bloque.llegado{ background:#E7F4EC!important; border-color:#1E8E4E!important; border-left-width:6px }
+.bloque.llegado .b-cli{ color:#14663A }
+.bloque.llegado .b-res{ color:#2F7A52 }
+.bloque.nollego{ background:var(--z100)!important; border-color:var(--z400)!important; border-style:dotted; color:var(--z500)!important }
+.bloque.nollego .b-cli{ text-decoration:line-through; color:var(--z500) }
+.b-real{ display:block; font-size:9.5px; font-weight:700; letter-spacing:.08em }
+.b-ok{ position:absolute; right:3px; top:3px; width:15px; height:15px; border-radius:50%;
+  background:#1E8E4E; color:#fff; font-size:9px; font-weight:700; line-height:15px; text-align:center }
+
+/* Botón rápido para marcar la llegada sin abrir la ficha */
+.b-tic{ position:absolute; right:3px; top:3px; width:19px; height:19px; border:1px solid currentColor;
+  background:#fff; color:inherit; font-size:11px; line-height:1; padding:0; opacity:0; transition:.15s;
+  display:flex; align-items:center; justify-content:center }
+.bloque:hover .b-tic{ opacity:.75 }
+.b-tic:hover{ opacity:1!important; background:#1E8E4E; color:#fff; border-color:#1E8E4E }
 
 .linea-ahora{ position:absolute; left:0; right:0; height:1px; background:var(--rojo); z-index:6; pointer-events:none }
 .linea-ahora::before{ content:''; position:absolute; left:0; top:-2px; width:5px; height:5px; background:var(--rojo) }
@@ -208,6 +218,35 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .b-tirador{ position:absolute; left:0; right:0; bottom:0; height:7px; cursor:ns-resize }
 .b-tirador::after{ content:''; position:absolute; left:50%; bottom:2px; width:16px; height:2px; margin-left:-8px; background:currentColor; opacity:0; transition:.15s }
 .bloque:hover .b-tirador::after{ opacity:.35 }
+
+/* =========================================================================
+   VISTA LISTA — es la que se usa en el celular. Cada camión es una fila con
+   dos botones grandes para marcar si llegó o no.
+   ========================================================================= */
+#lista-caja{ display:none; margin-top:1.1rem }
+.dia-sep{ font-size:10px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--tinta); background:var(--neon); padding:.4rem .75rem; margin-top:.9rem }
+.dia-sep:first-child{ margin-top:0 }
+.fila-cam{ border:1px solid var(--z200); border-left:4px solid; background:#fff; padding:.65rem .75rem;
+  margin-top:.4rem; display:grid; grid-template-columns:58px 1fr auto; gap:.6rem; align-items:start }
+.fila-cam.llegado{ background:#E7F4EC; border-color:#1E8E4E }
+.fila-cam.nollego{ background:var(--z100); border-color:var(--z400); border-left-style:dotted }
+.fila-cam.cruce{ background:var(--rojoBg); border-color:var(--rojo) }
+.fc-hora{ font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.3 }
+.fc-hora small{ display:block; font-weight:400; color:var(--z400); font-size:10.5px }
+.fc-cli{ font-size:13.5px; font-weight:600; line-height:1.25 }
+.fc-res{ font-size:12px; color:var(--z600); margin-top:2px }
+.fc-punto{ font-size:11px; margin-top:3px; display:flex; align-items:center; gap:.35rem; color:var(--z500) }
+.fc-punto i{ width:8px; height:8px; flex:0 0 auto; font-style:normal }
+.fc-tag{ font-size:9.5px; font-weight:700; letter-spacing:.08em; margin-top:4px; display:inline-block }
+.fc-btns{ display:flex; flex-direction:column; gap:.3rem }
+.fc-b{ border:1px solid var(--z200); background:#fff; font-family:inherit; font-size:11.5px;
+  font-weight:600; padding:.4rem .55rem; min-width:78px; display:flex; align-items:center;
+  justify-content:center; gap:.3rem; transition:.15s }
+.fc-b:hover{ border-color:var(--tinta) }
+.fc-b.si[aria-pressed=true]{ background:#1E8E4E; border-color:#1E8E4E; color:#fff }
+.fc-b.no[aria-pressed=true]{ background:var(--rojo); border-color:var(--rojo); color:#fff }
+.fc-vacio{ padding:1.5rem; text-align:center; font-size:13px; color:var(--z400); border:1px dashed var(--z200) }
 
 /* ---------- RESUMEN / OCUPACIÓN ---------- */
 .ocupa{ display:flex; flex-direction:column; gap:.6rem; margin-top:.75rem }
@@ -279,6 +318,49 @@ aside{ position:sticky; top:6.5rem }
 footer.pie{ border-top:1px solid var(--z200); background:#fff }
 .pie-in{ margin:0 auto; max-width:1500px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:1.5rem; font-size:12px; color:var(--z400) }
 
+/* =========================================================================
+   CELULAR — se cambia la grilla por la lista y todo pasa a una columna.
+   ========================================================================= */
+@media (max-width:900px){
+  body{ font-size:14px }
+  .barra-in{ height:auto; padding:.7rem 1rem; gap:.7rem }
+  .barra-in .logo{ height:1.5rem }
+  .barra-in svg.logo{ width:136px }
+  .sep-v{ display:none }
+  .titulo-sis p:first-child{ font-size:15px }
+  .titulo-sis p:last-child{ font-size:11.5px }
+  .barra-der{ width:100%; margin-left:0 }
+  .pill-tinta{ font-size:11px; padding:.35rem .6rem }
+  .lienzo{ padding:1.25rem 1rem 2rem }
+  h1.premium-heading{ font-size:1.7rem; line-height:2rem }
+  .encabezado{ margin-bottom:1rem }
+  .tarjeta{ padding:1rem; border-radius:6px }
+  .tarjeta + .tarjeta{ margin-top:.9rem }
+  .control{ gap:.45rem }
+  .control .btn, .control .switch button{ flex:1 1 auto; justify-content:center }
+  .control .der{ margin-left:0; width:100%; }
+  .control .der .btn{ flex:1 }
+  .nav-fecha{ flex:1 1 100% }
+  #etiqueta-fecha{ flex:1; min-width:0 }
+  .grilla-caja{ display:none }          /* la grilla no cabe: se usa la lista */
+  #lista-caja{ display:block }
+  .kpis{ grid-template-columns:repeat(2,1fr) }
+  aside{ position:static }
+  .modal{ padding:1.15rem; border-radius:6px }
+  .fila3{ grid-template-columns:1fr 1fr }
+  .fila3 .grupo:first-child{ grid-column:1/-1 }
+  .modal-btns{ flex-wrap:wrap }
+  .modal-btns .btn{ flex:1 1 auto }
+  .item-fila{ grid-template-columns:1fr 74px 24px }
+}
+@media (max-width:600px){
+  .fila2,.fila3{ grid-template-columns:1fr }
+  .fila3 .grupo:first-child{ grid-column:auto }
+  .fila-cam{ grid-template-columns:52px 1fr }
+  .fc-btns{ grid-column:1/-1; flex-direction:row; margin-top:.2rem }
+  .fc-b{ flex:1 }
+}
+
 @media print{
   .barra-der,.control,.ayuda,aside,footer.pie,.b-tirador,#toast{ display:none!important }
   body{ background:#fff }
@@ -340,7 +422,7 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
 
   <div class="encabezado">
     <span class="regla-neon"></span>
-    <h1 class="premium-heading">Planificación GIRI.</h1>
+    <h1 class="premium-heading">Planificación GIRI</h1>
   </div>
 
   <div class="malla">
@@ -400,6 +482,8 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
 
         <div id="aviso"></div>
 
+        <div id="lista-caja"></div>
+
         <div class="grilla-caja">
           <div class="grilla-scroll">
             <div class="grilla">
@@ -419,7 +503,7 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
           <h2>Carga por punto de descarga</h2>
           <span class="marca-chip" id="chip-ocupa">—</span>
         </div>
-        <p class="nota">Camiones agendados y toneladas comprometidas en cada punto de descarga. La barra los compara entre sí.</p>
+        <p class="nota">Camiones agendados y toneladas comprometidas en cada punto de descarga.</p>
         <div class="ocupa" id="ocupa"></div>
       </section>
     </div>
@@ -435,14 +519,23 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
         <div class="leg">
           <div class="leg-i"><span class="leg-c" style="background:#fff;border-color:var(--tinta)"></span>Confirmado</div>
           <div class="leg-i"><span class="leg-c" style="background:repeating-linear-gradient(135deg,#fff 0 3px,#ddd 3px 6px);border-color:var(--z400);border-style:dashed"></span>Por confirmar</div>
-          <div class="leg-i"><span class="leg-c" style="background:#fff;border-color:#1E8E4E;box-shadow:inset 3px 0 0 #1E8E4E"></span>Llegó · registrado</div>
+          <div class="leg-i"><span class="leg-c" style="background:#E7F4EC;border-color:#1E8E4E;border-left-width:4px"></span>Llegó</div>
+          <div class="leg-i"><span class="leg-c" style="background:var(--z100);border-color:var(--z400);border-style:dotted"></span>No llegó</div>
           <div class="leg-i"><span class="leg-c" style="background:var(--rojoBg);border-color:var(--rojo)"></span>Cruce u horario bloqueado</div>
           <div class="leg-i"><span class="leg-c" style="background:repeating-linear-gradient(135deg,#F1F1F3 0 3px,#E0E0E4 3px 6px);border-color:var(--z300)"></span>Bloqueado (colación, mantención)</div>
         </div>
       </div>
       <div class="blq">
+        <p class="blq-tit"><span class="pt"></span>PLANILLA</p>
+        <p id="txt-planilla">La planificación se guarda solo en este equipo.</p>
+        <button class="btn secundario" style="margin-top:.6rem;width:100%" onclick="abrirPlanilla()">
+          Conectar Google Sheets
+        </button>
+      </div>
+
+      <div class="blq">
         <p class="blq-tit"><span class="pt"></span>HORARIO</p>
-        <p>08:30 a 18:30, en bloques de 30 minutos. Lunes a sábado.</p>
+        <p>08:30 a 18:30. Lunes a sábado.</p>
       </div>
     </aside>
   </div>
@@ -549,6 +642,36 @@ footer.pie{ border-top:1px solid var(--z200); background:#fff }
       <span style="flex:1"></span>
       <button class="btn secundario" onclick="cerrarModal()">Cancelar</button>
       <button class="btn" onclick="guardarFicha()" id="btn-guardar">Agendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: PLANILLA DE GOOGLE ══════════════ -->
+<div class="overlay" id="ov-hoja">
+  <div class="modal" style="width:560px">
+    <h3>Conectar con Google Sheets</h3>
+    <div class="sub">La planilla se actualiza sola con cada cambio y sirve de respaldo compartido.</div>
+
+    <div class="sec-lbl">Cómo se conecta · una sola vez</div>
+    <ol style="font-size:12.5px;color:var(--z600);display:flex;flex-direction:column;gap:.5rem;padding-left:1.1rem">
+      <li>Crea una planilla nueva en Google Sheets.</li>
+      <li>Menú <b>Extensiones → Apps Script</b>. Borra lo que aparezca y pega el código del archivo <b>apps-script.gs</b>.</li>
+      <li>Botón <b>Implementar → Nueva implementación → Aplicación web</b>. En "Quién tiene acceso" elige <b>Cualquier usuario</b>. Copia la URL que termina en <code>/exec</code>.</li>
+      <li>Pega esa URL aquí abajo y aprieta Conectar.</li>
+    </ol>
+
+    <div class="grupo" style="margin-top:1.1rem">
+      <label>URL de la aplicación web</label>
+      <input type="text" id="f-hoja-url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+    </div>
+    <p id="hoja-estado" style="font-size:12px;color:var(--z500)"></p>
+
+    <div class="modal-btns">
+      <button class="btn peligro" id="btn-desconectar" onclick="desconectarPlanilla()" style="display:none">Desconectar</button>
+      <span style="flex:1"></span>
+      <button class="btn secundario" onclick="traerDePlanilla(true)">Traer cambios</button>
+      <button class="btn secundario" onclick="cerrar('ov-hoja')">Cerrar</button>
+      <button class="btn" onclick="conectarPlanilla()">Conectar</button>
     </div>
   </div>
 </div>
@@ -698,6 +821,8 @@ let datos = {
   reservas: [],   // {id,fecha,nave,ini,dur,cliente,items[],veh,patente,transp,quien,estado,notas,real}
   bloqueos: [],   // {id,tipo:'diario'|'fecha',fecha,nave:'*'|id,ini,dur,motivo}
   listas: { clientes:[], residuos:[], transp:[], quien:[] },
+  config: { hojaUrl:'' },
+  actualizado: 0,
 };
 const MOTIVOS = ['Colación','Mantención','Nave cerrada','Otro'];
 let vista = 'dia';
@@ -732,6 +857,7 @@ function fechaLarga(iso){
 }
 function fechaCorta(iso){ return deISO(iso).toLocaleDateString('es-CL',{day:'numeric',month:'short'}) }
 function nave(id){ return NAVES.find(n=>n.id===id) || NAVES[0] }
+const punto = nave;   // alias legible: no todos los puntos de descarga son naves
 
 /* Un camión puede traer varios residuos: r.items = [{r:'RESIDUO', t:toneladas}] */
 function items(r){
@@ -752,9 +878,11 @@ function num(n){ return (Math.round(n*10)/10).toFixed(1).replace('.',',') }
 /* ══════════════════════════════════════════════════════════════════════════
    4 · GUARDADO EN EL NAVEGADOR
    ══════════════════════════════════════════════════════════════════════════ */
-function guardar(){
+function guardar(local){
+  datos.actualizado = Date.now();
   try{ localStorage.setItem(CLAVE, JSON.stringify(datos)) }
   catch(e){ /* modo privado o sin permiso: la sesión sigue funcionando igual */ }
+  if(!local) programarSync();
 }
 function cargar(){
   try{
@@ -778,6 +906,7 @@ function cargar(){
         });
         datos.listas.residuos = (datos.listas.residuos||[]).map(v=>String(v).toUpperCase());
         if(!Array.isArray(datos.bloqueos)) datos.bloqueos = [colacionPorDefecto()];
+        datos.config = datos.config || { hojaUrl:'' };
         datos.bloqueos.forEach(b=>{ if(b.nave!=='*' && !NAVES.some(n=>n.id===b.nave)) b.nave='*' });
         if(mudados) setTimeout(()=>aviso(
           `${mudados} ingreso${mudados>1?'s':''} que estaba${mudados>1?'n':''} en Nave Clasificación pasó a ${NAVES[0].nom}. Revísalos.`, true), 900);
@@ -964,6 +1093,7 @@ function pintar(){
     cuerpo.appendChild(col);
   });
 
+  pintarLista();
   pintarEncabezadoTexto();
   pintarAviso();
   pintarKPIs();
@@ -1009,6 +1139,58 @@ function limpiarFantasmas(){
   document.querySelectorAll('.fantasma').forEach(g=>g.style.display='none');
   document.querySelectorAll('.col.destino').forEach(c=>c.classList.remove('destino'));
 }
+/* ── Vista lista (celular) ──────────────────────────────────────────────── */
+function pintarLista(){
+  const caja = document.getElementById('lista-caja');
+  const dias = vista==='dia' ? [dia] : diasSemana();
+  let html = '';
+  let total = 0;
+
+  dias.forEach(f=>{
+    const list = datos.reservas.filter(r=>r.fecha===f).sort((a,b)=>a.ini-b.ini);
+    if(vista==='semana'){
+      if(!list.length) return;
+      html += `<div class="dia-sep">${DIAS_N[(deISO(f).getDay()+6)%7]} ${fechaCorta(f)} · ${list.length} camión${list.length===1?'':'es'}</div>`;
+    }
+    total += list.length;
+    html += list.map(r=>{
+      const n = punto(r.nave), real = estadoReal(r);
+      const tag = real==='llego' ? '<span class="fc-tag" style="color:#1E8E4E">LLEGÓ</span>'
+                : real==='nollego' ? '<span class="fc-tag" style="color:var(--rojo)">NO LLEGÓ</span>'
+                : r.estado==='tentativo' ? '<span class="fc-tag" style="color:var(--ambar)">POR CONFIRMAR</span>' : '';
+      const tt = totalTon(r);
+      return `<div class="fila-cam ${real==='llego'?'llegado':real==='nollego'?'nollego':cruces.has(r.id)?'cruce':''}"
+                   style="${real||cruces.has(r.id)?'':`border-left-color:${n.col}`}">
+        <div class="fc-hora" onclick="abrirModal('${r.id}')">${hhmm(r.ini)}<small>${hhmm(r.ini+r.dur)}</small></div>
+        <div onclick="abrirModal('${r.id}')" style="min-width:0">
+          <div class="fc-cli">${esc(r.cliente)}</div>
+          <div class="fc-res">${esc(resumenResiduos(r))}${tt?` · ${num(tt)} t`:''}</div>
+          <div class="fc-punto"><i style="background:${n.col}"></i>${esc(n.nom)}</div>
+          ${tag}${cruces.has(r.id)?'<span class="fc-tag" style="color:var(--rojo)"> · REVISAR HORARIO</span>':''}
+        </div>
+        <div class="fc-btns">
+          <button class="fc-b si" aria-pressed="${real==='llego'}" onclick="tocarReal('${r.id}','llego')">✓ Llegó</button>
+          <button class="fc-b no" aria-pressed="${real==='nollego'}" onclick="tocarReal('${r.id}','nollego')">✗ No llegó</button>
+        </div>
+      </div>`;
+    }).join('');
+  });
+
+  caja.innerHTML = total ? html
+    : '<div class="fc-vacio">No hay camiones agendados. Toca “Agendar ingreso” para crear el primero.</div>';
+}
+
+/* Marca llegó / no llegó de un toque. Si ya estaba marcado, lo deshace. */
+function tocarReal(id, valor){
+  const r = datos.reservas.find(x=>x.id===id);
+  if(!r) return;
+  r.real = (estadoReal(r)===valor) ? null : valor;
+  guardar(); pintar();
+  aviso(r.real==='llego' ? `${r.cliente}: llegada confirmada.`
+      : r.real==='nollego' ? `${r.cliente}: marcado como no llegó.`
+      : `${r.cliente}: registro borrado.`, r.real==='nollego');
+}
+
 function slotEn(col, clientY, offsetDentro){
   const y = clientY - col.getBoundingClientRect().top - (offsetDentro||0);
   return Math.max(0, Math.min(SLOTS-1, Math.round(y/ALTO)));
@@ -1096,6 +1278,14 @@ function hacerBloque(r, carril, total){
     `<span class="b-alerta" title="${esc(chocanBloqueo.get(r.id)||'Cruce de horario')}">!</span>`);
   else if(real==='llego') b.insertAdjacentHTML('beforeend','<span class="b-ok" title="Llegó">✓</span>');
   b.insertAdjacentHTML('beforeend','<span class="b-tirador" title="Estirar para cambiar la duración"></span>');
+  if(real!=='llego' && !esCruce){
+    const tic = document.createElement('button');
+    tic.className = 'b-tic'; tic.textContent = '✓';
+    tic.title = 'Marcar que llegó';
+    tic.addEventListener('pointerdown', e=>e.stopPropagation());
+    tic.addEventListener('click', e=>{ e.stopPropagation(); tocarReal(r.id,'llego') });
+    b.appendChild(tic);
+  }
 
   /* --- arrastrar (mouse o dedo) --- */
   b.addEventListener('pointerdown', e=>{
@@ -1678,7 +1868,7 @@ function letraCol(i){ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.from
 function xmlEsc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])) }
 
 function hojaXML(filas, anchos){
-  const cols = anchos.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+  const cols = (anchos||[]).map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
   const rows = filas.map((fila,fi)=>{
     const celdas = fila.map((v,ci)=>{
       const ref = letraCol(ci)+(fi+1);
@@ -1693,16 +1883,48 @@ function hojaXML(filas, anchos){
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${cols}</cols><sheetData>${rows}</sheetData></worksheet>`;
 }
 
-function descargarExcel(){
-  const ds = diasSemana();
-  const filas = [[
-    'N° ingreso','Fecha','Día','Punto de descarga','Hora inicio','Hora término','Duración (min)','Cliente',
-    'Tipo de residuo','Toneladas del residuo','Total del camión (t)','Vehículo',
-    'Estado','Agendado por','Llegada','Problema','Notas'
-  ]];
+/* Arma y descarga un .xlsx con una o varias hojas. */
+function descargarLibro(hojas, nombreArchivo){
+  const overrides = hojas.map((_,k)=>
+    `<Override PartName="/xl/worksheets/sheet${k+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet"/>`).join('');
+  const sheetsXml = hojas.map((h,k)=>
+    `<sheet name="${xmlEsc(h.nombre)}" sheetId="${k+1}" r:id="rId${k+1}"/>`).join('');
+  const relsSheets = hojas.map((_,k)=>
+    `<Relationship Id="rId${k+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${k+1}.xml"/>`).join('');
+  const idEstilos = hojas.length + 1;
+
+  const archivos = [
+    { nombre:'[Content_Types].xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${overrides}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`) },
+    { nombre:'_rels/.rels', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`) },
+    { nombre:'xl/workbook.xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheetsXml}</sheets></workbook>`) },
+    { nombre:'xl/_rels/workbook.xml.rels', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relsSheets}<Relationship Id="rId${idEstilos}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`) },
+    { nombre:'xl/styles.xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF031716"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFCCFF00"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`) },
+  ];
+  hojas.forEach((h,k)=>archivos.push(
+    { nombre:`xl/worksheets/sheet${k+1}.xml`, datos: bytes(hojaXML(h.filas, h.anchos)) }));
+
+  const blob = new Blob([zipStore(archivos)], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombreArchivo;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+
+/* Filas de detalle: una por cada residuo de cada camión. */
+const COLS_DETALLE = ['N° ingreso','Fecha','Día','Punto de descarga','Hora inicio','Hora término',
+  'Duración (min)','Cliente','Tipo de residuo','Toneladas del residuo','Total del camión (t)',
+  'Vehículo','Estado','Agendado por','Llegada','Problema','Notas'];
+
+function filasDetalle(lista){
+  const filas = [COLS_DETALLE.slice()];
   let n = 0;
-  datos.reservas
-    .filter(r=>ds.includes(r.fecha))
+  lista.slice()
     .sort((a,b)=> a.fecha===b.fecha ? a.ini-b.ini : a.fecha.localeCompare(b.fecha))
     .forEach(r=>{
       n++;
@@ -1719,30 +1941,180 @@ function descargarExcel(){
         r.notas||''
       ]));
     });
-  if(filas.length===1){ aviso('No hay ingresos agendados en esta semana.', true); return }
-
-  const anchos = [11,11,11,26,11,12,13,26,30,20,20,13,14,16,14,18,30];
-  const archivos = [
-    { nombre:'[Content_Types].xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`) },
-    { nombre:'_rels/.rels', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`) },
-    { nombre:'xl/workbook.xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Planificación" sheetId="1" r:id="rId1"/></sheets></workbook>`) },
-    { nombre:'xl/_rels/workbook.xml.rels', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`) },
-    { nombre:'xl/styles.xml', datos: bytes(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF031716"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFCCFF00"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`) },
-    { nombre:'xl/worksheets/sheet1.xml', datos: bytes(hojaXML(filas, anchos)) },
-  ];
-  const blob = new Blob([zipStore(archivos)], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `GIRI_planificacion_${ds[0]}_a_${ds[5]}.xlsx`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
-  aviso('Excel descargado con los ingresos de la semana.');
+  return filas;
 }
+
+/* Resumen por día: planificados, llegaron, no llegaron, sin registrar. */
+function filasResumen(lista){
+  const filas = [['Fecha','Día','Camiones planificados','Llegaron','No llegaron','Sin registrar',
+                  'Cumplimiento','Toneladas planificadas']];
+  const dias = [...new Set(lista.map(r=>r.fecha))].sort();
+  dias.forEach(f=>{
+    const l = lista.filter(r=>r.fecha===f);
+    const si = l.filter(r=>estadoReal(r)==='llego').length;
+    const no = l.filter(r=>estadoReal(r)==='nollego').length;
+    const sin = l.length - si - no;
+    filas.push([
+      deISO(f).toLocaleDateString('es-CL'),
+      DIAS_N[(deISO(f).getDay()+6)%7],
+      l.length, si, no, sin,
+      (si+no) ? Math.round(si/(si+no)*100)/100 : '',
+      Math.round(l.reduce((s,r)=>s+totalTon(r),0)*10)/10,
+    ]);
+  });
+  if(dias.length>1){
+    const si = lista.filter(r=>estadoReal(r)==='llego').length;
+    const no = lista.filter(r=>estadoReal(r)==='nollego').length;
+    filas.push(['TOTAL','', lista.length, si, no, lista.length-si-no,
+      (si+no) ? Math.round(si/(si+no)*100)/100 : '',
+      Math.round(lista.reduce((s,r)=>s+totalTon(r),0)*10)/10]);
+  }
+  return filas;
+}
+
+function descargarExcel(){
+  const ds = diasSemana();
+  const lista = datos.reservas.filter(r=>ds.includes(r.fecha));
+  if(!lista.length){ aviso('No hay ingresos agendados en esta semana.', true); return }
+  const hojas = [
+    { nombre:'Resumen por día', filas:filasResumen(lista), anchos:[13,13,20,12,13,14,14,20] },
+    { nombre:'Detalle',         filas:filasDetalle(lista),
+      anchos:[11,11,11,26,11,12,13,26,30,20,20,13,14,16,14,18,30] },
+  ];
+  descargarLibro(hojas, `GIRI_planificacion_${ds[0]}_a_${ds[5]}.xlsx`);
+  aviso('Excel descargado: resumen por día y detalle.');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   12b · GOOGLE SHEETS
+   La planilla es a la vez respaldo y copia compartida: cada cambio se envía,
+   y al abrir se traen los cambios que hizo otra persona.
+   ══════════════════════════════════════════════════════════════════════════ */
+let syncTimer = null, sincronizando = false, ultimaSync = null;
+
+function hojaUrl(){ return (datos.config && datos.config.hojaUrl) || '' }
+
+function estadoPlanilla(txt, mal){
+  const p = document.getElementById('txt-planilla');
+  const pill = document.getElementById('txt-estado');
+  if(!hojaUrl()){
+    p.textContent = 'La planificación se guarda solo en este equipo.';
+    pill.textContent = 'Guardado en este equipo';
+    document.getElementById('btn-desconectar').style.display = 'none';
+    return;
+  }
+  document.getElementById('btn-desconectar').style.display = 'inline-flex';
+  const hora = ultimaSync ? ultimaSync.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}) : null;
+  p.innerHTML = txt || (hora ? `Conectada a Google Sheets.<br><span style="color:var(--z400)">Última sincronización ${hora}</span>`
+                             : 'Conectada a Google Sheets.');
+  pill.textContent = mal ? 'Planilla sin conexión' : (hora ? `Planilla · ${hora}` : 'Planilla conectada');
+}
+
+function programarSync(){
+  if(!hojaUrl()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(enviarAPlanilla, 1500);
+}
+
+function paquete(){
+  return {
+    tipo:'giri-plan', version:3, actualizado: datos.actualizado || Date.now(),
+    datos: { reservas:datos.reservas, bloqueos:datos.bloqueos, listas:datos.listas },
+    resumen: filasResumen(datos.reservas),
+    detalle: filasDetalle(datos.reservas),
+  };
+}
+
+async function enviarAPlanilla(manual){
+  const url = hojaUrl();
+  if(!url || sincronizando) return;
+  sincronizando = true;
+  estadoPlanilla('Enviando a la planilla…');
+  calcularCruces();
+  try{
+    const r = await fetch(url, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(paquete()),
+    });
+    const t = await r.text();
+    if(!t.includes('"ok":true')) throw new Error('respuesta inesperada');
+    ultimaSync = new Date();
+    estadoPlanilla();
+    if(manual) aviso('Planilla actualizada.');
+  }catch(e){
+    /* Algunos navegadores bloquean la lectura de la respuesta: se envía igual
+       sin poder confirmarla. */
+    try{
+      await fetch(url, {method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(paquete())});
+      ultimaSync = new Date();
+      estadoPlanilla('Conectada. El envío salió, pero el navegador no dejó confirmarlo.');
+      if(manual) aviso('Datos enviados a la planilla.');
+    }catch(e2){
+      estadoPlanilla('No se pudo llegar a la planilla. Revisa la URL o tu conexión.', true);
+      if(manual) aviso('No se pudo conectar con la planilla.', true);
+    }
+  }
+  sincronizando = false;
+}
+
+async function traerDePlanilla(manual){
+  const url = hojaUrl();
+  if(!url) return;
+  try{
+    const r = await fetch(url + '?accion=leer', {redirect:'follow'});
+    const j = await r.json();
+    if(!j || !j.ok) throw new Error('sin datos');
+    if(!j.datos || !j.datos.reservas){ if(manual) aviso('La planilla todavía no tiene datos.'); return }
+    if((j.actualizado||0) <= (datos.actualizado||0)){
+      if(manual) aviso('Ya tienes la versión más reciente.');
+      ultimaSync = new Date(); estadoPlanilla();
+      return;
+    }
+    datos.reservas = j.datos.reservas;
+    datos.bloqueos = j.datos.bloqueos || datos.bloqueos;
+    datos.listas   = j.datos.listas   || datos.listas;
+    datos.actualizado = j.actualizado;
+    guardar(true);
+    ultimaSync = new Date();
+    pintar(); estadoPlanilla();
+    aviso('Planificación actualizada desde la planilla.');
+  }catch(e){
+    if(manual) aviso('No se pudo leer la planilla.', true);
+  }
+}
+
+function abrirPlanilla(){
+  document.getElementById('f-hoja-url').value = hojaUrl();
+  document.getElementById('hoja-estado').textContent = hojaUrl()
+    ? 'Conectada. Cada cambio se envía automáticamente.' : '';
+  document.getElementById('btn-desconectar').style.display = hojaUrl() ? 'inline-flex' : 'none';
+  document.getElementById('ov-hoja').classList.add('abierto');
+}
+async function conectarPlanilla(){
+  const url = document.getElementById('f-hoja-url').value.trim();
+  const est = document.getElementById('hoja-estado');
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)){
+    est.textContent = 'La URL debe empezar con https://script.google.com/ y terminar en /exec';
+    return;
+  }
+  datos.config.hojaUrl = url;
+  est.textContent = 'Conectando…';
+  guardar(true);
+  await enviarAPlanilla(true);
+  est.textContent = 'Listo. La planilla queda conectada en este navegador.';
+  estadoPlanilla();
+}
+function desconectarPlanilla(){
+  datos.config.hojaUrl = '';
+  guardar(true);
+  ultimaSync = null;
+  estadoPlanilla();
+  document.getElementById('hoja-estado').textContent = 'Desconectada. Los datos siguen en este equipo.';
+  document.getElementById('f-hoja-url').value = '';
+}
+document.getElementById('ov-hoja').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('abierto') });
 
 /* ══════════════════════════════════════════════════════════════════════════
    13 · INICIO
@@ -1750,6 +2122,11 @@ function descargarExcel(){
 if(!cargar()){ datos.bloqueos = [colacionPorDefecto()]; ejemplo(); guardar() }
 if(new Date().getDay()===0) dia = masDias(hoyISO(),1);
 pintar();
+estadoPlanilla();
+if(hojaUrl()){
+  traerDePlanilla();
+  setInterval(()=>{ if(!document.querySelector('.overlay.abierto') && !arrastre) traerDePlanilla() }, 60*1000);
+}
 setInterval(()=>{ if(vista) pintar() }, 5*60*1000);   // refresca la línea de "ahora"
 </script>
 </body>
