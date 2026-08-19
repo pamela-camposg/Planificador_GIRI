@@ -287,7 +287,6 @@ aside{ position:sticky; top:6.5rem }
   .toolbar{ gap:.4rem }
   .toolbar .right{ margin-left:0; width:100% }
   .date-nav{ flex:1 } #etiqueta-fecha{ min-width:0; flex:1 }
-  .switch{ display:none }               /* on a phone the day view is the only one */
   .kpis{ grid-template-columns:repeat(2,1fr) }
   .modal{ padding:1.1rem; border-radius:0; max-height:100vh; height:100%; width:100% }
   .overlay{ padding:0 }
@@ -295,6 +294,16 @@ aside{ position:sticky; top:6.5rem }
   .waste-row{ grid-template-columns:1fr 1fr; grid-auto-rows:min-content }
   .waste-row .row-remove{ grid-column:2; justify-self:end }
   aside{ position:static }
+  body{ font-size:14px }
+  .pill{ font-size:11px; padding:.35rem .6rem }
+  .page-head{ margin-bottom:1rem }
+  .card{ border-radius:6px }
+  .card + .card{ margin-top:.9rem }
+  .toolbar .btn, .toolbar .switch button{ flex:1 1 auto; justify-content:center }
+  .toolbar .right .btn{ flex:1 }
+  .date-nav{ flex:1 1 100% }
+  .modal-actions{ flex-wrap:wrap }
+  .modal-actions .btn{ flex:1 1 auto }
 }
 
 /* ---------- MODAL ---------- */
@@ -343,37 +352,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
 /* =========================================================================
    PHONE — the grid gives way to the list and everything stacks in one column.
    ========================================================================= */
-@media (max-width:900px){
-  body{ font-size:14px }
-  .topbar-in{ height:auto; padding:.7rem 1rem; gap:.7rem }
-  .topbar-in .logo{ height:1.5rem }
-  .topbar-in svg.logo{ width:136px }
-  .divider{ display:none }
-  .app-title p:first-child{ font-size:15px }
-  .app-title p:last-child{ font-size:11.5px }
-  .topbar-right{ width:100%; margin-left:0 }
-  .pill{ font-size:11px; padding:.35rem .6rem }
-  .canvas{ padding:1.25rem 1rem 2rem }
-  h1.premium-heading{ font-size:1.7rem; line-height:2rem }
-  .page-head{ margin-bottom:1rem }
-  .card{ padding:1rem; border-radius:6px }
-  .card + .card{ margin-top:.9rem }
-  .toolbar{ gap:.45rem }
-  .toolbar .btn, .toolbar .switch button{ flex:1 1 auto; justify-content:center }
-  .toolbar .right{ margin-left:0; width:100%; }
-  .toolbar .right .btn{ flex:1 }
-  .date-nav{ flex:1 1 100% }
-  #etiqueta-fecha{ flex:1; min-width:0 }
-  .grid-box{ display:none }          /* the grid does not fit: the list takes over */
-    .kpis{ grid-template-columns:repeat(2,1fr) }
-  aside{ position:static }
-  .modal{ padding:1.15rem; border-radius:6px }
-  .row3{ grid-template-columns:1fr 1fr }
-  .row3 .field:first-child{ grid-column:1/-1 }
-  .modal-actions{ flex-wrap:wrap }
-  .modal-actions .btn{ flex:1 1 auto }
-  .waste-row{ grid-template-columns:1fr 74px 24px }
-}
+
 @media (max-width:600px){
   .row2,.row3{ grid-template-columns:1fr }
   .row3 .field:first-child{ grid-column:auto }
@@ -453,7 +432,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
       <section class="card">
         <div class="card-head">
           <span class="fmtNum">01</span>
-          <h2 id="titulo-view">Agenda del día</h2>
+          <h2 id="view-title">Agenda del día</h2>
           <span class="tag" id="range-chip">—</span>
         </div>
 
@@ -563,7 +542,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
 <footer class="footer">
   <div class="footer-in">
     <span>Ambipar Chile - GIRI - Planificador Operacional</span>
-    <span>Inteligencia Circular - Chile</span>
+    <span>Inteligencia Circular - Chile · <span id="version"></span></span>
   </div>
 </footer>
 
@@ -766,6 +745,9 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │                                                                          │
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
+/* Shown in the footer: makes it obvious which file is published. */
+const VERSION = 'v14 · 19-08-2026';
+
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
 /* Unloading points that can actually be planned. Not all of them are
@@ -1476,7 +1458,7 @@ function hideHelp(){
 
 function renderHeaderText(){
   const ds = weekDays();
-  document.getElementById('titulo-view').textContent = view==='day' ? 'Agenda del día' : 'Agenda de la semana';
+  document.getElementById('view-title').textContent = view==='day' ? 'Agenda del día' : 'Agenda de la semana';
   document.getElementById('date-label').textContent = view==='day'
     ? longDate(day)
     : `${shortDate(ds[0])} – ${shortDate(ds[5])}`;
@@ -2213,7 +2195,8 @@ function urlIsFixed(){ return !!SHEET_URL }
    to date. It never mentions spreadsheets or services: the person using it just
    needs to know the information is saved, and since when. */
 function renderSyncState(txt, mal){
-  const p = document.getElementById('sheet-note');
+  /* sheet-note only exists inside the connection window, which is optional. */
+  const p = document.getElementById('sheet-status');
   const pill = document.getElementById('sync-label');
   const punto = document.querySelector('#sync-state .dot') || document.querySelector('.pill .dot');
   const hour = h => h.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
@@ -2373,6 +2356,77 @@ function disconnectSheet(){
 document.getElementById('ov-sheet').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('is-open') });
 
 /* ══════════════════════════════════════════════════════════════════════════
+   12c · SELF-CHECK
+   Open the page with ?diagnostico at the end of the address to get a report of
+   which buttons work on THIS device. Useful when something fails on someone
+   else's computer or phone and there is no console to look at.
+   ══════════════════════════════════════════════════════════════════════════ */
+const bootErrors = [];
+window.addEventListener('error', e=>bootErrors.push(e.message));
+
+function runSelfCheck(){
+  const out = [];
+  const add = (ok, what, extra) => out.push({ok, what, extra:extra||''});
+
+  /* 1 · every onclick points to a function that exists */
+  const missing = new Set();
+  document.querySelectorAll('[onclick]').forEach(el=>{
+    (el.getAttribute('onclick').match(/([a-zA-Z_$][\w$]*)\s*\(/g)||[]).forEach(x=>{
+      const n = x.replace(/\s*\($/,'');
+      if(typeof window[n] !== 'function') missing.add(n + '  ←  ' + (el.textContent||'').trim().slice(0,24));
+    });
+  });
+  add(missing.size===0, 'Botones conectados a su función', [...missing].join(' · '));
+
+  /* 2 · every id the code looks for is in the page */
+  const ids = new Set([...document.querySelectorAll('[id]')].map(e=>e.id));
+  const wanted = [...document.documentElement.innerHTML.matchAll(/getElementById\('([^']+)'\)/g)].map(m=>m[1]);
+  const noIds = [...new Set(wanted)].filter(i=>!ids.has(i));
+  add(noIds.length===0, 'Elementos que el código necesita', noIds.join(' · '));
+
+  /* 3 · the key pieces are on screen */
+  const chico = window.innerWidth <= 900;
+  add(!!document.querySelector(chico ? '#mobile-list' : '.grid-box'),
+      chico ? 'Lista de celular presente' : 'Grilla presente');
+  add(getComputedStyle(document.querySelector(chico ? '#mobile-list' : '.grid-box')).display !== 'none',
+      chico ? 'Lista de celular visible' : 'Grilla visible');
+  add(document.querySelectorAll('#view-switch button').length===2, 'Botones Día y Semana');
+  add(getComputedStyle(document.getElementById('view-switch')).display !== 'none', 'Botón Día/Semana visible');
+
+  /* 4 · the day view actually reacts */
+  const antes = view;
+  try{ setView('semana'); setView('day'); add(view==='day', 'Cambiar de vista funciona') }
+  catch(e){ add(false, 'Cambiar de vista funciona', e.message) }
+  view = antes; render();
+
+  /* 5 · state of the shared spreadsheet */
+  add(!!sheetUrl(), 'Conectado a la planilla', sheetUrl() ? '' : 'sin dirección: cada equipo guarda su copia');
+
+  /* 6 · errors caught since the page opened */
+  add(bootErrors.length===0, 'Sin errores al cargar', bootErrors.slice(0,3).join(' · '));
+
+  const html = `
+    <div style="position:fixed;inset:0;background:rgba(3,23,22,.55);z-index:999;overflow:auto;padding:1rem"
+         onclick="if(event.target===this)this.remove()">
+      <div style="max-width:620px;margin:2rem auto;background:#fff;border-top:3px solid var(--neon);padding:1.4rem;font-size:13px">
+        <h3 style="font-size:17px;font-weight:500;margin-bottom:.2rem">Diagnóstico</h3>
+        <p style="color:var(--z500);font-size:12px;margin-bottom:1rem">
+          ${VERSION} · pantalla ${window.innerWidth}×${window.innerHeight} · ${chico?'modo celular':'modo computador'}
+        </p>
+        ${out.map(o=>`<div style="display:flex;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--z200)">
+            <b style="color:${o.ok?'#1E8E4E':'var(--rojo)'};width:14px">${o.ok?'✓':'✕'}</b>
+            <span style="flex:1">${o.what}${o.extra?`<br><span style="color:var(--z500);font-size:11.5px">${esc(o.extra)}</span>`:''}</span>
+          </div>`).join('')}
+        <p style="margin-top:1rem;color:var(--z500);font-size:12px">
+          Si algo sale con ✕, manda una foto de esta pantalla.
+        </p>
+        <button class="btn" style="margin-top:1rem" onclick="this.closest('div').parentNode.remove()">Cerrar</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    13 · STARTUP
    ══════════════════════════════════════════════════════════════════════════ */
 if(!load()){
@@ -2382,6 +2436,9 @@ if(!load()){
 if(new Date().getDay()===0) day = addDays(todayISO(),1);
 render();
 renderSyncState();
+const vEl = document.getElementById('version');
+if(vEl) vEl.textContent = VERSION;
+if(location.search.includes('diagnostico')) setTimeout(runSelfCheck, 600);
 /* Keep the hard-coded address as this device's fallback. */
 if(SHEET_URL){
   state.config = state.config || {};
