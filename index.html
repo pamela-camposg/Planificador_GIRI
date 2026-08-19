@@ -185,7 +185,7 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 
 /* ---------- BOOKING BLOCKS ---------- */
 .block{
-  position:absolute; left:2px; right:2px; z-index:8; overflow:hidden;
+  position:absolute; left:2px; right:16px; z-index:8; overflow:hidden;   /* 16px libres a la derecha: sirven para agendar otro movimiento a la misma hora */
   border-radius:0; border:1px solid; border-left-width:4px; background:#fff;
   padding:3px 5px; font-size:10.5px; line-height:1.25; user-select:none;
   cursor:grab; transition:box-shadow .15s;
@@ -548,11 +548,8 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
         <div class="legend">
           <div class="legend-item"><span class="legend-swatch" style="background:#fff;border-color:var(--tinta)"></span>Confirmado</div>
           <div class="legend-item"><span class="legend-swatch" style="background:repeating-linear-gradient(135deg,#fff 0 3px,#ddd 3px 6px);border-color:var(--z400);border-style:dashed"></span>Por confirmar</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:repeating-linear-gradient(90deg,#fff 0 3px,#e6e6e6 3px 6px);border-color:var(--z500);border-style:dashed"></span>Retiro (material que sale)</div>
           <div class="legend-item"><span class="legend-swatch" style="background:#E7F4EC;border-color:#1E8E4E;border-left-width:4px"></span>Llegó</div>
           <div class="legend-item"><span class="legend-swatch" style="background:var(--z100);border-color:var(--z400);border-style:dotted"></span>No llegó</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:var(--rojoBg);border-color:var(--rojo)"></span>Cruce u horario bloqueado</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:repeating-linear-gradient(135deg,#F1F1F3 0 3px,#E0E0E4 3px 6px);border-color:var(--z300)"></span>Bloqueado (colación, mantención)</div>
         </div>
       </div>
       <div class="side-block">
@@ -777,11 +774,14 @@ const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2Ahj
    Resimple trucks cannot be known in advance.
    (The stored field is still called "nave" so that data already saved in the
     spreadsheet keeps working.) */
+/* sharedFront: true  → la carga y la descarga usan el mismo frente, así que un
+                        ingreso y un retiro a la misma hora se estorban.
+   sharedFront: false → el retiro sale por otro lado; pueden convivir. */
 const DOCKS = [
-  { id:'clasif', name:'Nave Clasificación',              col:'#2E7D52', bg:'#EAF3EE' },
-  { id:'cdr',    name:'Nave CDR',                        col:'#1565C0', bg:'#E7EFF8' },
-  { id:'envase', name:'Nave Separación Envase-Producto', col:'#BF360C', bg:'#F9EAE5' },
-  { id:'madera', name:'Recepción Madera para Arauco',    col:'#8A6A2F', bg:'#F4F0E5' },
+  { id:'clasif', name:'Nave Clasificación',              col:'#2E7D52', bg:'#EAF3EE', sharedFront:false },
+  { id:'cdr',    name:'Nave CDR',                        col:'#1565C0', bg:'#E7EFF8', sharedFront:true  },
+  { id:'envase', name:'Nave Separación Envase-Producto', col:'#BF360C', bg:'#F9EAE5', sharedFront:true  },
+  { id:'madera', name:'Recepción Madera para Arauco',    col:'#8A6A2F', bg:'#F4F0E5', sharedFront:false },
 ];
 
 /* How the load comes in. Optional: it can be left blank. */
@@ -1038,6 +1038,13 @@ function blockingPeriod(fecha, naveId, ini, dur){
   return blocksFor(fecha, naveId).find(b=> ini < b.ini + b.dur && b.ini < ini + dur) || null;
 }
 
+/* Two movements clash when they share dock, date and time, unless one is an
+   arrival and the other a pickup at a dock where they use different fronts. */
+function clashPossible(dockId, typeA, typeB){
+  if(typeA === typeB) return true;
+  return !!dock(dockId).sharedFront;
+}
+
 function findClashes(){
   clashes = new Set();
   clashReason = new Map();
@@ -1052,15 +1059,17 @@ function findClashes(){
     for(let i=0;i<list.length;i++)
       for(let j=i+1;j<list.length;j++){
         if(list[j].ini >= list[i].ini + list[i].dur) break;
+        if(!clashPossible(list[i].nave, list[i].tipo||'ingreso', list[j].tipo||'ingreso')) continue;
         clashes.add(list[i].id); clashes.add(list[j].id);
       }
   });
   return clashes;
 }
-function overlaps(fecha, naveId, ini, dur, ignorarId){
+function overlaps(fecha, naveId, ini, dur, ignorarId, tipo){
   return state.reservas.filter(r=>
     r.id!==ignorarId && r.fecha===fecha && r.nave===naveId &&
-    ini < r.ini + r.dur && r.ini < ini + dur);
+    ini < r.ini + r.dur && r.ini < ini + dur &&
+    (!tipo || clashPossible(naveId, tipo, r.tipo||'ingreso')));
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1180,31 +1189,34 @@ function render(){
 /* Splits overlapping blocks into lanes so none is hidden behind another
    (same idea Outlook and Google Calendar use). */
 function assignLanes(list){
-  const orden = [...list].sort((a,b)=> a.ini-b.ini || b.dur-a.dur);
-  const salida = [];
-  let field = [], finGrupo = -1;
+  const order = [...list].sort((a,b)=> a.ini-b.ini || b.dur-a.dur);
+  const out = [];
+  let group = [], groupEnd = -1;
 
-  const closeOverlay = ()=>{
-    if(!field.length) return;
+  /* Closes the current cluster of overlapping bookings and gives each one a lane.
+     Careful: the key must be called "lane" — makeBlock reads it by name. */
+  const closeGroup = ()=>{
+    if(!group.length) return;
     const lanes = [];                       // end time of each lane
-    field.forEach(r=>{
-      let i = lanes.findIndex(fin=>fin<=r.ini);
+    group.forEach(r=>{
+      let i = lanes.findIndex(end=>end<=r.ini);
       if(i<0){ i = lanes.length; lanes.push(0) }
       lanes[i] = r.ini + r.dur;
-      r._carril = i;
+      r._lane = i;
     });
-    field.forEach(r=>salida.push({ r, carril:r._carril, total:lanes.length }));
-    field = []; finGrupo = -1;
+    group.forEach(r=>out.push({ r, lane:r._lane, total:lanes.length }));
+    group = []; groupEnd = -1;
   };
 
-  orden.forEach(r=>{
-    if(field.length && r.ini >= finGrupo) closeOverlay();
-    field.push(r);
-    finGrupo = Math.max(finGrupo, r.ini + r.dur);
+  order.forEach(r=>{
+    if(group.length && r.ini >= groupEnd) closeGroup();
+    group.push(r);
+    groupEnd = Math.max(groupEnd, r.ini + r.dur);
   });
-  closeOverlay();
-  return salida;
+  closeGroup();
+  return out;
 }
+
 
 /* Dragging with pointer events: works with a mouse and with a finger on a
    tablet. Finds the column under the cursor and the nearest 30-minute slot. */
@@ -1283,7 +1295,7 @@ function makeBlock(r, lane, total){
   if(total>1){
     const width = 100/total;
     b.style.left  = `calc(${lane*width}% + 2px)`;
-    b.style.right = `calc(${100-(lane+1)*width}% + 2px)`;
+    b.style.right = `calc(${100-(lane+1)*width}% + ${lane===total-1?16:2}px)`;
   }
   b.style.borderColor = n.col;
   b.style.color = n.col;
@@ -1362,7 +1374,7 @@ function makeBlock(r, lane, total){
       const nd = parseInt(b.dataset.dur||r.dur);
       if(nd!==r.dur){
         r.dur = nd; save(); render();
-        const ch = overlaps(r.fecha,r.nave,r.ini,r.dur,r.id);
+        const ch = overlaps(r.fecha,r.nave,r.ini,r.dur,r.id,r.tipo);
         if(ch.length) toast(`Ojo: quedó cruzado con ${ch[0].cliente} en ${dock(r.nave).name}.`, true);
       }
       setTimeout(()=>resizing=false,50);
@@ -1386,7 +1398,7 @@ function dropBooking(id, colK, slot){
     logChange(r, 'reprogramacion',
               `${shortDate(before.fecha)} ${hhmm(before.ini)} ${dock(before.nave).name}`,
               `${shortDate(r.fecha)} ${hhmm(r.ini)} ${dock(r.nave).name}`);
-  const ch = overlaps(r.fecha, r.nave, r.ini, r.dur, r.id);
+  const ch = overlaps(r.fecha, r.nave, r.ini, r.dur, r.id, r.tipo);
   const bq = blockingPeriod(r.fecha, r.nave, r.ini, r.dur);
   save(); render();
   if(bq){
@@ -1686,7 +1698,7 @@ function renderMovePicker(v){
     : 'Residuos que trae <i>— uno o varios, con sus toneladas</i>';
   fillDatalists();
 }
-function pickMove(v){ renderMovePicker(v) }
+function pickMove(v){ renderMovePicker(v); checkClash() }
 
 function renderDockPicker(sel){
   dockSel = sel;
@@ -1814,7 +1826,7 @@ function checkClash(){
   const f = document.getElementById('f-day').value;
   const ini = parseInt(document.getElementById('f-time').value);
   const dur = parseInt(document.getElementById('f-length').value);
-  const ch = overlaps(f, dockSel, ini, dur, editingId);
+  const ch = overlaps(f, dockSel, ini, dur, editingId, moveSel);
   const bq = blockingPeriod(f, dockSel, ini, dur);
   const box = document.getElementById('m-clash');
   if(bq){
@@ -1875,7 +1887,7 @@ function saveBooking(){
   remember('quien',    obj.quien);
 
   save(); closeBooking(); render();
-  const ch = overlaps(obj.fecha, obj.nave, obj.ini, obj.dur, editingId);
+  const ch = overlaps(obj.fecha, obj.nave, obj.ini, obj.dur, editingId, obj.tipo);
   const bq = blockingPeriod(obj.fecha, obj.nave, obj.ini, obj.dur);
   toast(bq ? `${obj.cliente} quedó dentro del horario de ${bq.motivo.toLowerCase()} (${hhmm(bq.ini)}–${hhmm(bq.ini+bq.dur)}).`
      : ch.length ? `Agendado con cruce: revisa ${dock(obj.nave).name} a las ${hhmm(obj.ini)}.`
@@ -1890,7 +1902,7 @@ function duplicateBooking(){
   const copia = JSON.parse(JSON.stringify(r));
   copia.id = 'r'+Math.random().toString(36).slice(2,9);
   let t = r.ini + r.dur;
-  while(t + r.dur <= CLOSE_MIN && overlaps(r.fecha, r.nave, t, r.dur, null).length) t += STEP_MIN;
+  while(t + r.dur <= CLOSE_MIN && overlaps(r.fecha, r.nave, t, r.dur, null, r.tipo).length) t += STEP_MIN;
   if(t + r.dur > CLOSE_MIN){ toast('No queda espacio libre ese día en ese punto de descarga.', true); return }
   copia.ini = t;
   state.reservas.push(copia);
