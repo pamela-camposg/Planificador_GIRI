@@ -1,3 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#031716" />
+<title>Planificador GIRI · Ambipar Chile</title>
+
+<!-- =========================================================================
+     NEO SANS — Monotype stylesheet
+     -------------------------------------------------------------------------
+     Monotype gives one URL per project, like:
+        https://fast.fonts.net/t/1.css?apiType=css&projectid=XXXXXXXX
+     Replace the commented line with that URL once the licence is in place.
+     Meanwhile the page uses Barlow Semi Condensed, the closest free match to
+     the typeface on the Ambipar site.
+     ========================================================================= -->
+<!-- <link rel="stylesheet" href="https://fast.fonts.net/t/1.css?apiType=css&projectid=YOUR-PROJECT"> -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
 /* =========================================================================
    DESIGN SYSTEM — same one used by index.html (Sistema Trazabilidad)
@@ -746,7 +768,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v14 · 19-08-2026';
+const VERSION = 'v15 · 19-08-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -2384,7 +2406,14 @@ function runSelfCheck(){
   const noIds = [...new Set(wanted)].filter(i=>!ids.has(i));
   add(noIds.length===0, 'Elementos que el código necesita', noIds.join(' · '));
 
-  /* 3 · the key pieces are on screen */
+  /* 3 · the page header: without the viewport tag a phone renders at 980px
+        wide and the mobile layout never kicks in */
+  const vp = document.querySelector('meta[name="viewport"]');
+  add(!!vp, 'Etiqueta de pantalla para celular', vp ? '' : 'falta <meta name="viewport">: el celular verá la grilla');
+  add(document.doctype !== null, 'Documento bien formado', document.doctype ? '' : 'falta <!DOCTYPE html>');
+  add(window.innerWidth < 900 || window.innerWidth > 600, 'Ancho detectado: ' + window.innerWidth + ' px');
+
+  /* 4 · the key pieces are on screen */
   const chico = window.innerWidth <= 900;
   add(!!document.querySelector(chico ? '#mobile-list' : '.grid-box'),
       chico ? 'Lista de celular presente' : 'Grilla presente');
@@ -2393,16 +2422,16 @@ function runSelfCheck(){
   add(document.querySelectorAll('#view-switch button').length===2, 'Botones Día y Semana');
   add(getComputedStyle(document.getElementById('view-switch')).display !== 'none', 'Botón Día/Semana visible');
 
-  /* 4 · the day view actually reacts */
+  /* 5 · the day view actually reacts */
   const antes = view;
   try{ setView('semana'); setView('day'); add(view==='day', 'Cambiar de vista funciona') }
   catch(e){ add(false, 'Cambiar de vista funciona', e.message) }
   view = antes; render();
 
-  /* 5 · state of the shared spreadsheet */
+  /* 6 · state of the shared spreadsheet */
   add(!!sheetUrl(), 'Conectado a la planilla', sheetUrl() ? '' : 'sin dirección: cada equipo guarda su copia');
 
-  /* 6 · errors caught since the page opened */
+  /* 7 · errors caught since the page opened */
   add(bootErrors.length===0, 'Sin errores al cargar', bootErrors.slice(0,3).join(' · '));
 
   const html = `
