@@ -106,7 +106,7 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .date-nav{ display:flex; align-items:center; gap:.15rem; border:1px solid var(--z200); border-radius:6px; padding:2px; background:#fff }
 .date-nav button{ background:none; border:0; color:var(--tinta); width:28px; height:28px; font-size:15px; border-radius:4px; transition:.15s }
 .date-nav button:hover{ background:var(--neon) }
-#etiqueta-fecha{ font-size:12.5px; font-weight:500; min-width:210px; text-align:center }
+#date-label{ font-size:12.5px; font-weight:500; min-width:210px; text-align:center }
 .switch{ display:inline-flex; border:1px solid var(--z200); border-radius:6px; padding:2px; background:#fff }
 .switch button{ border:0; background:none; padding:.4rem .95rem; font-size:12.5px; font-family:inherit; color:var(--z500); border-radius:4px; transition:.15s }
 .switch button:hover{ background:var(--z50); color:var(--tinta) }
@@ -227,13 +227,6 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .b-resize::after{ content:''; position:absolute; left:50%; bottom:2px; width:16px; height:2px; margin-left:-8px; background:currentColor; opacity:0; transition:.15s }
 .block:hover .b-resize::after{ opacity:.35 }
 
-/* =========================================================================
-   LIST VIEW — the one used on phones. Every truck is a row with two large
-   buttons to record whether it arrived.
-   ========================================================================= */
-.day-sep{ font-size:10px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--tinta); background:var(--neon); padding:.4rem .75rem; margin-top:.9rem }
-.day-sep:first-child{ margin-top:0 }
 /* ---------- SUMMARY / LOAD ---------- */
 .load-list{ display:flex; flex-direction:column; gap:.6rem; margin-top:.75rem }
 .load-row{ font-size:12px; color:var(--z600) }
@@ -308,7 +301,7 @@ aside{ position:sticky; top:6.5rem }
   .help-strip ol.only-phone{ display:flex }
   .toolbar{ gap:.4rem }
   .toolbar .right{ margin-left:0; width:100% }
-  .date-nav{ flex:1 } #etiqueta-fecha{ min-width:0; flex:1 }
+  .date-nav{ flex:1 } #date-label{ min-width:0; flex:1 }
   .kpis{ grid-template-columns:repeat(2,1fr) }
   .modal{ padding:1.1rem; border-radius:0; max-height:100vh; height:100%; width:100% }
   .overlay{ padding:0 }
@@ -359,6 +352,7 @@ aside{ position:sticky; top:6.5rem }
 .chip-row button:hover{ border-color:var(--neon); background:var(--neon-suave); color:var(--tinta) }
 .modal-clash{ display:none; margin-top:.8rem; border-left:3px solid var(--rojo); background:var(--rojoBg); padding:.55rem .8rem; font-size:12px; color:#7B2318 }
 .modal-clash.on{ display:block }
+.modal-clash.ok{ display:block; border-left-color:#1E8E4E; background:#F1F8F3; color:#20603C }
 .modal-actions{ display:flex; gap:.5rem; margin-top:1.4rem; align-items:center }
 .modal-actions .crece{ flex:1 }
 
@@ -474,6 +468,12 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
           <div class="switch" id="view-switch">
             <button onclick="setView('day')"    aria-pressed="true">Día</button>
             <button onclick="setView('semana')" aria-pressed="false">Semana</button>
+          </div>
+
+          <div class="switch" id="move-switch" title="Muestra todo, solo lo que entra o solo lo que sale">
+            <button onclick="setMoveFilter('todo')"    aria-pressed="true">Todo</button>
+            <button onclick="setMoveFilter('ingreso')" aria-pressed="false">↓ Ingresos</button>
+            <button onclick="setMoveFilter('retiro')"  aria-pressed="false">↑ Retiros</button>
           </div>
 
           <button class="btn secondary" onclick="openBlockModal()" title="Colación, mantención o nave cerrada">
@@ -768,7 +768,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v15 · 19-08-2026';
+const VERSION = 'v17 · 26-08-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -790,6 +790,10 @@ const DOCKS = [
 
 /* How the load comes in. Optional: it can be left blank. */
 const FORMATS = ['PALLET', 'GRANEL', 'MAXISACA', 'PISO CAMINANTE'];
+
+/* Where each format is actually handled. Pallets and maxisacas are moved in the
+   yard, so they never compete for the unloading front with bulk loads. */
+const PATIO_FORMATS = ['PALLET', 'MAXISACA'];
 
 /* A booking is either material coming in or material being collected. */
 const MOVES = [
@@ -896,6 +900,8 @@ let state = {
 };
 const BLOCK_REASONS = ['Colación','Mantención','Nave cerrada','Otro'];
 let view = 'day';
+/* Movement filter for the whole board: 'todo' | 'ingreso' | 'retiro' */
+let moveFilter = 'todo';
 let day   = todayISO();                 // día visible en view Día
 let monday = mondayOf(new Date());      // monday of the visible week
 let editingId = null;                  // id of the booking being edited
@@ -1042,11 +1048,35 @@ function blockingPeriod(fecha, naveId, ini, dur){
   return blocksFor(fecha, naveId).find(b=> ini < b.ini + b.dur && b.ini < ini + dur) || null;
 }
 
-/* Two movements clash when they share dock, date and time, unless one is an
-   arrival and the other a pickup at a dock where they use different fronts. */
-function clashPossible(dockId, typeA, typeB){
-  if(typeA === typeB) return true;
-  return !!dock(dockId).sharedFront;
+/* Which physical areas a booking occupies, judged by the format of its waste.
+   Pallets and maxisacas are handled in the yard; bulk and walking-floor loads
+   need the unloading front. A booking with no format declared is treated as
+   unknown, and unknown competes with everything (better a false alarm than a
+   real crossing that goes unnoticed). */
+function areasOf(r){
+  const out = new Set();
+  itemsOf(r).forEach(i=>{
+    const f = String(i.fmt || '').toUpperCase();
+    if(!f) out.add('?');
+    else out.add(PATIO_FORMATS.includes(f) ? 'patio' : 'anden');
+  });
+  if(!out.size) out.add('?');
+  return out;
+}
+/* True when the two bookings need the same area at the same time. */
+function shareArea(a, b){
+  const A = areasOf(a), B = areasOf(b);
+  if(A.has('?') || B.has('?')) return true;
+  for(const x of A) if(B.has(x)) return true;
+  return false;
+}
+
+/* Two movements clash when they share dock, date, time AND area, unless one is
+   an arrival and the other a pickup at a dock where they use different fronts. */
+function clashPossible(a, b){
+  if(!shareArea(a, b)) return false;
+  if((a.tipo || 'ingreso') === (b.tipo || 'ingreso')) return true;
+  return !!dock(a.nave || b.nave).sharedFront;
 }
 
 function findClashes(){
@@ -1063,17 +1093,20 @@ function findClashes(){
     for(let i=0;i<list.length;i++)
       for(let j=i+1;j<list.length;j++){
         if(list[j].ini >= list[i].ini + list[i].dur) break;
-        if(!clashPossible(list[i].nave, list[i].tipo||'ingreso', list[j].tipo||'ingreso')) continue;
+        if(!clashPossible(list[i], list[j])) continue;
         clashes.add(list[i].id); clashes.add(list[j].id);
       }
   });
   return clashes;
 }
-function overlaps(fecha, naveId, ini, dur, ignorarId, tipo){
+/* `probe` is the booking being placed (or a draft {nave,tipo,items} from the
+   form). Without it every time overlap counts, whatever the format. */
+function overlaps(fecha, naveId, ini, dur, ignorarId, probe){
+  const p = probe ? Object.assign({ nave:naveId }, probe) : null;
   return state.reservas.filter(r=>
     r.id!==ignorarId && r.fecha===fecha && r.nave===naveId &&
     ini < r.ini + r.dur && r.ini < ini + dur &&
-    (!tipo || clashPossible(naveId, tipo, r.tipo||'ingreso')));
+    (!p || clashPossible(p, r)));
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1084,10 +1117,15 @@ function columns(){
     ? DOCKS.map(n=>({ k:n.id, name:n.name, sub:'', hoy:false }))
     : weekDays().map((f,i)=>({ k:f, name:DAY_ABBR[i], sub:shortDate(f), hoy:f===todayISO() }));
 }
+/* True when the booking passes the Todo / Ingresos / Retiros filter. */
+function passesMoveFilter(r){
+  return moveFilter==='todo' || (r.tipo || 'ingreso') === moveFilter;
+}
 function visibleBookings(){
-  return view==='day'
+  const inRange = view==='day'
     ? state.reservas.filter(r=>r.fecha===day)
     : state.reservas.filter(r=>weekDays().includes(r.fecha));
+  return inRange.filter(passesMoveFilter);
 }
 function columnKey(r){ return view==='day' ? r.nave : r.fecha }
 
@@ -1230,18 +1268,6 @@ function clearGhosts(){
   document.querySelectorAll('.ghost').forEach(g=>g.style.display='none');
   document.querySelectorAll('.col.destino').forEach(c=>c.classList.remove('is-target'));
 }
-/* ── List view (phones) ─────────────────────────────────────────────────── */
-/* Records arrived / did not arrive in one tap. Tapping again clears it. */
-function toggleArrival(id, valor){
-  const r = state.reservas.find(x=>x.id===id);
-  if(!r) return;
-  r.real = (arrivalOf(r)===valor) ? null : valor;
-  save(); render();
-  toast(r.real==='llego' ? `${r.cliente}: llegada confirmada.`
-      : r.real==='nollego' ? `${r.cliente}: marcado como no llegó.`
-      : `${r.cliente}: registro borrado.`, r.real==='nollego');
-}
-
 function slotAt(col, clientY, offsetDentro){
   const y = clientY - col.getBoundingClientRect().top - (offsetDentro||0);
   return Math.max(0, Math.min(SLOTS-1, Math.round(y/ROW_H)));
@@ -1342,14 +1368,6 @@ function makeBlock(r, lane, total){
     tic.addEventListener('click', e=>{ e.stopPropagation(); markArrival(r.id,'llego') });
     b.appendChild(tic);
   }
-  if(real!=='llego' && !isClash){
-    const tic = document.createElement('button');
-    tic.className = 'b-tic'; tic.textContent = '✓';
-    tic.title = 'Marcar que llegó';
-    tic.addEventListener('pointerdown', e=>e.stopPropagation());
-    tic.addEventListener('click', e=>{ e.stopPropagation(); toggleArrival(r.id,'llego') });
-    b.appendChild(tic);
-  }
 
   /* --- drag (mouse or finger) --- */
   b.addEventListener('pointerdown', e=>{
@@ -1378,7 +1396,7 @@ function makeBlock(r, lane, total){
       const nd = parseInt(b.dataset.dur||r.dur);
       if(nd!==r.dur){
         r.dur = nd; save(); render();
-        const ch = overlaps(r.fecha,r.nave,r.ini,r.dur,r.id,r.tipo);
+        const ch = overlaps(r.fecha,r.nave,r.ini,r.dur,r.id,r);
         if(ch.length) toast(`Ojo: quedó cruzado con ${ch[0].cliente} en ${dock(r.nave).name}.`, true);
       }
       setTimeout(()=>resizing=false,50);
@@ -1402,7 +1420,7 @@ function dropBooking(id, colK, slot){
     logChange(r, 'reprogramacion',
               `${shortDate(before.fecha)} ${hhmm(before.ini)} ${dock(before.nave).name}`,
               `${shortDate(r.fecha)} ${hhmm(r.ini)} ${dock(r.nave).name}`);
-  const ch = overlaps(r.fecha, r.nave, r.ini, r.dur, r.id, r.tipo);
+  const ch = overlaps(r.fecha, r.nave, r.ini, r.dur, r.id, r);
   const bq = blockingPeriod(r.fecha, r.nave, r.ini, r.dur);
   save(); render();
   if(bq){
@@ -1425,10 +1443,10 @@ function renderMobileList(){
   let html = '';
 
   days.forEach(f=>{
-    const list = state.reservas.filter(r=>r.fecha===f).sort((a,b)=>a.ini-b.ini);
+    const list = state.reservas.filter(r=>r.fecha===f && passesMoveFilter(r)).sort((a,b)=>a.ini-b.ini);
     if(view!=='day') html += `<div class="m-day">${DAY_NAMES[(fromISO(f).getDay()+6)%7]} ${shortDate(f)} · ${list.length} camion${list.length===1?'':'es'}</div>`;
     if(!list.length){
-      html += `<div class="empty-note">No hay camiones agendados${view==='day'?' este día':''}.<br>
+      html += `<div class="empty-note">No hay ${moveFilter==='retiro'?'retiros':moveFilter==='ingreso'?'ingresos':'camiones'} agendados${view==='day'?' este día':''}.<br>
         <span style="color:var(--z500)">Usa <b>＋ Agendar</b> para agregar uno.</span></div>`;
       return;
     }
@@ -1480,7 +1498,10 @@ function hideHelp(){
 
 function renderHeaderText(){
   const ds = weekDays();
-  document.getElementById('view-title').textContent = view==='day' ? 'Agenda del día' : 'Agenda de la semana';
+  const soloTxt = moveFilter==='ingreso' ? ' · solo ingresos'
+                : moveFilter==='retiro'  ? ' · solo retiros' : '';
+  document.getElementById('view-title').textContent =
+    (view==='day' ? 'Agenda del día' : 'Agenda de la semana') + soloTxt;
   document.getElementById('date-label').textContent = view==='day'
     ? longDate(day)
     : `${shortDate(ds[0])} – ${shortDate(ds[5])}`;
@@ -1489,6 +1510,9 @@ function renderHeaderText(){
   document.getElementById('load-chip').textContent = (view==='day' ? shortDate(day) : 'SEMANA').toUpperCase();
   document.querySelectorAll('#view-switch button').forEach((b,i)=>
     b.setAttribute('aria-pressed', (i===0)===(view==='day')));
+  ['todo','ingreso','retiro'].forEach((v,i)=>
+    document.querySelectorAll('#move-switch button')[i]
+      .setAttribute('aria-pressed', v===moveFilter));
 }
 
 function renderClashNotice(){
@@ -1510,7 +1534,8 @@ function renderClashNotice(){
   const n = Object.keys(groups).length + enBloqueo.length;
   box.className='on';
   box.innerHTML = `<b>Hay ${n} problema${n>1?'s':''} de horario.</b>
-    Camiones a la misma hora en el mismo punto de descarga, o dentro de un horario bloqueado.
+    Camiones que ocupan el mismo lugar a la misma hora, o que caen en un horario bloqueado.
+    (Los pallets y maxisacas van a patio, así que no compiten con granel ni piso caminante.)
     Arrastra el bloque a otra hora para resolverlo.
     <ul>${items}${itemsBloq}</ul>`;
 }
@@ -1528,7 +1553,7 @@ function renderKPIs(){
   const box = document.getElementById('kpis');
   box.innerHTML = `
     <div class="kpi"><b>${list.reduce((s,r)=>s+truckCount(r),0)}</b><span>Camiones agendados</span></div>
-    <div class="kpi"><b>${list.filter(r=>isPickup(r)).length}</b><span>Retiros</span></div>
+    <div class="kpi"><b>${list.filter(r=>!isPickup(r)).length} · ${list.filter(r=>isPickup(r)).length}</b><span>Ingresos · Retiros</span></div>
     <div class="kpi"><b>${fmtNum(ton)}</b><span>Toneladas planificadas</span></div>
     <div class="kpi" ${lleg.length?'style="border-left-color:#1E8E4E;background:#F1F8F3"':''}>
       <b>${lleg.length}</b><span>Llegaron</span></div>
@@ -1577,6 +1602,14 @@ function setView(v){
   view = v;
   if(v==='day' && !weekDays().includes(day)) day = weekDays()[0];
   render();
+}
+/* Todo · Ingresos · Retiros. Filters the grid, the phone list and the numbers. */
+function setMoveFilter(v){
+  moveFilter = v || 'todo';
+  render();
+  toast(v==='ingreso' ? 'Mostrando solo los ingresos.'
+      : v==='retiro'  ? 'Mostrando solo los retiros.'
+      : 'Mostrando ingresos y retiros.');
 }
 function shiftDate(n){
   if(view==='day'){
@@ -1750,7 +1783,7 @@ function wasteRow(valor, ton, escrito, fmt){
   const fmtOpts = ['<option value="">— formato —</option>']
     .concat(FORMATS.map(f=>`<option value="${f}"${f===fmt?' selected':''}>${f.toLowerCase()}</option>`)).join('');
   row.insertAdjacentHTML('beforeend',
-    `<select class="it-fmt" title="Cómo viene la carga (opcional)">${fmtOpts}</select>
+    `<select class="it-fmt" title="Cómo viene la carga (opcional). Pallet y maxisaca se descargan en patio; granel y piso caminante ocupan el frente de descarga.">${fmtOpts}</select>
      <input type="number" class="it-ton" min="0" step="0.1" placeholder="ton" value="${ton?ton:''}">
      <button type="button" class="row-remove" title="Quitar este residuo">×</button>`);
 
@@ -1762,12 +1795,15 @@ function wasteRow(valor, ton, escrito, fmt){
       document.querySelector('#f-waste .waste-row:last-child .it-txt')?.focus();
     }
     updateWasteTotal();
+    checkClash();          /* the waste (and its area) changes the clash check */
   });
+  row.querySelector('.it-fmt').addEventListener('change', checkClash);
   row.querySelector('.it-ton').addEventListener('input', updateWasteTotal);
   row.querySelector('.row-remove').addEventListener('click', ()=>{
     row.remove();
     if(!document.querySelectorAll('#f-waste .waste-row').length) addWasteRow();
     updateWasteTotal();
+    checkClash();
   });
   return row;
 }
@@ -1830,18 +1866,24 @@ function checkClash(){
   const f = document.getElementById('f-day').value;
   const ini = parseInt(document.getElementById('f-time').value);
   const dur = parseInt(document.getElementById('f-length').value);
-  const ch = overlaps(f, dockSel, ini, dur, editingId, moveSel);
+  const ch = overlaps(f, dockSel, ini, dur, editingId, { nave:dockSel, tipo:moveSel, items:readWasteRows() });
   const bq = blockingPeriod(f, dockSel, ini, dur);
   const box = document.getElementById('m-clash');
   if(bq){
     box.className='modal-clash on';
-    box.innerHTML = `<b>Horario bloqueado.</b> Ese espacio está marked como
+    box.innerHTML = `<b>Horario bloqueado.</b> Ese espacio está marcado como
       <b>${esc(bq.motivo)}</b> (${hhmm(bq.ini)}–${hhmm(bq.ini+bq.dur)}).
       Puedes agendarlo igual: quedará marcado en rojo.`;
   } else if(ch.length){
     box.className='modal-clash on';
     box.innerHTML = `<b>Cruce de horario.</b> ${esc(ch[0].cliente)} ya está en ${dock(dockSel).name}
       de ${hhmm(ch[0].ini)} a ${hhmm(ch[0].ini+ch[0].dur)}. Puedes agendarlo igual: quedará marcado en rojo.`;
+  } else if(overlaps(f, dockSel, ini, dur, editingId).length){
+    /* Same hour and same dock, but they do not compete: say why. */
+    box.className='modal-clash ok';
+    box.innerHTML = `<b>Coinciden en la hora, pero no se estorban.</b>
+      Los pallets y maxisacas se descargan en patio, así que conviven con un
+      granel o piso caminante en el mismo horario.`;
   } else box.className='modal-clash';
 }
 ['f-day','f-time','f-length'].forEach(id=>
@@ -1849,7 +1891,7 @@ function checkClash(){
 
 function saveBooking(){
   const cliente = document.getElementById('f-customer').value.trim();
-  if(!cliente){ toast('Falta el name del cliente.', true); document.getElementById('f-customer').focus(); return }
+  if(!cliente){ toast('Falta el nombre del cliente.', true); document.getElementById('f-customer').focus(); return }
   const obj = {
     fecha: document.getElementById('f-day').value,
     nave: dockSel,
@@ -1891,7 +1933,7 @@ function saveBooking(){
   remember('quien',    obj.quien);
 
   save(); closeBooking(); render();
-  const ch = overlaps(obj.fecha, obj.nave, obj.ini, obj.dur, editingId, obj.tipo);
+  const ch = overlaps(obj.fecha, obj.nave, obj.ini, obj.dur, editingId, obj);
   const bq = blockingPeriod(obj.fecha, obj.nave, obj.ini, obj.dur);
   toast(bq ? `${obj.cliente} quedó dentro del horario de ${bq.motivo.toLowerCase()} (${hhmm(bq.ini)}–${hhmm(bq.ini+bq.dur)}).`
      : ch.length ? `Agendado con cruce: revisa ${dock(obj.nave).name} a las ${hhmm(obj.ini)}.`
@@ -1906,7 +1948,7 @@ function duplicateBooking(){
   const copia = JSON.parse(JSON.stringify(r));
   copia.id = 'r'+Math.random().toString(36).slice(2,9);
   let t = r.ini + r.dur;
-  while(t + r.dur <= CLOSE_MIN && overlaps(r.fecha, r.nave, t, r.dur, null, r.tipo).length) t += STEP_MIN;
+  while(t + r.dur <= CLOSE_MIN && overlaps(r.fecha, r.nave, t, r.dur, null, r).length) t += STEP_MIN;
   if(t + r.dur > CLOSE_MIN){ toast('No queda espacio libre ese día en ese punto de descarga.', true); return }
   copia.ini = t;
   state.reservas.push(copia);
@@ -2304,9 +2346,9 @@ async function pullFromSheet(manual, inicial){
   try{
     const r = await fetch(url + '?accion=leer', {redirect:'follow'});
     const j = await r.json();
-    if(!j || !j.ok) throw new Error('sin state');
+    if(!j || !j.ok) throw new Error('sin datos');
     if(!j.datos || !j.datos.reservas){
-      if(manual) toast('La planilla todavía no tiene state.');
+      if(manual) toast('La planilla todavía no tiene datos.');
       if(inicial && state.reservas.length) pushToSheet();   /* empty spreadsheet: upload what we have */
       return;
     }
@@ -2372,7 +2414,7 @@ function disconnectSheet(){
   save(true);
   lastSync = null;
   renderSyncState();
-  document.getElementById('sheet-status').textContent = 'Desconectada. Los state siguen en este equipo.';
+  document.getElementById('sheet-status').textContent = 'Desconectada. Los datos siguen en este equipo.';
   document.getElementById('f-sheet-url').value = '';
 }
 document.getElementById('ov-sheet').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('is-open') });
@@ -2421,6 +2463,16 @@ function runSelfCheck(){
       chico ? 'Lista de celular visible' : 'Grilla visible');
   add(document.querySelectorAll('#view-switch button').length===2, 'Botones Día y Semana');
   add(getComputedStyle(document.getElementById('view-switch')).display !== 'none', 'Botón Día/Semana visible');
+  add(document.querySelectorAll('#move-switch button').length===3, 'Botones Todo / Ingresos / Retiros');
+  const antesF = moveFilter;
+  try{
+    setMoveFilter('retiro');
+    const okR = visibleBookings().every(r=>isPickup(r));
+    setMoveFilter('ingreso');
+    const okI = visibleBookings().every(r=>!isPickup(r));
+    add(okR && okI, 'El filtro Ingresos/Retiros filtra bien');
+  } catch(e){ add(false, 'El filtro Ingresos/Retiros filtra bien', e.message) }
+  moveFilter = antesF;
 
   /* 5 · the day view actually reacts */
   const antes = view;
