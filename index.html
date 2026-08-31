@@ -555,7 +555,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
       </div>
       <div class="side-block">
         <p class="side-title"><span class="pt"></span>HORARIO</p>
-        <p>08:30 a 18:30. Lunes a sábado.</p>
+        <p>08:30 a 22:00. Lunes a sábado.</p>
       </div>
     </aside>
   </div>
@@ -564,7 +564,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
 <footer class="footer">
   <div class="footer-in">
     <span>Ambipar Chile - GIRI - Planificador Operacional</span>
-    <span>Inteligencia Circular - Chile · <span id="version"></span></span>
+    <span id="version">Inteligencia Circular LATAM</span>
   </div>
 </footer>
 
@@ -768,7 +768,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v17 · 26-08-2026';
+const VERSION = 'v18 · 31-08-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -881,7 +881,7 @@ const CATALOG = {
             quick:['PALLETS BUENOS','PALLETS MALOS','DESPUNTES','OTRAS MADERAS','MADERA','ESQUINERO'] },
 };
 
-const OPEN_MIN = 8*60+30, CLOSE_MIN = 18*60+30, STEP_MIN = 30;   // 08:30 to 18:30, half-hour steps
+const OPEN_MIN = 8*60+30, CLOSE_MIN = 22*60, STEP_MIN = 30;      // 08:30 to 22:00, half-hour steps
 const SLOTS = (CLOSE_MIN - OPEN_MIN) / STEP_MIN;
 const ROW_H  = 34;                                      // px per 30-minute slot
 const DAY_NAMES = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -1543,22 +1543,20 @@ function goToBooking(fecha, id){
   day = fecha; monday = mondayOf(fromISO(fecha)); setView('day'); openBooking(id);
 }
 
+/* Five tiles, in this order: Camiones agendados · Ingresos - Retiros ·
+   Toneladas planificadas · Llegaron · Con problema. */
 function renderKPIs(){
   const list = visibleBookings();
   const ton  = list.reduce((s,r)=>s+totalTons(r),0);
-  const tent = list.filter(r=>r.estado==='tentativo').length;
-  const lleg = list.filter(r=>arrivalOf(r)==='llego');
-  const nada = list.filter(r=>arrivalOf(r)==='nollego').length;
+  const lleg = list.filter(r=>arrivalOf(r)==='llego').length;
   const conflicto = list.filter(r=>clashes.has(r.id)).length;
   const box = document.getElementById('kpis');
   box.innerHTML = `
     <div class="kpi"><b>${list.reduce((s,r)=>s+truckCount(r),0)}</b><span>Camiones agendados</span></div>
     <div class="kpi"><b>${list.filter(r=>!isPickup(r)).length} · ${list.filter(r=>isPickup(r)).length}</b><span>Ingresos · Retiros</span></div>
     <div class="kpi"><b>${fmtNum(ton)}</b><span>Toneladas planificadas</span></div>
-    <div class="kpi" ${lleg.length?'style="border-left-color:#1E8E4E;background:#F1F8F3"':''}>
-      <b>${lleg.length}</b><span>Llegaron</span></div>
-    <div class="kpi" ${tent||nada?'style="border-left-color:var(--ambar);background:#FFF8EC"':''}>
-      <b>${tent}</b><span>Por confirmar${nada?` · ${nada} no llegó`:''}</span></div>
+    <div class="kpi" ${lleg?'style="border-left-color:#1E8E4E;background:#F1F8F3"':''}>
+      <b>${lleg}</b><span>Llegaron</span></div>
     <div class="kpi" ${conflicto?'style="border-left-color:var(--rojo);background:var(--rojoBg)"':''}>
       <b>${conflicto}</b><span>Con problema</span></div>`;
 }
@@ -2517,8 +2515,10 @@ if(!load()){
 if(new Date().getDay()===0) day = addDays(todayISO(),1);
 render();
 renderSyncState();
+/* The version is no longer printed in the footer. It is still recoverable for
+   support: hover the footer text, or open the page with ?diagnostico. */
 const vEl = document.getElementById('version');
-if(vEl) vEl.textContent = VERSION;
+if(vEl) vEl.title = VERSION;
 if(location.search.includes('diagnostico')) setTimeout(runSelfCheck, 600);
 /* Keep the hard-coded address as this device's fallback. */
 if(SHEET_URL){
