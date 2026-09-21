@@ -129,6 +129,11 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 /* ---------- CLASH BANNER ---------- */
 #clash-notice{ display:none; margin-top:1rem; border:1px solid #EFCFCB; border-left:3px solid var(--rojo); border-radius:0 6px 6px 0; background:var(--rojoBg); padding:.7rem .9rem; font-size:12.5px; color:#7B2318 }
 #clash-notice.on{ display:block }
+#dock-notice{ display:none; margin-top:.7rem; border:1px solid #E6D5B0; border-left:3px solid #B26A00; border-radius:0 6px 6px 0; background:#FFF8EC; padding:.7rem .9rem; font-size:12.5px; color:#7A4A05 }
+#dock-notice.on{ display:block }
+#dock-notice b{ font-weight:600 }
+#dock-notice ul{ list-style:none; margin-top:.35rem; display:flex; flex-direction:column; gap:.2rem }
+#dock-notice li button{ background:none; border:0; padding:0; font-family:inherit; font-size:12.5px; color:#7A4A05; text-decoration:underline; text-underline-offset:2px }
 #clash-notice b{ font-weight:600 }
 #clash-notice ul{ list-style:none; margin-top:.35rem; display:flex; flex-direction:column; gap:.2rem }
 #clash-notice li button{ background:none; border:0; padding:0; font-family:inherit; font-size:12.5px; color:#7B2318; text-decoration:underline; text-underline-offset:2px }
@@ -223,6 +228,14 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .b-short{ display:flex; gap:5px; align-items:baseline }
 .b-short .b-meta{ margin-left:auto }
 .b-warn{ position:absolute; right:3px; top:2px; font-size:11px; font-weight:700; color:var(--rojo) }
+/* Agendado con poca anticipación: franja lateral, sin robar espacio al texto. */
+.block.is-rush{ box-shadow:inset 3px 0 0 -1px #B26A00 }
+.b-rush{ position:absolute; right:3px; bottom:2px; font-size:9.5px; font-weight:700; color:#B26A00; letter-spacing:.04em }
+.list-row.is-rush{ box-shadow:inset 0 0 0 1px #F0DCB4 }
+.block.is-offdock{ border-style:dashed }
+.b-flag{ position:absolute; left:3px; bottom:2px; font-size:9.5px; color:#B26A00 }
+.b-first{ position:absolute; right:14px; top:2px; font-size:9px; font-weight:700; color:#1E8E4E; letter-spacing:.02em }
+.block.is-clash .b-customer{ padding-right:26px }
 .b-resize{ position:absolute; left:0; right:0; bottom:0; height:7px; cursor:ns-resize }
 .b-resize::after{ content:''; position:absolute; left:50%; bottom:2px; width:16px; height:2px; margin-left:-8px; background:currentColor; opacity:0; transition:.15s }
 .block:hover .b-resize::after{ opacity:.35 }
@@ -251,6 +264,14 @@ aside{ position:sticky; top:6.5rem }
 .side-block:hover .side-title span.pt{ background:var(--neon) }
 .side-block p{ margin-top:.6rem; font-size:12.5px; line-height:1.625; color:var(--z600) }
 .side-block p b{ font-weight:500; color:var(--tinta) }
+.m-created{ display:none; margin-top:.7rem; border-left:3px solid var(--z300); background:var(--z50); padding:.5rem .75rem; font-size:11.5px; color:var(--z600) }
+.m-created.on{ display:block }
+.m-created.is-rush{ border-left-color:#B26A00; background:#FFF8EC; color:#7A4A05 }
+.m-offdock{ display:none; margin-top:.8rem; border-left:3px solid #B26A00; background:#FFF8EC; padding:.55rem .8rem; font-size:12px; color:#7A4A05 }
+.m-offdock.on{ display:block }
+.rs-preview p{ font-size:12.5px; color:var(--z600); margin-top:.45rem; line-height:1.5 }
+.rs-preview b{ color:var(--tinta); font-weight:600 }
+.btn:disabled{ opacity:.45; cursor:not-allowed }
 .legend{ margin-top:.7rem; display:flex; flex-direction:column; gap:.45rem }
 .legend-item{ display:flex; align-items:center; gap:.5rem; font-size:12px; color:var(--z600) }
 .legend-swatch{ width:11px; height:11px; flex:0 0 auto; border:1px solid }
@@ -307,6 +328,7 @@ aside{ position:sticky; top:6.5rem }
   .overlay{ padding:0 }
   .row2,.row3{ grid-template-columns:1fr }
   .waste-row{ grid-template-columns:1fr 1fr; grid-auto-rows:min-content }
+  .waste-row .it-unit{ align-self:center }
   .waste-row .row-remove{ grid-column:2; justify-self:end }
   aside{ position:static }
   body{ font-size:14px }
@@ -332,7 +354,10 @@ aside{ position:sticky; top:6.5rem }
 .field{ margin-bottom:.8rem }
 .field label{ display:block; font-size:10px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--z400); margin-bottom:.3rem }
 .field label i{ font-style:normal; color:var(--z300); text-transform:none; letter-spacing:0 }
-.field input,.field select{ width:100%; border:1px solid var(--z200); border-radius:6px; padding:.5rem .7rem; font-size:13px; color:var(--tinta); background:#fff; outline:none; transition:.15s }
+.field input,.field select,.field textarea{ width:100%; border:1px solid var(--z200); border-radius:6px; padding:.5rem .7rem; font-size:13px; color:var(--tinta); background:#fff; outline:none; transition:.15s }
+.field textarea{ resize:vertical; line-height:1.5; text-transform:uppercase }
+.field textarea::placeholder{ text-transform:none }
+.field textarea:focus{ border-color:var(--neon); box-shadow:0 0 0 3px rgba(204,255,0,.3) }
 .field input:focus,.field select:focus{ border-color:var(--neon); box-shadow:0 0 0 3px rgba(204,255,0,.3) }
 .row2{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem }
 .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:.7rem }
@@ -340,7 +365,10 @@ aside{ position:sticky; top:6.5rem }
 .chip{ padding:.35rem .8rem; border:1px solid var(--z200); border-radius:4px; background:#fff; font-size:12px; font-family:inherit; color:var(--z600); transition:.15s }
 .chip:hover{ border-color:var(--neon) }
 .chip[aria-pressed=true]{ background:var(--neon); border-color:var(--neon); color:var(--tinta); font-weight:500 }
-.waste-row{ display:grid; grid-template-columns:1fr 118px 78px 26px; gap:.4rem; margin-bottom:.35rem; align-items:center }
+.waste-row{ display:grid; grid-template-columns:1fr 112px 70px 46px 22px; gap:.4rem; margin-bottom:.35rem; align-items:center }
+.waste-row .it-unit{ font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--z400) }
+.waste-row.is-bale .it-unit{ color:#8A6A2F; font-weight:600 }
+.waste-row.is-bale .it-ton{ border-color:#C6A85C; background:#FCFAF3 }
 .waste-row .it-fmt{ font-size:11.5px; color:var(--z600) }
 .waste-row .row-remove{ border:0; background:none; color:var(--z400); font-size:15px; line-height:1; padding:0 }
 .waste-row .row-remove:hover{ color:var(--rojo) }
@@ -510,6 +538,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
         </div>
 
         <div id="clash-notice"></div>
+        <div id="dock-notice"></div>
 
 
         <div id="mobile-list"></div>
@@ -541,7 +570,9 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
     <!-- ---------------- COLUMNA TÉCNICA ---------------- -->
     <aside>
       <div class="side-block">
-        <p class="side-title"><span class="pt"></span>PUNTOS DE DESCARGA</p>
+        <p class="side-title"><span class="pt"></span>PUNTOS DE DESCARGA
+          <button class="link-btn" style="margin-left:auto" onclick="openClientsModal()"
+                  title="Definir qué clientes puede recibir cada punto">Clientes</button></p>
         <div class="legend" id="dock-legend"></div>
       </div>
       <div class="side-block">
@@ -573,6 +604,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
   <div class="modal">
     <h3 id="m-title">Agendar movimiento</h3>
     <div class="sub" id="m-sub"></div>
+    <div class="m-created" id="m-created"></div>
 
     <div class="field">
       <div class="chips" id="f-move"></div>
@@ -590,7 +622,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
              oninput="filterWaste()" style="margin-bottom:.45rem">
       <div id="f-waste"></div>
       <div class="waste-total">
-        Total del camión: <b id="f-total">0,0</b> t
+        Total del camión: <b id="f-total">0,0</b> t<span id="f-bales"></span>
         <button type="button" class="btn secondary" onclick="addWasteRow()">＋ Otro residuo</button>
       </div>
       <div class="chip-row" id="waste-chips"></div>
@@ -622,6 +654,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
       </div>
     </div>
     <div class="modal-clash" id="m-clash"></div>
+    <div class="m-offdock" id="m-offdock"></div>
 
     <div class="form-section">Camión</div>
     <div class="row3">
@@ -704,6 +737,42 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
   </div>
 </div>
 
+<!-- ══════════════ MODAL: RECUPERAR RESPALDO (?restaurar) ══════════════ -->
+<div class="overlay" id="ov-restore">
+  <div class="modal" style="width:520px">
+    <h3>Recuperar planificación</h3>
+    <div class="sub">Elige una copia de la planilla (el Excel que se descarga desde el historial de
+      versiones de Google Sheets) o un respaldo <b>.json</b>. No se borra nada: se suman los
+      movimientos que falten.</div>
+    <div class="field">
+      <input type="file" id="rs-file" accept=".xlsx,.json" onchange="readBackupFile(this)">
+    </div>
+    <div id="rs-preview" class="rs-preview"></div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn secondary" onclick="closeOverlay('ov-restore')">Cancelar</button>
+      <button class="btn" id="rs-go" onclick="confirmRestore()" disabled>Recuperar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: CLIENTES POR PUNTO ══════════════ -->
+<div class="overlay" id="ov-clients">
+  <div class="modal" style="width:560px">
+    <h3>Clientes por punto de descarga</h3>
+    <div class="sub">Un cliente por línea. Si dejas un punto en blanco, acepta a cualquiera.
+      Agendar un cliente fuera de su punto no queda prohibido: queda avisado y marcado.</div>
+    <div id="cl-list"></div>
+    <div class="modal-actions">
+      <button class="link-btn" onclick="fillFromHistory()"
+              title="Rellena cada punto con los clientes que ya se agendaron ahí">Traer del historial</button>
+      <span style="flex:1"></span>
+      <button class="btn secondary" onclick="closeOverlay('ov-clients')">Cerrar</button>
+      <button class="btn" onclick="saveDockClients()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ MODAL: BLOQUEAR HORARIO ══════════════ -->
 <div class="overlay" id="ov-block">
   <div class="modal" style="width:440px">
@@ -768,7 +837,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v18 · 31-08-2026';
+const VERSION = 'v33 · 21-09-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -896,6 +965,7 @@ let state = {
   bloqueos: [],   // {id,tipo:'diario'|'fecha',fecha,nave:'*'|id,ini,dur,motivo}
   listas: { clientes:[], residuos:[], transp:[], quien:[] },
   config: { sheetUrl:'' },
+  borrados: {},   // {id: time} deletions, so other devices delete them too
   actualizado: 0,
 };
 const BLOCK_REASONS = ['Colación','Mantención','Nave cerrada','Otro'];
@@ -909,6 +979,8 @@ let statusSel = 'confirmado';
 let dockSel = DOCKS[0].id;
 let clashes = new Set();
 let clashReason = new Map();   // booking id → reason of the blocked period
+let clashYields = new Set();   // ids that must move: they were booked last
+let clashWinner = new Map();   // id that must move → the booking that got there first
 
 /* ══════════════════════════════════════════════════════════════════════════
    3 · DATE AND TIME HELPERS
@@ -944,6 +1016,123 @@ function totalTons(r){ return itemsOf(r).reduce((s,i)=>s+(parseFloat(i.t)||0),0)
 function truckCount(r){ return parseInt(r.camiones) || 1 }
 function isPickup(r){ return r.tipo === 'retiro' }
 
+/* ── Bales ────────────────────────────────────────────────────────────────
+   Bales are planned by COUNT, not by weight: nobody weighs them when the
+   truck is booked. The tonnage is estimated with a weight fixed by the plant
+   and stored in `t`, so every total, the Excel and the spreadsheet keep
+   working without knowing about any of this. */
+function isBale(name){ return /^FARDO/.test(String(name || '').toUpperCase()) }
+const BALE_WEIGHT = 0.36;                           // t per bale
+function baleWeight(){ return BALE_WEIGHT }
+function baleCount(i){
+  if(i.q != null && i.q !== '') return parseInt(i.q) || 0;
+  return Math.round((parseFloat(i.t) || 0) / baleWeight());   // older records
+}
+function totalBales(r){
+  return itemsOf(r).reduce((s,i)=> s + (isBale(i.r) ? baleCount(i) : 0), 0);
+}
+/* Keeps stored tonnages in step with the fixed weight, including records
+   created while it was still adjustable. Returns how many it corrected. */
+function normalizeBaleTons(){
+  let n = 0;
+  state.reservas.forEach(r=>{
+    if(!Array.isArray(r.items)) return;
+    r.items.forEach(i=>{
+      if(!isBale(i.r) || i.q == null) return;
+      const t = Math.round(baleCount(i) * BALE_WEIGHT * 100) / 100;
+      if(i.t !== t){ i.t = t; n++ }
+    });
+    if(n) r.ton = totalTons(r);
+  });
+  return n;
+}
+
+/* ── Who belongs at each dock ─────────────────────────────────────────────
+   Each dock can carry a list of the customers it is meant to receive. An
+   empty list means "anyone", so nothing changes until the plant fills it in.
+   Booking someone outside their dock is never blocked — it is flagged, so a
+   real exception can still go through and be seen. */
+function normName(v){ return String(v || '').trim().toUpperCase().replace(/\s+/g,' ') }
+function dockClients(id){
+  return (state.listas && state.listas.porNave && state.listas.porNave[id]) || [];
+}
+function dockAllows(id, cliente){
+  const list = dockClients(id);
+  if(!list.length) return true;
+  const c = normName(cliente);
+  if(!c) return true;
+  return list.some(x=>normName(x) === c);
+}
+function isOffDock(r){ return !dockAllows(r.nave, r.cliente) }
+
+function openClientsModal(){
+  document.getElementById('cl-list').innerHTML = DOCKS.map(n=>{
+    const l = dockClients(n.id);
+    return `<div class="field">
+      <label style="color:${n.col}">${esc(n.name)}
+        <i>— ${l.length ? `${l.length} cliente${l.length===1?'':'s'} autorizado${l.length===1?'':'s'}`
+                        : 'abierto a cualquiera'}</i></label>
+      <textarea class="cl-box" data-n="${n.id}" rows="4"
+        placeholder="Un cliente por línea. En blanco, acepta a cualquiera.">${esc(l.join('\n'))}</textarea>
+    </div>`;
+  }).join('');
+  document.getElementById('ov-clients').classList.add('is-open');
+}
+function saveDockClients(){
+  state.listas.porNave = state.listas.porNave || {};
+  document.querySelectorAll('#cl-list .cl-box').forEach(t=>{
+    const l = t.value.split('\n').map(normName).filter(Boolean);
+    state.listas.porNave[t.dataset.n] = [...new Set(l)];
+  });
+  state.listas.porNaveMod = Date.now();
+  save(); closeOverlay('ov-clients'); render();
+  const fuera = state.reservas.filter(isOffDock).length;
+  toast(fuera ? `Listas guardadas. Hay ${fuera} movimiento${fuera===1?'':'s'} agendado${fuera===1?'':'s'} fuera de su punto.`
+              : 'Listas guardadas.', !!fuera);
+}
+/* Starting point: whoever has already been received at each dock. */
+function fillFromHistory(){
+  document.querySelectorAll('#cl-list .cl-box').forEach(t=>{
+    const yaEstan = t.value.split('\n').map(normName).filter(Boolean);
+    const hist = state.reservas.filter(r=>r.nave===t.dataset.n && !isPickup(r))
+                               .map(r=>normName(r.cliente)).filter(Boolean);
+    t.value = [...new Set([...yaEstan, ...hist])].sort().join('\n');
+  });
+  toast('Rellenado con los clientes que ya se agendaron en cada punto. Revísalo antes de guardar.');
+}
+
+/* ── When was it booked ───────────────────────────────────────────────────
+   `creado` is the moment the booking was created. It never changes, even if
+   the truck is later moved, so it answers "did they warn us in time?". */
+/* Hours between creating the booking and the truck's arrival time. */
+function leadHours(r){
+  if(!r.creado) return null;
+  const t = fromISO(r.fecha); t.setHours(0, r.ini, 0, 0);
+  return (t.getTime() - r.creado) / 3600000;
+}
+const RUSH_HOURS = 24;                              // less than this = last minute
+function isRush(r){ const h = leadHours(r); return h != null && h < RUSH_HOURS }
+/* dd-mm-aaaa and HH:MM of the moment the booking was created, for the Excel. */
+function bookedDate(r){ return r.creado ? new Date(r.creado).toLocaleDateString('es-CL') : '' }
+function bookedClock(r){
+  if(!r.creado) return '';
+  const d = new Date(r.creado);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function bookedText(r){
+  if(!r.creado) return 'Sin registro de cuándo se agendó (se creó antes de esta versión).';
+  const d = new Date(r.creado);
+  const cuando = `${d.toLocaleDateString('es-CL',{day:'numeric',month:'short'})} a las `
+               + `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const h = leadHours(r);
+  if(h == null) return `Agendado el ${cuando}.`;
+  const ant = h < 0  ? 'cuando esa hora ya había pasado'
+            : h < 1  ? 'con menos de 1 hora de anticipación'
+            : h < 48 ? `con ${Math.round(h)} horas de anticipación`
+            :          `con ${Math.round(h/24)} días de anticipación`;
+  return `Agendado el ${cuando}, ${ant}.`;
+}
+
 /* ── Change log ───────────────────────────────────────────────────────────
    Every reschedule and every change in the number of trucks is written down,
    so the spreadsheet can show how often the plan moves after being agreed. */
@@ -963,9 +1152,19 @@ function wasteSummary(r){
   const fmt = l[0].fmt ? ` · ${l[0].fmt.toLowerCase()}` : '';
   return l.length===1 ? l[0].r + fmt : `${l[0].r}${fmt} +${l.length-1}`;
 }
+/* A bale line reads "40 fardos (≈ 14,4 t)"; everything else reads in tons. */
+function itemAmount(i){
+  if(isBale(i.r)){
+    const q = baleCount(i);
+    return q ? `${q} fardo${q===1?'':'s'} (≈ ${fmtNum(parseFloat(i.t)||0)} t)` : '';
+  }
+  return i.t ? `${fmtNum(parseFloat(i.t)||0)} t` : '';
+}
 function wasteDetail(r){
-  return itemsOf(r).filter(i=>i.r)
-    .map(i=>`${i.r}${i.t?` · ${i.t} t`:''}${i.fmt?` · ${i.fmt.toLowerCase()}`:''}`).join('\n');
+  return itemsOf(r).filter(i=>i.r).map(i=>{
+    const cant = itemAmount(i);
+    return `${i.r}${cant?` · ${cant}`:''}${i.fmt?` · ${i.fmt.toLowerCase()}`:''}`;
+  }).join('\n');
 }
 function fmtNum(n){ return (Math.round(n*10)/10).toFixed(1).replace('.',',') }
 
@@ -979,7 +1178,8 @@ let lastSaved = null;
                 for the first time would think it is newer than the spreadsheet
                 and would never pull everyone else's work. */
 function save(local){
-  if(!local) state.actualizado = Date.now();
+  if(!local){ stampChanges(); state.actualizado = Date.now() }
+  takeSnapshot();
   lastSaved = new Date();
   try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)) }
   catch(e){ /* private mode or no permission: the session keeps working anyway */ }
@@ -1012,6 +1212,7 @@ function load(){
         state.listas.residuos = (state.listas.residuos||[]).map(v=>String(v).toUpperCase());
         if(!Array.isArray(state.bloqueos)) state.bloqueos = [defaultLunchBreak()];
         state.config = state.config || { sheetUrl:'' };
+        state.borrados = state.borrados || {};
         state.bloqueos.forEach(b=>{ if(b.nave!=='*' && !DOCKS.some(n=>n.id===b.nave)) b.nave='*' });
         if(moved) setTimeout(()=>toast(
           `${moved} ingreso${moved>1?'s':''} que estaba${moved>1?'n':''} en Nave Clasificación pasó a ${DOCKS[0].name}. Revísalos.`, true), 900);
@@ -1079,9 +1280,19 @@ function clashPossible(a, b){
   return !!dock(a.nave || b.nave).sharedFront;
 }
 
+/* Who gets to keep the slot: whoever booked it first. A booking created
+   before this feature existed has no `creado`, so it counts as the oldest. */
+function bookedOrder(r){ return r.creado || 0 }
+function firstBooked(a, b){
+  if(bookedOrder(a) !== bookedOrder(b)) return bookedOrder(a) < bookedOrder(b) ? a : b;
+  return a.id < b.id ? a : b;                 /* tie: stable, never arbitrary */
+}
+
 function findClashes(){
   clashes = new Set();
   clashReason = new Map();
+  clashYields = new Set();
+  clashWinner = new Map();
   state.reservas.forEach(r=>{
     const b = blockingPeriod(r.fecha, r.nave, r.ini, r.dur);
     if(b){ clashes.add(r.id); clashReason.set(r.id, b.motivo) }
@@ -1095,6 +1306,11 @@ function findClashes(){
         if(list[j].ini >= list[i].ini + list[i].dur) break;
         if(!clashPossible(list[i], list[j])) continue;
         clashes.add(list[i].id); clashes.add(list[j].id);
+        /* The one booked later is the one that has to move. */
+        const primero = firstBooked(list[i], list[j]);
+        const segundo = primero === list[i] ? list[j] : list[i];
+        clashYields.add(segundo.id);
+        if(!clashWinner.has(segundo.id)) clashWinner.set(segundo.id, primero);
       }
   });
   return clashes;
@@ -1222,6 +1438,7 @@ function render(){
   if(ay) ay.classList.toggle('is-hidden', !!(state.config && state.config.ayudaOculta));
   renderHeaderText();
   renderClashNotice();
+  renderDockNotice();
   renderKPIs();
   renderLoadByDock();
   renderLegend();
@@ -1240,6 +1457,9 @@ function assignLanes(list){
   const closeGroup = ()=>{
     if(!group.length) return;
     const lanes = [];                       // end time of each lane
+    /* Left to right in the order they were booked: whoever agendó primero
+       sits on the left, so the column reads like the queue it is. */
+    group.sort((a,b)=> bookedOrder(a) - bookedOrder(b) || a.ini - b.ini);
     group.forEach(r=>{
       let i = lanes.findIndex(end=>end<=r.ini);
       if(i<0){ i = lanes.length; lanes.push(0) }
@@ -1319,7 +1539,8 @@ function makeBlock(r, lane, total){
   const real = arrivalOf(r);
   b.className = 'block' + (r.estado==='tentativo'?' is-tentative':'') + (isClash?' is-clash':'')
               + (real==='llego'?' is-arrived':'') + (real==='nollego'?' is-noshow':'')
-              + (isPickup(r)?' is-pickup':'');
+              + (isPickup(r)?' is-pickup':'') + (isRush(r)?' is-rush':'')
+              + (isOffDock(r)?' is-offdock':'');
   b.style.top = ((r.ini - OPEN_MIN)/STEP_MIN*ROW_H)+'px';
   b.style.height = (r.dur/STEP_MIN*ROW_H - 3)+'px';
   if(total>1){
@@ -1337,10 +1558,16 @@ function makeBlock(r, lane, total){
   b.title = `${isPickup(r)?'RETIRO · ':''}${r.cliente}\n${wasteDetail(r)}\n`
           + `${hhmm(r.ini)}–${hhmm(r.ini+r.dur)} · ${n.name}`
           + `${nTrucks>1?` · ${nTrucks} camiones`:''}${tt?` · ${fmtNum(tt)} t en total`:''}`
-          + `${changeCount(r,'reprogramacion')?`\nReprogramado ${changeCount(r,'reprogramacion')} vez(ces)`:''}`;
+          + `${changeCount(r,'reprogramacion')?`\nReprogramado ${changeCount(r,'reprogramacion')} vez(ces)`:''}`
+          + `\n${bookedText(r)}`
+          + `${clashYields.has(r.id) ? `\nSe cruza con ${clashWinner.get(r.id).cliente}, que agendó primero: este es el que debería moverse.` : ''}`
+          + `${clashes.has(r.id) && !clashYields.has(r.id) && !clashReason.has(r.id) ? '\nAgendó primero: tiene prioridad sobre el otro.' : ''}`
+          + `${isOffDock(r) ? `\n⚑ ${r.cliente} no está en la lista de ${n.name}.` : ''}`;
 
   const range = `${hhmm(r.ini)}–${hhmm(r.ini+r.dur)}`;
-  const extra = [nTrucks>1?`${nTrucks} cam.`:'', tt?`${fmtNum(tt)} t`:''].filter(Boolean).join(' · ');
+  const nBales = totalBales(r);
+  const extra = [nTrucks>1?`${nTrucks} cam.`:'', nBales?`${nBales} fardos`:'',
+                 tt?`${fmtNum(tt)} t`:''].filter(Boolean).join(' · ');
   const naveTxt = (view==='semana' && total<3) ? n.name : '';
 
   if(r.dur<=30){
@@ -1359,6 +1586,13 @@ function makeBlock(r, lane, total){
   if(isClash) b.insertAdjacentHTML('beforeend',
     `<span class="b-warn" title="${esc(clashReason.get(r.id)||'Cruce de horario')}">!</span>`);
   else if(real==='llego') b.insertAdjacentHTML('beforeend','<span class="b-ok" title="Llegó">✓</span>');
+  if(isRush(r) && r.dur>30) b.insertAdjacentHTML('beforeend',
+    `<span class="b-rush" title="${esc(bookedText(r))}">⏱</span>`);
+  if(isOffDock(r) && r.dur>30) b.insertAdjacentHTML('beforeend',
+    `<span class="b-flag" title="${esc(r.cliente)} no está en la lista de ${esc(n.name)}">⚑</span>`);
+  if(clashes.has(r.id) && !clashYields.has(r.id) && !clashReason.has(r.id))
+    b.insertAdjacentHTML('beforeend',
+      '<span class="b-first" title="Agendó primero: tiene prioridad">1º</span>');
   b.insertAdjacentHTML('beforeend','<span class="b-resize" title="Estirar para cambiar la duración"></span>');
   if(real!=='llego' && !isClash){
     const tic = document.createElement('button');
@@ -1443,7 +1677,8 @@ function renderMobileList(){
   let html = '';
 
   days.forEach(f=>{
-    const list = state.reservas.filter(r=>r.fecha===f && passesMoveFilter(r)).sort((a,b)=>a.ini-b.ini);
+    const list = state.reservas.filter(r=>r.fecha===f && passesMoveFilter(r))
+                     .sort((a,b)=> a.ini-b.ini || bookedOrder(a)-bookedOrder(b));
     if(view!=='day') html += `<div class="m-day">${DAY_NAMES[(fromISO(f).getDay()+6)%7]} ${shortDate(f)} · ${list.length} camion${list.length===1?'':'es'}</div>`;
     if(!list.length){
       html += `<div class="empty-note">No hay ${moveFilter==='retiro'?'retiros':moveFilter==='ingreso'?'ingresos':'camiones'} agendados${view==='day'?' este día':''}.<br>
@@ -1455,15 +1690,16 @@ function renderMobileList(){
       const tag = real==='llego' ? '<span class="list-tag" style="color:#1E8E4E">LLEGÓ</span>'
                 : real==='nollego' ? '<span class="list-tag" style="color:var(--rojo)">NO LLEGÓ</span>'
                 : r.estado==='tentativo' ? '<span class="list-tag" style="color:var(--ambar)">POR CONFIRMAR</span>' : '';
-      html += `<div class="list-row ${real==='llego'?'is-arrived':''} ${real==='nollego'?'is-noshow':''} ${clashes.has(r.id)?'is-clash':''} ${isPickup(r)?'is-pickup':''}"
+      html += `<div class="list-row ${real==='llego'?'is-arrived':''} ${real==='nollego'?'is-noshow':''} ${clashes.has(r.id)?'is-clash':''} ${isPickup(r)?'is-pickup':''} ${isRush(r)?'is-rush':''}"
                     style="border-left-color:${real?'':n.col}">
         <div class="list-main" onclick="openBooking('${r.id}')">
           <div class="list-time">${hhmm(r.ini)}<span>${hhmm(r.ini+r.dur)}</span></div>
           <div class="list-info">
             <b class="list-customer">${isPickup(r)?'↑ ':''}${esc(r.cliente)}</b>
             <span class="list-waste">${esc(wasteSummary(r))}</span>
-            <span class="list-dock"><i style="background:${n.col}"></i>${esc(n.name)}${truckCount(r)>1?` · ${truckCount(r)} camiones`:''}${tt?` · ${fmtNum(tt)} t`:''}</span>
+            <span class="list-dock"><i style="background:${n.col}"></i>${esc(n.name)}${truckCount(r)>1?` · ${truckCount(r)} camiones`:''}${totalBales(r)?` · ${totalBales(r)} fardos`:''}${tt?` · ${fmtNum(tt)} t`:''}</span>
             ${tag}
+            ${isRush(r)?'<span class="list-tag" style="color:#B26A00">⏱ AGENDADO A ÚLTIMA HORA</span>':''}
           </div>
         </div>
         <div class="list-actions">
@@ -1528,16 +1764,35 @@ function renderClashNotice(){
   const items = Object.entries(groups).map(([k,list])=>{
     const [f,n] = k.split('|');
     list.sort((a,b)=>a.ini-b.ini);
+    /* Name the one that has to move: whoever booked last. */
+    const mueve = list.filter(r=>clashYields.has(r.id));
     const quienes = list.map(r=>`${r.cliente} (${hhmm(r.ini)})`).join(' y ');
-    return `<li>· <button onclick="goToBooking('${f}','${list[0].id}')">${DAY_ABBR[(fromISO(f).getDay()+6)%7]} ${shortDate(f)} · ${dock(n).name}: ${esc(quienes)}</button></li>`;
+    const quien = mueve.length
+      ? ` — le toca moverse a <b>${esc(mueve.map(r=>r.cliente).join(', '))}</b>, agendó después`
+      : '';
+    return `<li>· <button onclick="goToBooking('${f}','${(mueve[0]||list[0]).id}')">${DAY_ABBR[(fromISO(f).getDay()+6)%7]} ${shortDate(f)} · ${dock(n).name}: ${esc(quienes)}</button>${quien}</li>`;
   }).join('');
   const n = Object.keys(groups).length + enBloqueo.length;
   box.className='on';
   box.innerHTML = `<b>Hay ${n} problema${n>1?'s':''} de horario.</b>
     Camiones que ocupan el mismo lugar a la misma hora, o que caen en un horario bloqueado.
     (Los pallets y maxisacas van a patio, así que no compiten con granel ni piso caminante.)
-    Arrastra el bloque a otra hora para resolverlo.
+    Manda la hora el que agendó primero: arrastra el otro bloque.
     <ul>${items}${itemsBloq}</ul>`;
+}
+
+/* Customers booked at a dock that is not theirs. */
+function renderDockNotice(){
+  const box = document.getElementById('dock-notice');
+  const fuera = visibleBookings().filter(isOffDock);
+  if(!fuera.length){ box.className=''; box.innerHTML=''; return }
+  const items = fuera.sort((a,b)=> a.fecha===b.fecha ? a.ini-b.ini : a.fecha.localeCompare(b.fecha))
+    .map(r=>`<li>· <button onclick="goToBooking('${r.fecha}','${r.id}')">${DAY_ABBR[(fromISO(r.fecha).getDay()+6)%7]} ${shortDate(r.fecha)} ${hhmm(r.ini)} · ${esc(r.cliente)} en ${esc(dock(r.nave).name)}</button></li>`).join('');
+  box.className='on';
+  box.innerHTML = `<b>⚑ ${fuera.length} ${fuera.length===1?'cliente agendado':'clientes agendados'} en un punto que no le corresponde.</b>
+    Revisa si hay que moverlo o si es una excepción y hay que sumarlo a la lista
+    (columna de la derecha, <b>Puntos de descarga → Clientes</b>).
+    <ul>${items}</ul>`;
 }
 function goToBooking(fecha, id){
   day = fecha; monday = mondayOf(fromISO(fecha)); setView('day'); openBooking(id);
@@ -1652,6 +1907,12 @@ function openBooking(id, pre){
   document.getElementById('m-sub').textContent = r
     ? 'Modifica lo que necesites. También puedes arrastrar el bloque en la agenda.'
     : 'Reserva una hora en un punto de descarga. Queda visible para toda la planta.';
+  /* When it was booked, and whether that was with enough notice. */
+  const cre = document.getElementById('m-created');
+  cre.className = 'm-created' + (r ? ' on' : '') + (r && isRush(r) ? ' is-rush' : '');
+  cre.textContent = r
+    ? bookedText(r) + (isRush(r) ? ' Es una recepción avisada con poca anticipación.' : '')
+    : '';
   document.getElementById('btn-save').textContent = r ? 'Guardar cambios' : 'Agendar';
   document.getElementById('btn-delete').style.display = r ? 'inline-flex' : 'none';
   document.getElementById('btn-duplicate').style.display = r ? 'inline-flex' : 'none';
@@ -1772,7 +2033,9 @@ function wasteOptions(valor){
   return html;
 }
 
-function wasteRow(valor, ton, escrito, fmt){
+/* `amount` is the number shown in the row: bales in units, everything else
+   in tonnes. The row re-labels itself whenever the chosen waste changes. */
+function wasteRow(valor, amount, escrito, fmt){
   const row = document.createElement('div');
   row.className = 'waste-row';
   row.innerHTML = escrito
@@ -1782,19 +2045,25 @@ function wasteRow(valor, ton, escrito, fmt){
     .concat(FORMATS.map(f=>`<option value="${f}"${f===fmt?' selected':''}>${f.toLowerCase()}</option>`)).join('');
   row.insertAdjacentHTML('beforeend',
     `<select class="it-fmt" title="Cómo viene la carga (opcional). Pallet y maxisaca se descargan en patio; granel y piso caminante ocupan el frente de descarga.">${fmtOpts}</select>
-     <input type="number" class="it-ton" min="0" step="0.1" placeholder="ton" value="${ton?ton:''}">
+     <input type="number" class="it-ton" min="0" step="0.1" value="${amount!==''&&amount!=null?amount:''}">
+     <span class="it-unit"></span>
      <button type="button" class="row-remove" title="Quitar este residuo">×</button>`);
 
   const sel = row.querySelector('.it-sel');
+  const syncUnit = ()=>rowSetUnit(row);
   if(sel) sel.addEventListener('change', ()=>{
     if(sel.value==='__otro'){
       const t = row.querySelector('.it-ton').value;
       row.replaceWith(wasteRow('', t, true, row.querySelector('.it-fmt').value));
       document.querySelector('#f-waste .waste-row:last-child .it-txt')?.focus();
+      return;
     }
+    syncUnit();
     updateWasteTotal();
     checkClash();          /* the waste (and its area) changes the clash check */
   });
+  const txt = row.querySelector('.it-txt');
+  if(txt) txt.addEventListener('input', ()=>{ syncUnit(); updateWasteTotal() });
   row.querySelector('.it-fmt').addEventListener('change', checkClash);
   row.querySelector('.it-ton').addEventListener('input', updateWasteTotal);
   row.querySelector('.row-remove').addEventListener('click', ()=>{
@@ -1803,7 +2072,22 @@ function wasteRow(valor, ton, escrito, fmt){
     updateWasteTotal();
     checkClash();
   });
+  rowSetUnit(row);
   return row;
+}
+/* Bales ask for a count; everything else asks for tonnes. */
+function rowName(row){
+  const sel = row.querySelector('.it-sel'), txt = row.querySelector('.it-txt');
+  return ((sel ? (sel.value==='__otro' ? '' : sel.value) : (txt ? txt.value : '')) || '').trim().toUpperCase();
+}
+function rowSetUnit(row){
+  const bale = isBale(rowName(row));
+  const inp  = row.querySelector('.it-ton');
+  row.classList.toggle('is-bale', bale);
+  row.querySelector('.it-unit').textContent = bale ? 'fardos' : 't';
+  inp.step        = bale ? '1' : '0.1';
+  inp.placeholder = bale ? 'cant.' : 'ton';
+  inp.title       = bale ? 'Cuántos fardos vienen' : 'Toneladas de este residuo';
 }
 
 function renderWasteRows(list){
@@ -1813,7 +2097,8 @@ function renderWasteRows(list){
   l.forEach(i=>{
     const known = !i.r || WASTE_RESIMPLE.includes(i.r) || WASTE_GENERAL.includes(i.r)
                      || (state.listas.residuos||[]).map(v=>v.toUpperCase()).includes(i.r);
-    box.appendChild(wasteRow(i.r, i.t, false && !known, i.fmt));
+    const amount = isBale(i.r) ? (baleCount(i) || '') : i.t;
+    box.appendChild(wasteRow(i.r, amount, false && !known, i.fmt));
   });
   updateWasteTotal();
   const cat = CATALOG[dockSel] || CATALOG.cdr;
@@ -1831,7 +2116,7 @@ function pickWaste(btn){
   document.getElementById('f-search').value = '';
   refreshWasteOptions();
   const emptyRow = [...document.querySelectorAll('#f-waste .it-sel')].find(s=>!s.value);
-  if(emptyRow) emptyRow.value = v; else addWasteRow(v);
+  if(emptyRow){ emptyRow.value = v; rowSetUnit(emptyRow.closest('.waste-row')) } else addWasteRow(v);
   updateWasteTotal();
 }
 function filterWaste(){ refreshWasteOptions() }
@@ -1841,18 +2126,30 @@ function refreshWasteOptions(){
     sel.innerHTML = wasteOptions(v);
   });
 }
+/* For a bale row the number typed is a COUNT: it is kept in `q` and the
+   tonnage in `t` is the estimate, so nothing downstream has to know. */
 function readWasteRows(){
   return [...document.querySelectorAll('#f-waste .waste-row')].map(f=>{
-    const sel = f.querySelector('.it-sel'), txt = f.querySelector('.it-txt');
-    const r = (sel ? (sel.value==='__otro' ? '' : sel.value) : txt.value).trim().toUpperCase();
-    return { r, t: parseFloat(f.querySelector('.it-ton').value)||0,
-             fmt: f.querySelector('.it-fmt').value || '' };
+    const r = rowName(f);
+    const v = parseFloat(f.querySelector('.it-ton').value) || 0;
+    const fmt = f.querySelector('.it-fmt').value || '';
+    if(isBale(r)){
+      const q = Math.max(0, Math.round(v));
+      return { r, q, t: Math.round(q * baleWeight() * 100) / 100, fmt };
+    }
+    return { r, t: v, fmt };
   }).filter(i=>i.r);
 }
 function updateWasteTotal(){
-  const t = [...document.querySelectorAll('#f-waste .it-ton')]
-    .reduce((s,i)=>s+(parseFloat(i.value)||0),0);
+  let t = 0, fardos = 0;
+  document.querySelectorAll('#f-waste .waste-row').forEach(f=>{
+    const v = parseFloat(f.querySelector('.it-ton').value) || 0;
+    if(isBale(rowName(f))){ fardos += Math.round(v); t += Math.round(v) * baleWeight() }
+    else t += v;
+  });
   document.getElementById('f-total').textContent = fmtNum(t);
+  const extra = document.getElementById('f-bales');
+  if(extra) extra.textContent = fardos ? ` · ${fardos} fardo${fardos===1?'':'s'}` : '';
 }
 
 function setStatus(v){
@@ -1873,9 +2170,16 @@ function checkClash(){
       <b>${esc(bq.motivo)}</b> (${hhmm(bq.ini)}–${hhmm(bq.ini+bq.dur)}).
       Puedes agendarlo igual: quedará marcado en rojo.`;
   } else if(ch.length){
+    /* Whoever booked first keeps the slot, so say who would have to move. */
+    const otro = ch[0];
+    const yoPrimero = editingId
+      && firstBooked(state.reservas.find(r=>r.id===editingId) || {id:editingId}, otro).id === editingId;
     box.className='modal-clash on';
-    box.innerHTML = `<b>Cruce de horario.</b> ${esc(ch[0].cliente)} ya está en ${dock(dockSel).name}
-      de ${hhmm(ch[0].ini)} a ${hhmm(ch[0].ini+ch[0].dur)}. Puedes agendarlo igual: quedará marcado en rojo.`;
+    box.innerHTML = `<b>Cruce de horario.</b> ${esc(otro.cliente)} ya está en ${dock(dockSel).name}
+      de ${hhmm(otro.ini)} a ${hhmm(otro.ini+otro.dur)}.
+      ${yoPrimero ? 'Este movimiento se agendó primero, así que tiene prioridad.'
+                  : `${esc(otro.cliente)} agendó primero: si lo dejas así, el que debería moverse es este.`}
+      Puedes agendarlo igual: quedará marcado en rojo.`;
   } else if(overlaps(f, dockSel, ini, dur, editingId).length){
     /* Same hour and same dock, but they do not compete: say why. */
     box.className='modal-clash ok';
@@ -1883,9 +2187,22 @@ function checkClash(){
       Los pallets y maxisacas se descargan en patio, así que conviven con un
       granel o piso caminante en el mismo horario.`;
   } else box.className='modal-clash';
+  checkDockClient();
+}
+/* Warns when the customer is not on this dock's list. Never blocks. */
+function checkDockClient(){
+  const cliente = document.getElementById('f-customer').value;
+  const box = document.getElementById('m-offdock');
+  if(dockAllows(dockSel, cliente)){ box.className='m-offdock'; box.innerHTML=''; return }
+  const suyos = DOCKS.filter(n=>dockAllows(n.id, cliente) && dockClients(n.id).length);
+  box.className='m-offdock on';
+  box.innerHTML = `<b>⚑ ${esc(cliente.trim())} no está en la lista de ${dock(dockSel).name}.</b>
+    ${suyos.length ? `Según las listas, le corresponde <b>${esc(suyos.map(n=>n.name).join(' o '))}</b>.` : ''}
+    Puedes agendarlo igual: quedará marcado con ⚑.`;
 }
 ['f-day','f-time','f-length'].forEach(id=>
   document.getElementById(id).addEventListener('change', checkClash));
+document.getElementById('f-customer').addEventListener('input', checkDockClient);
 
 function saveBooking(){
   const cliente = document.getElementById('f-customer').value.trim();
@@ -1923,7 +2240,10 @@ function saveBooking(){
     obj.hist = prev.hist || [];
     Object.assign(prev, obj);
   } else {
-    state.reservas.push(Object.assign({id:'r'+Math.random().toString(36).slice(2,9), hist:[]}, obj));
+    /* `creado` is stamped once and never touched again: it is the evidence of
+       how much notice the plant got, and it decides who keeps the slot. */
+    state.reservas.push(Object.assign(
+      { id:'r'+Math.random().toString(36).slice(2,9), hist:[], creado: Date.now() }, obj));
   }
 
   remember(obj.tipo==='retiro' ? 'retiros' : 'clientes', obj.cliente);
@@ -1945,6 +2265,8 @@ function duplicateBooking(){
   const r = state.reservas.find(x=>x.id===editingId);
   const copia = JSON.parse(JSON.stringify(r));
   copia.id = 'r'+Math.random().toString(36).slice(2,9);
+  copia.creado = Date.now();
+  copia.hist = [];
   let t = r.ini + r.dur;
   while(t + r.dur <= CLOSE_MIN && overlaps(r.fecha, r.nave, t, r.dur, null, r).length) t += STEP_MIN;
   if(t + r.dur > CLOSE_MIN){ toast('No queda espacio libre ese día en ese punto de descarga.', true); return }
@@ -2143,10 +2465,14 @@ function downloadWorkbook(sheets, fileName){
 }
 
 /* Detail rows: one per waste type of each truck. */
+/* One row per waste type of each movement. `Fecha/Hora de agendamiento` sit
+   next to `Agendado por`: who asked for the slot, and when. */
 const COLS_DETALLE = ['N° movimiento','Movimiento','Fecha','Día','Punto de descarga',
   'Hora inicio','Hora término','Duración (min)','Cliente / Empresa','Tipo de residuo','Formato',
-  'Toneladas del residuo','Total del movimiento (t)','Cantidad de camiones','Vehículo','Estado',
-  'Agendado por','Llegada','Reprogramaciones','Cambios de cantidad','Problema','Notas'];
+  'Cantidad de fardos','Toneladas del residuo','Total del movimiento (t)','Cantidad de camiones',
+  'Vehículo','Estado',
+  'Agendado por','Fecha de agendamiento','Hora de agendamiento',
+  'Llegada','Reprogramaciones','Cambios de cantidad','Problema','Notas'];
 
 function detailRows(list){
   const rows = [COLS_DETALLE.slice()];
@@ -2161,12 +2487,16 @@ function detailRows(list){
         fromISO(r.fecha).toLocaleDateString('es-CL'),
         DAY_NAMES[(fromISO(r.fecha).getDay()+6)%7],
         dock(r.nave).name, hhmm(r.ini), hhmm(r.ini+r.dur), r.dur,
-        r.cliente, it.r||'', it.fmt||'', parseFloat(it.t)||0, total,
-        truckCount(r), r.veh||'',
-        r.estado==='tentativo'?'Por confirmar':'Confirmado', r.quien||'',
+        r.cliente, it.r||'', it.fmt||'',
+        isBale(it.r) ? baleCount(it) : '',
+        parseFloat(it.t)||0, total, truckCount(r), r.veh||'',
+        r.estado==='tentativo'?'Por confirmar':'Confirmado',
+        r.quien||'', bookedDate(r), bookedClock(r),
         arrivalOf(r)==='nollego' ? 'No llegó' : arrivalOf(r)==='llego' ? 'Llegó' : 'Sin registrar',
         changeCount(r,'reprogramacion'), changeCount(r,'camiones'),
-        clashes.has(r.id) ? (clashReason.get(r.id) || 'Cruce de horario') : '',
+        clashReason.get(r.id)
+          || (clashYields.has(r.id) ? `Cruce — debe moverse (${clashWinner.get(r.id).cliente} agendó primero)`
+          :  clashes.has(r.id)      ? 'Cruce — tiene prioridad, agendó primero' : ''),
         r.notas||''
       ]));
     });
@@ -2204,40 +2534,19 @@ function summaryRows(list){
 }
 
 /* One row per change: what moved, from what to what, and when. */
-function changeRows(list){
-  const rows = [['Fecha del cambio','Hora','Qué cambió','Cliente / Empresa','Movimiento',
-                 'Antes','Después','Quién']];
-  const all = [];
-  list.forEach(r=>(r.hist||[]).forEach(h=>all.push({r,h})));
-  all.sort((a,b)=>a.h.t-b.h.t);
-  all.forEach(({r,h})=>{
-    const d = new Date(h.t);
-    rows.push([
-      d.toLocaleDateString('es-CL'),
-      d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false}),
-      h.tipo==='camiones' ? 'Cantidad de camiones' : 'Reprogramación',
-      r.cliente, isPickup(r) ? 'Retiro' : 'Ingreso',
-      h.de, h.a, h.quien || '',
-    ]);
-  });
-  if(rows.length===1) rows.push(['—','','Todavía no hay cambios registrados','','','','','']);
-  return rows;
-}
-
 function downloadExcel(){
   const ds = weekDays();
   const list = state.reservas.filter(r=>ds.includes(r.fecha));
   if(!list.length){ toast('No hay ingresos agendados en esta semana.', true); return }
+  /* Two sheets: the day-by-day count, and the detail behind it. */
   const sheets = [
     { name:'Resumen por día', rows:summaryRows(list),
-      widths:[13,13,13,11,10,20,11,13,14,14,20,18,20] },
-    { name:'Detalle',         rows:detailRows(list),
-      widths:[14,12,11,11,26,11,12,13,26,30,16,20,22,20,13,14,16,14,18,20,18,30] },
-    { name:'Cambios',         rows:changeRows(list),
-      widths:[15,8,22,26,12,34,34,16] },
+      widths:[13,13,13,11,10,22,11,13,14,14,22,18,20] },
+    { name:'Detalle', rows:detailRows(list),
+      widths:[14,12,12,11,26,11,13,13,26,30,16,16,20,22,20,13,14,16,20,20,14,16,18,34,30] },
   ];
   downloadWorkbook(sheets, `GIRI_planificacion_${ds[0]}_a_${ds[5]}.xlsx`);
-  toast('Excel descargado: resumen, detalle y cambios.');
+  toast('Excel descargado: resumen por día y detalle.');
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -2287,99 +2596,321 @@ function renderSyncState(txt, mal){
   pill.textContent = ref ? `Actualizado a las ${hour(ref)}` : 'Actualizado';
 }
 
+/* ── How sharing works ──────────────────────────────────────────────────
+   The shared plan is MERGED record by record. It is never overwritten whole.
+   · Every booking and block carries `mod`: when it was last changed here.
+   · A deletion leaves a tombstone in state.borrados { id: time }.
+   · A device only writes after it has READ the sheet, and what it writes is
+     the union of both sides; for each record, the newest version wins.
+   So a device that starts empty, loses its connection or runs behind can no
+   longer wipe the plan: a record that is missing is not a record deleted.
+   (Until September 2026 the whole plan was replaced by whoever saved last,
+   and on the 21st a fresh device replaced 227 movements with 10.) */
+const TOMB_DAYS = 120;              // how long a deletion is remembered
+let syncAgain = false, everSynced = false, pendingPush = false;
+
+/* A record without the fields that are only drawing aids. */
+function recKey(r, withMod){
+  const o = Object.assign({}, r);
+  delete o._lane;
+  if(!withMod) delete o.mod;
+  return JSON.stringify(o);
+}
+function allRecs(st){ return [...(st.reservas||[]), ...(st.bloqueos||[])] }
+
+/* What the records looked like the last time we saved or merged; comparing
+   against it tells which records this device has just changed. */
+let lastSnap = new Map();
+function takeSnapshot(){
+  lastSnap = new Map();
+  allRecs(state).forEach(r=>lastSnap.set(r.id, recKey(r)));
+}
+function stampChanges(){
+  const now = Date.now();
+  state.borrados = state.borrados || {};
+  const seen = new Set();
+  allRecs(state).forEach(r=>{
+    seen.add(r.id);
+    if(lastSnap.get(r.id) !== recKey(r)) r.mod = now;
+  });
+  lastSnap.forEach((_, id)=>{ if(!seen.has(id)) state.borrados[id] = now });
+}
+
+/* When two versions of the same record have the same age (typically both
+   written by the old code, which kept no `mod`), keep the one that knows
+   more: an arrival marked beats one not marked, more history beats less. */
+function knowledge(r){ return (r.real ? 1000 : 0) + ((r.hist && r.hist.length) || 0) }
+
+function mergeStates(local, remote){
+  const tomb = {};
+  [remote.borrados || {}, local.borrados || {}].forEach(t=>
+    Object.entries(t).forEach(([id, v])=>{ if(!tomb[id] || v > tomb[id]) tomb[id] = v }));
+  const cutoff = Date.now() - TOMB_DAYS*86400000;
+  Object.keys(tomb).forEach(id=>{ if(tomb[id] < cutoff) delete tomb[id] });
+
+  const pick = (L, R)=>{
+    const out = new Map();
+    const put = r=>{
+      if(!r || !r.id) return;
+      if(tomb[r.id] && tomb[r.id] >= (r.mod || 0)) return;   // deleted after this version
+      const cur = out.get(r.id);
+      if(!cur) return out.set(r.id, r);
+      const a = r.mod || 0, b = cur.mod || 0;
+      if(a > b || (a === b && knowledge(r) > knowledge(cur))) out.set(r.id, r);
+    };
+    (R || []).forEach(put);          // shared copy first: on a full tie it stays
+    (L || []).forEach(put);
+    return [...out.values()];
+  };
+  return {
+    reservas: pick(local.reservas, remote.reservas),
+    bloqueos: pick(local.bloqueos, remote.bloqueos),
+    listas:   mergeListas(local.listas || {}, remote.listas || {}),
+    borrados: tomb,
+  };
+}
+/* Learned lists are simply added together. The clients-per-dock lists are a
+   decision, not a memory: the most recently edited version wins. */
+function mergeListas(L, R){
+  const out = {};
+  new Set([...Object.keys(R), ...Object.keys(L)]).forEach(k=>{
+    if(k === 'porNave' || k === 'porNaveMod') return;
+    const a = Array.isArray(R[k]) ? R[k] : [], b = Array.isArray(L[k]) ? L[k] : [];
+    out[k] = [...new Set([...a, ...b])];
+  });
+  const lm = L.porNaveMod || 0, rm = R.porNaveMod || 0;
+  const src = lm > rm ? L : rm > lm ? R : (R.porNave ? R : L);
+  if(src.porNave){ out.porNave = src.porNave; if(src.porNaveMod) out.porNaveMod = src.porNaveMod }
+  return out;
+}
+/* A stable fingerprint of what is shared, to tell whether two sides differ. */
+function contentKey(st){
+  const recs = l => (l || []).map(r=>recKey(r, true)).sort().join('\n');
+  const obj = o => JSON.stringify(Object.keys(o || {}).sort().map(k=>[k, (o||{})[k]]));
+  return [recs(st.reservas), recs(st.bloqueos), obj(st.borrados), obj(st.listas)].join('\u0001');
+}
+
+function applyMerged(m){
+  state.reservas = m.reservas;
+  state.bloqueos = m.bloqueos;
+  state.listas   = m.listas;
+  state.borrados = m.borrados;
+  normalizeBaleTons();
+  save(true);                 /* local only; also refreshes the snapshot */
+  render();
+}
+
 function scheduleSync(){
   if(!sheetUrl()) return;
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(pushToSheet, 1500);
+  syncTimer = setTimeout(syncWithSheet, 1500);
 }
 
 /* The keys sent to Apps Script stay in Spanish on purpose: they are the
    contract with the spreadsheet, and data already stored uses them. */
 function payload(){
   return {
-    tipo:'giri-plan', version:3, actualizado: state.actualizado || Date.now(),
-    datos: { reservas:state.reservas, bloqueos:state.bloqueos, listas:state.listas },
+    tipo:'giri-plan', version:4, actualizado: state.actualizado || Date.now(),
+    datos: { reservas:state.reservas, bloqueos:state.bloqueos, listas:state.listas,
+             borrados:state.borrados || {} },
     resumen: summaryRows(state.reservas),
     detalle: detailRows(state.reservas),
   };
 }
 
-async function pushToSheet(manual){
-  const url = sheetUrl();
-  if(!url || syncing) return;
-  syncing = true;
-  renderSyncState('Enviando a la planilla…');
-  findClashes();
+async function readSheet(url){
+  const r = await fetch(url + '?accion=leer', { redirect:'follow', cache:'no-store' });
+  const j = await r.json();
+  if(!j || !j.ok) throw new Error('sin datos');
+  if(j.datos && Array.isArray(j.datos.reservas)) return j.datos;
+  return { reservas:[], bloqueos:[], listas:{}, borrados:{}, vacia:true };
+}
+/* Returns true when the sheet confirmed it. If the browser will not let us
+   read the answer we still send it; the next read shows whether it arrived,
+   and if it did not, it is simply sent again. */
+async function writeSheet(url, body){
   try{
-    const r = await fetch(url, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload()),
-    });
-    const t = await r.text();
-    if(!t.includes('"ok":true')) throw new Error('respuesta inesperada');
-    lastSync = new Date();
-    renderSyncState();
-    if(manual) toast('Planilla actualizada.');
-  }catch(e){
-    /* Some browsers block reading the response: send it anyway, without
-       being able to confirm it. */
-    try{
-      await fetch(url, {method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload())});
-      lastSync = new Date();
-      renderSyncState('Conectada. El envío salió, pero el navegador no dejó confirmarlo.');
-      if(manual) toast('Datos enviados a la planilla.');
-    }catch(e2){
-      renderSyncState('No se pudo llegar a la planilla. Revisa la URL o tu conexión.', true);
-      if(manual) toast('No se pudo conectar con la planilla.', true);
-    }
-  }
-  syncing = false;
+    const r = await fetch(url, { method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body });
+    if((await r.text()).includes('"ok":true')) return true;
+  }catch(e){ /* fall through */ }
+  await fetch(url, { method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'}, body });
+  return false;
 }
 
-async function pullFromSheet(manual, inicial){
+/* Read → merge → write only what the sheet is missing. Never writes blind. */
+async function syncWithSheet(manual, inicial){
   const url = sheetUrl();
-  if(!url) return;
+  if(!url) return false;
+  if(syncing){ syncAgain = true; return false }
+  syncing = true;
+  let ok = false;
   try{
-    const r = await fetch(url + '?accion=leer', {redirect:'follow'});
-    const j = await r.json();
-    if(!j || !j.ok) throw new Error('sin datos');
-    if(!j.datos || !j.datos.reservas){
-      if(manual) toast('La planilla todavía no tiene datos.');
-      if(inicial && state.reservas.length) pushToSheet();   /* empty spreadsheet: upload what we have */
-      return;
-    }
-    const firstTime = !state.config || state.config.urlAdoptada !== sheetUrl();
-    if(firstTime){
-      state.reservas = j.datos.reservas;
-      state.bloqueos = j.datos.bloqueos || state.bloqueos;
-      state.listas   = j.datos.listas   || state.listas;
-      state.actualizado = j.actualizado;
-      state.config = state.config || {};
-      state.config.urlAdoptada = sheetUrl();
+    const remote = await readSheet(url);
+    const merged = mergeStates(state, remote);
+    /* A brand-new sheet gets the default lunch break; a device that is new
+       to an existing sheet must not add it (the team may have removed it). */
+    if(remote.vacia && state.config && state.config.pendingDefaults
+       && !merged.bloqueos.some(b=>b.id==='b-colacion'))
+      merged.bloqueos.push(Object.assign(defaultLunchBreak(), { mod: Date.now() }));
+    if(state.config) delete state.config.pendingDefaults;
+
+    const trajoCambios = contentKey(merged) !== contentKey(state);
+    const faltaEnPlanilla = contentKey(merged) !== contentKey(remote);
+    if(trajoCambios) applyMerged(merged);
+    everSynced = true;
+
+    if(faltaEnPlanilla){
+      state.actualizado = Date.now();
       save(true);
-      lastSync = new Date();
-      render(); renderSyncState();
-      toast('Este equipo quedó conectado con la planificación del equipo.');
-      return;
-    }
-    if((j.actualizado||0) <= (state.actualizado||0)){
-      if(manual) toast('Ya tienes la versión más reciente.');
-      lastSync = new Date(); renderSyncState();
-      return;
-    }
-    state.reservas = j.datos.reservas;
-    state.bloqueos = j.datos.bloqueos || state.bloqueos;
-    state.listas   = j.datos.listas   || state.listas;
-    state.actualizado = j.actualizado;
-    save(true);
+      pendingPush = !(await writeSheet(url, JSON.stringify(payload())));
+      if(pendingPush) setTimeout(syncWithSheet, 8000);   // confirm on the next read
+    } else pendingPush = false;
+
     lastSync = new Date();
-    render(); renderSyncState();
-    toast('Planificación actualizada desde la planilla.');
+    renderSyncState();
+    if(manual) toast(trajoCambios ? 'Planificación actualizada.' : 'Ya tienes la versión más reciente.');
+    else if(trajoCambios && !inicial) toast('Planificación actualizada con los cambios del equipo.');
+    ok = true;
   }catch(e){
-    if(manual) toast('No se pudo leer la planilla.', true);
+    renderSyncState('Sin conexión con la planilla. Tus cambios quedan en este equipo y se envían solos al volver.', true);
+    if(manual) toast('No se pudo conectar con la planilla.', true);
+    setTimeout(syncWithSheet, 30000);
+  }finally{
+    syncing = false;
+    if(syncAgain){ syncAgain = false; setTimeout(syncWithSheet, 300) }
   }
+  return ok;
+}
+/* Older names, still used by a few buttons. */
+function pushToSheet(manual){ return syncWithSheet(manual) }
+function pullFromSheet(manual, inicial){ return syncWithSheet(manual, inicial) }
+
+/* ── Restoring from a backup ─────────────────────────────────────────────
+   Open the page with ?restaurar. Accepts a copy of the Google sheet (.xlsx,
+   e.g. downloaded from its version history) or a .json backup. Nothing is
+   deleted: the movements the plan is missing are added back. The backup's
+   blocked hours replace the current ones. */
+let pendingBackup = null;
+
+async function unzip(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1;
+  for(let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 70000); i--)
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break }
+  if(eocd < 0) throw new Error('El archivo no es un Excel (.xlsx) válido.');
+  const files = {};
+  let p = dv.getUint32(eocd + 16, true);
+  for(let n = dv.getUint16(eocd + 10, true); n > 0; n--){
+    if(dv.getUint32(p, true) !== 0x02014b50) break;
+    const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+    files[new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl))] = {
+      method: dv.getUint16(p + 10, true), size: dv.getUint32(p + 20, true), at: dv.getUint32(p + 42, true) };
+    p += 46 + nl + el + cl;
+  }
+  return async name=>{
+    const f = files[name]; if(!f) return null;
+    const start = f.at + 30 + dv.getUint16(f.at + 26, true) + dv.getUint16(f.at + 28, true);
+    const data = u8.subarray(start, start + f.size);
+    if(f.method === 0) return new TextDecoder().decode(data);
+    const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return await new Response(stream).text();
+  };
+}
+/* Reads the hidden "_datos" sheet, where the planner keeps its full state. */
+async function backupFromXlsx(buf){
+  const read = await unzip(buf);
+  const xml = s => new DOMParser().parseFromString(s, 'application/xml');
+  const wb = xml(await read('xl/workbook.xml'));
+  const sh = [...wb.getElementsByTagName('sheet')].find(x=>x.getAttribute('name') === '_datos');
+  if(!sh) throw new Error('Esa planilla no tiene la hoja de datos del planificador.');
+  const rid = sh.getAttribute('r:id');
+  const rels = xml(await read('xl/_rels/workbook.xml.rels'));
+  const rel = [...rels.getElementsByTagName('Relationship')].find(x=>x.getAttribute('Id') === rid);
+  const tgt = rel.getAttribute('Target');
+  const path = tgt.startsWith('/') ? tgt.slice(1) : 'xl/' + tgt.replace(/^\.\//, '');
+  const sst = await read('xl/sharedStrings.xml');
+  const shared = sst ? [...xml(sst).getElementsByTagName('si')]
+    .map(si=>[...si.getElementsByTagName('t')].map(t=>t.textContent).join('')) : [];
+  const pos = ref=>{
+    const m = /^([A-Z]+)(\d+)$/.exec(ref || 'A1');
+    return parseInt(m[2]) * 1000 + [...m[1]].reduce((s, c)=>s * 26 + c.charCodeAt(0) - 64, 0);
+  };
+  const cells = [...xml(await read(path)).getElementsByTagName('c')].map(c=>{
+    const t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0];
+    const val = t === 's' ? (shared[parseInt(v && v.textContent)] || '')
+              : t === 'inlineStr' ? [...c.getElementsByTagName('t')].map(x=>x.textContent).join('')
+              : (v ? v.textContent : '');
+    return { at: pos(c.getAttribute('r')), val };
+  }).sort((a, b)=>a.at - b.at);
+  const j = JSON.parse(cells.map(c=>c.val).join(''));
+  return { datos: j.datos || j, actualizado: j.actualizado || null };
+}
+
+function openRestore(){
+  pendingBackup = null;
+  document.getElementById('rs-file').value = '';
+  document.getElementById('rs-preview').innerHTML = '';
+  document.getElementById('rs-go').disabled = true;
+  document.getElementById('ov-restore').classList.add('is-open');
+}
+async function readBackupFile(input){
+  const f = input.files && input.files[0];
+  const box = document.getElementById('rs-preview');
+  document.getElementById('rs-go').disabled = true;
+  pendingBackup = null;
+  if(!f) return;
+  box.textContent = 'Leyendo el respaldo…';
+  try{
+    let b;
+    if(/\.json$/i.test(f.name)){
+      const j = JSON.parse(await f.text());
+      b = { datos: j.datos || j, actualizado: j.actualizado || null };
+    } else b = await backupFromXlsx(await f.arrayBuffer());
+    const d = b.datos;
+    if(!d || !Array.isArray(d.reservas)) throw new Error('No encontré movimientos en ese archivo.');
+    const actuales = new Set(state.reservas.map(r=>r.id));
+    const nuevos = d.reservas.filter(r=>!actuales.has(r.id));
+    const fechas = d.reservas.map(r=>r.fecha).sort();
+    const cuando = b.actualizado ? new Date(b.actualizado).toLocaleString('es-CL',
+      { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }) : '';
+    pendingBackup = d;
+    box.innerHTML = `
+      <p><b>${d.reservas.length} movimientos</b> en el respaldo${cuando ? `, guardado el ${esc(cuando)}` : ''}
+         ${fechas.length ? `(del ${shortDate(fechas[0])} al ${shortDate(fechas[fechas.length-1])})` : ''}.</p>
+      <p><b>${nuevos.length}</b> no están en la planificación de hoy y se van a sumar.
+         Los ${state.reservas.length} que hay hoy no se tocan.</p>
+      <p>Horarios bloqueados: se usan los del respaldo (${(d.bloqueos||[]).length}); hoy hay ${(state.bloqueos||[]).length}.</p>`;
+    document.getElementById('rs-go').disabled = !nuevos.length && contentKey({bloqueos:d.bloqueos}) === contentKey({bloqueos:state.bloqueos});
+  }catch(e){
+    box.innerHTML = `<p style="color:var(--rojo)">${esc(e.message || 'No se pudo leer el archivo.')}</p>`;
+  }
+}
+async function confirmRestore(){
+  const d = pendingBackup;
+  if(!d) return;
+  const btn = document.getElementById('rs-go');
+  btn.disabled = true; btn.textContent = 'Recuperando…';
+  /* 1 · start from the latest shared plan, so nothing added today is lost */
+  if(sheetUrl() && !(await syncWithSheet())){
+    toast('No se pudo leer la planilla. Revisa la conexión y vuelve a intentarlo.', true);
+    btn.disabled = false; btn.textContent = 'Recuperar'; return;
+  }
+  const antes = state.reservas.length;
+  /* 2 · the backup's blocked hours replace today's */
+  const now = Date.now(), keep = new Set((d.bloqueos || []).map(b=>b.id));
+  state.borrados = state.borrados || {};
+  (state.bloqueos || []).forEach(b=>{ if(!keep.has(b.id)) state.borrados[b.id] = now });
+  (d.bloqueos || []).forEach(b=>{ delete state.borrados[b.id]; b.mod = now });
+  /* 3 · add what is missing; on a tie today's version stays */
+  applyMerged(mergeStates({ reservas:d.reservas, bloqueos:d.bloqueos || [], listas:d.listas || {}, borrados:{} }, state));
+  state.actualizado = Date.now();
+  save(true);
+  if(sheetUrl()) await syncWithSheet();
+  closeOverlay('ov-restore');
+  btn.textContent = 'Recuperar';
+  toast(`Listo: se recuperaron ${state.reservas.length - antes} movimientos.`);
 }
 
 function openSheetModal(){
@@ -2509,9 +3040,15 @@ function runSelfCheck(){
    13 · STARTUP
    ══════════════════════════════════════════════════════════════════════════ */
 if(!load()){
-  state.bloqueos = [defaultLunchBreak()];
+  /* A new device connected to the team's sheet starts empty and takes
+     everything from it; only a planner without a sheet gets the default. */
+  if(SHEET_URL){ state.bloqueos = []; state.config.pendingDefaults = true }
+  else state.bloqueos = [defaultLunchBreak()];
   save(true);
 }
+takeSnapshot();
+/* Old records may carry a tonnage from a different bale weight. */
+if(normalizeBaleTons()) save(true);
 if(new Date().getDay()===0) day = addDays(todayISO(),1);
 render();
 renderSyncState();
@@ -2527,10 +3064,11 @@ if(SHEET_URL){
 }
 
 if(sheetUrl()){
-  pullFromSheet(false, true);
-  setInterval(()=>{ if(!document.querySelector('.overlay.is-open') && !drag) pullFromSheet() }, 60*1000);
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pullFromSheet() });
+  syncWithSheet(false, true);
+  setInterval(()=>{ if(!document.querySelector('.overlay.is-open') && !drag) syncWithSheet() }, 60*1000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncWithSheet() });
 }
+if(location.search.includes('restaurar')) setTimeout(openRestore, 400);
 setInterval(()=>{ if(view) render() }, 5*60*1000);   // refreshes the "now" line
 </script>
 </body>
