@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#CCFF00" />
+<title>Registro CDR · Ambipar Chile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================================
+   Same design system as the planner: lime #CCFF00 · ink #031716 · Barlow.
+   Large containers get 8px corners; anything small and coloured stays square.
+   Built for a phone held with one hand inside a loader cab: big targets,
+   high contrast, no menu to hunt through.
+   ========================================================================= */
+:root{
+  --neon:#CCFF00; --neon-suave:#FBFFE8; --tinta:#031716;
+  --z50:#FAFAFA; --z100:#F4F4F5; --z200:#E4E4E7; --z300:#D4D4D8;
+  --z400:#A1A1AA; --z500:#71717A; --z600:#52525B; --z700:#3F3F46;
+  --rojo:#C0392B; --rojoBg:#FCEDEB; --ambar:#E8A33D;
+}
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0 }
+html,body{ overflow-x:hidden }
+body{
+  font-family:'Neo Sans','Neo Sans W01','Barlow Semi Condensed',system-ui,sans-serif;
+  background:#F4F4F5; color:var(--tinta); -webkit-font-smoothing:antialiased;
+  font-size:14px; min-height:100vh; padding-bottom:2rem;
+}
+.premium-heading{ letter-spacing:-0.01em }
+::selection{ background:var(--neon); color:var(--tinta) }
+button{ font-family:inherit; cursor:pointer }
+input,select{ font-family:inherit }
+
+/* ---------- WATERMARK ---------- */
+.watermark{
+  pointer-events:none; position:fixed; left:-230px; top:-10px; z-index:-10;
+  height:600px; width:600px; user-select:none; opacity:.17;
+}
+.watermark img,.watermark svg{ height:100%; width:100%; object-fit:contain; display:block }
+#a-fallback{ display:none; padding:18% }
+
+/* ---------- TOP BAR ---------- */
+header.topbar{ position:sticky; top:0; z-index:60; background:var(--neon) }
+.topbar-in{ margin:0 auto; max-width:760px; display:flex; align-items:center; gap:.65rem;
+  min-height:4rem; padding:.55rem .9rem }
+.topbar-in .logo{ height:1.5rem; width:auto; display:block; flex:0 0 auto }
+svg.logo{ width:124px }
+.divider{ width:1px; align-self:stretch; background:rgba(3,23,22,.25) }
+.app-title{ min-width:0; flex:1 1 auto; overflow:hidden }
+.app-title p{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.app-title p:first-child{ font-size:11.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; line-height:1.25 }
+.app-title p:last-child{ font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:rgba(3,23,22,.6) }
+.topbar-right{ margin-left:auto; flex:0 0 auto }
+.pill{ display:inline-flex; align-items:center; gap:.45rem; background:var(--tinta); color:#fff;
+  border-radius:999px; padding:.35rem .7rem; font-size:10.5px; letter-spacing:.04em; border:0 }
+.pill .dot{ height:7px; width:7px; border-radius:50%; background:var(--neon) }
+
+/* ---------- LAYOUT ---------- */
+.wrap{ max-width:760px; margin:0 auto; padding:1rem 1rem 0 }
+.card{ background:#fff; border:1px solid var(--z200); border-radius:8px; padding:.9rem 1rem 1rem; margin-bottom:.8rem; position:relative }
+.card-title{ display:flex; align-items:center; gap:.5rem; font-size:10.5px; font-weight:600;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--z500); margin-bottom:.7rem }
+.card-title .pt{ height:6px; width:6px; background:var(--z300) }
+
+/* ---------- STATE BUTTONS ---------- */
+.states{ display:grid; grid-template-columns:1fr 1fr; gap:.55rem }
+.state-btn{ border:1px solid var(--z200); background:#fff; border-radius:6px; padding:.85rem .6rem;
+  font-size:14px; font-weight:600; color:var(--tinta); line-height:1.2; min-height:52px;
+  display:flex; align-items:center; justify-content:center; text-align:center; transition:.12s }
+.state-btn:active{ transform:scale(.98) }
+.state-btn[aria-pressed=true]{ color:#fff; border-color:transparent }
+.state-btn .play{ margin-right:.35rem; font-size:11px }
+.state-sub{ display:block; font-size:10.5px; font-weight:500; opacity:.85; margin-top:2px }
+
+/* ---------- NUMBERS ---------- */
+.nums{ display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; text-align:center }
+.nums b{ display:block; font-size:30px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums }
+.nums span{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--z500); margin-top:6px }
+
+/* ---------- BIG BUTTON ---------- */
+.big{ width:100%; border:1px solid; border-radius:8px; padding:1.4rem 1rem; background:var(--neon-suave);
+  display:flex; flex-direction:column; align-items:center; gap:.6rem; transition:.12s }
+.big:active{ transform:scale(.99) }
+.big .circle{ height:56px; width:56px; border-radius:50%; color:#fff; font-size:30px; font-weight:400;
+  display:flex; align-items:center; justify-content:center; line-height:1 }
+.big .txt{ font-size:17px; font-weight:700; letter-spacing:.06em; text-transform:uppercase }
+.big.ghost{ background:#fff; border-color:var(--z200) }
+.big.ghost .circle{ background:var(--z400) }
+.big.ghost .txt{ color:var(--z600) }
+
+/* ---------- LISTS ---------- */
+.row{ display:flex; align-items:baseline; gap:.6rem; padding:.42rem 0; border-bottom:1px solid var(--z100); font-size:13.5px }
+.row:last-child{ border-bottom:0 }
+.row .lbl{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--z700) }
+.row .val{ font-weight:600; font-variant-numeric:tabular-nums }
+.row .sw{ height:9px; width:9px; flex:0 0 auto }
+.row.now .lbl{ font-weight:600; color:var(--tinta) }
+.empty{ font-size:12.5px; color:var(--z400); padding:.3rem 0 }
+.card.warn{ border-color:#E6D5B0; background:#FFF8EC }
+.card.warn p{ font-size:13.5px; color:#7A4A05; line-height:1.5 }
+.idle-actions{ display:flex; gap:.5rem; margin-top:.8rem }
+.idle-actions .btn{ flex:1; padding:.75rem }
+.mini{ font-size:11px; color:var(--z400); letter-spacing:.04em }
+
+.link-btn{ background:none; border:0; padding:2px 4px; font-family:inherit; font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--z400) }
+.link-btn:hover{ color:var(--tinta) }
+.card-title .link-btn{ margin-left:auto }
+
+.btn{ display:inline-flex; align-items:center; justify-content:center; gap:.4rem; border:1px solid var(--tinta);
+  background:var(--tinta); color:#fff; border-radius:6px; padding:.6rem 1rem; font-size:13.5px; font-weight:500 }
+.btn.secondary{ background:#fff; color:var(--tinta); border-color:var(--z200) }
+.btn:disabled{ opacity:.45 }
+
+/* ---------- MODAL ---------- */
+.overlay{ position:fixed; inset:0; background:rgba(3,23,22,.45); z-index:100; display:none;
+  align-items:flex-end; justify-content:center; padding:0 }
+.overlay.is-open{ display:flex }
+.sheet{ background:#fff; border-radius:12px 12px 0 0; border-top:3px solid var(--neon);
+  padding:1.2rem 1rem 1.4rem; width:100%; max-width:760px; max-height:90vh; overflow-y:auto }
+.sheet h3{ font-size:17px; font-weight:600 }
+.sheet .sub{ font-size:12.5px; color:var(--z500); margin-top:.3rem; line-height:1.5 }
+.field{ margin-top:.9rem }
+.field label{ display:block; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--z500); margin-bottom:.3rem }
+.field input{ width:100%; border:1px solid var(--z200); border-radius:6px; padding:.65rem .75rem; font-size:15px; color:var(--tinta); background:#fff; outline:none }
+.field input:focus{ border-color:var(--neon); box-shadow:0 0 0 3px rgba(204,255,0,.3) }
+.reasons{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-top:.6rem }
+.reasons button{ border:1px solid var(--z200); background:#fff; border-radius:6px; padding:.75rem .5rem;
+  font-size:13.5px; font-family:inherit; color:var(--tinta) }
+.reasons button[aria-pressed=true]{ background:var(--rojo); border-color:var(--rojo); color:#fff; font-weight:600 }
+.sheet-actions{ display:flex; gap:.5rem; margin-top:1.1rem }
+.sheet-actions .btn{ flex:1; padding:.8rem 1rem; font-size:14.5px }
+
+/* ---------- TOAST ---------- */
+#toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:1.2rem; z-index:200;
+  background:var(--tinta); color:#fff; padding:.7rem 1.1rem; border-radius:6px; font-size:13px;
+  max-width:92vw; text-align:center; opacity:0; pointer-events:none; transition:.2s }
+#toast.on{ opacity:1 }
+#toast.malo{ background:var(--rojo) }
+
+footer{ max-width:760px; margin:1.2rem auto 0; padding:0 1rem; display:flex; flex-wrap:wrap; gap:.2rem 1rem;
+  justify-content:space-between; font-size:10.5px; color:var(--z400); letter-spacing:.04em }
+
+@media (min-width:700px){
+  .states{ grid-template-columns:repeat(3,1fr) }
+  .overlay{ align-items:center; padding:1rem }
+  .sheet{ border-radius:8px; max-width:460px }
+}
+</style>
+</head>
+<body>
+
+<!-- MARCA DE AGUA: la "a" del logo Ambipar en megazoom -->
+<div aria-hidden="true" class="watermark">
+  <img src="ambipar-a-verde.png" alt=""
+       onerror="this.style.display='none';document.getElementById('a-fallback').style.display='block'">
+  <div id="a-fallback">
+    <svg viewBox="0 0 100 100">
+      <g fill="none" stroke="#CCFF00" stroke-linecap="butt">
+        <rect x="22" y="22" width="56" height="56" rx="13" transform="rotate(45 50 50)" stroke-width="7"/>
+        <circle cx="48.5" cy="55" r="10.5" stroke-width="6.5"/>
+        <path d="M59 41.5 V 68.5" stroke-width="6.5"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <img src="ambipar-logo.png" alt="Ambipar" class="logo"
+         onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
+    <svg id="logo-fallback" viewBox="0 0 260 46" class="logo" style="display:none" aria-label="Ambipar">
+      <text x="0" y="35" font-family="'Barlow Semi Condensed', sans-serif" font-size="42"
+            font-weight="600" letter-spacing="-1" fill="#031716">ambipar</text>
+      <g transform="translate(220 3)" fill="none" stroke="#031716" stroke-linecap="butt">
+        <rect x="5" y="5" width="26" height="26" rx="6" transform="rotate(45 18 18)" stroke-width="3.2"/>
+        <circle cx="17.4" cy="19.8" r="4.9" stroke-width="3"/>
+        <path d="M22.3 13.4 V 26.2" stroke-width="3"/>
+      </g>
+    </svg>
+    <span class="divider"></span>
+    <div class="app-title">
+      <p class="premium-heading">Registro CDR</p>
+      <p>CDR GIRI</p>
+    </div>
+    <div class="topbar-right">
+      <button class="pill" id="sync-state" onclick="openSyncModal()">
+        <span class="dot"></span><span id="sync-label">Guardado</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ ESTADO DEL CARGADOR ============ -->
+  <section class="card">
+    <p class="card-title"><span class="pt"></span>Estado del cargador Doosan</p>
+    <div class="states" id="states"></div>
+  </section>
+
+  <!-- ============ AVISO DE INACTIVIDAD ============ -->
+  <section class="card warn" id="idle-card" style="display:none">
+    <p class="card-title" style="color:#7A4A05"><span class="pt" style="background:#B26A00"></span>Sin paladas hace rato</p>
+    <p id="idle-text"></p>
+    <div class="idle-actions">
+      <button class="btn" onclick="keepGoing()">Sí, sigo</button>
+      <button class="btn secondary" onclick="document.getElementById('states').scrollIntoView({behavior:'smooth',block:'center'})">Cambiar estado</button>
+    </div>
+  </section>
+
+  <!-- ============ NÚMEROS DEL DÍA ============ -->
+  <section class="card">
+    <div class="nums" id="nums"></div>
+  </section>
+
+  <!-- ============ REGISTRAR PALADA ============ -->
+  <button class="big" id="btn-palada" onclick="addScoop()">
+    <span class="circle" id="palada-circle">＋</span>
+    <span class="txt" id="palada-txt">Registrar palada</span>
+  </button>
+  <div style="display:flex;justify-content:center;margin:.5rem 0 .9rem">
+    <button class="link-btn" id="btn-undo" onclick="undoScoop()">Deshacer la última</button>
+  </div>
+
+  <!-- ============ CAMIÓN EN CARGA ============ -->
+  <section class="card" id="card-load">
+    <p class="card-title"><span class="pt"></span>Carga de camión</p>
+    <div id="load-body"></div>
+  </section>
+
+  <!-- ============ TIEMPO POR ESTADO ============ -->
+  <section class="card">
+    <p class="card-title"><span class="pt"></span>Tiempo del día por estado</p>
+    <div id="by-state"></div>
+  </section>
+
+  <!-- ============ HISTORIAL ============ -->
+  <section class="card">
+    <p class="card-title"><span class="pt"></span>Cargas de hoy</p>
+    <div id="loads-today"></div>
+  </section>
+
+</div>
+
+<footer>
+  <span>Ambipar Chile - GIRI - Registro CDR</span>
+  <span id="version">Inteligencia Circular LATAM</span>
+</footer>
+
+<!-- ============ MOTIVO DE DETENCIÓN ============ -->
+<div class="overlay" id="ov-stop">
+  <div class="sheet">
+    <h3>¿Por qué está detenido?</h3>
+    <div class="sub">Queda registrado junto con el tiempo que dure la detención.</div>
+    <div class="reasons" id="stop-reasons"></div>
+    <div class="field" id="stop-other" style="display:none">
+      <label>Escribe el motivo</label>
+      <input type="text" id="stop-text" placeholder="Ej: espera de camión">
+    </div>
+    <div class="sheet-actions">
+      <button class="btn secondary" onclick="closeOverlay('ov-stop')">Cancelar</button>
+      <button class="btn" onclick="confirmStop()">Marcar detenido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TERMINAR CARGA ============ -->
+<div class="overlay" id="ov-load">
+  <div class="sheet">
+    <h3>Terminar la carga</h3>
+    <div class="sub" id="load-summary"></div>
+    <div class="sheet-actions">
+      <button class="btn secondary" onclick="closeOverlay('ov-load')">Seguir cargando</button>
+      <button class="btn" onclick="confirmEndLoad()">Terminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONEXIÓN ============ -->
+<div class="overlay" id="ov-sync">
+  <div class="sheet">
+    <h3>Conexión con la planilla</h3>
+    <div class="sub" id="sync-note"></div>
+    <div class="field" id="sync-url-field">
+      <label>Dirección de la aplicación web (termina en /exec)</label>
+      <input type="text" id="f-url" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="sheet-actions">
+      <button class="btn secondary" onclick="closeOverlay('ov-sync')">Cerrar</button>
+      <button class="btn" onclick="connectSheet()">Conectar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   REGISTRO CDR · GIRI
+   A one-screen logbook for the Doosan loader operator.
+   · The loader is always in exactly one state; changing state closes the
+     previous stretch of time and opens a new one, so the clock for an
+     activity stops the moment the loader stops doing it.
+   · Every scoop ("palada") is one record with its own timestamp.
+   · While a truck is being loaded, the scoops also belong to that load.
+   Everything is kept on the phone first and mirrored to the spreadsheet;
+   records are merged, never replaced (see the sync section).
+   ══════════════════════════════════════════════════════════════════════════ */
+const VERSION = 'cdr v1 · 23-09-2026';
+
+/* Paste here the /exec address of the CDR Apps Script, once deployed. */
+const SHEET_URL = '';
+
+const STORE_KEY = 'giri_cdr_v1';
+
+/* The six states from the operator's day. `esfuerzo` marks the ones where the
+   loader is actually producing, so the counters can tell them apart. */
+const STATES = [
+  { id:'triturando', name:'Triturando',          col:'#1B7A44', produce:true  },
+  { id:'piso',       name:'Carga piso caminante',col:'#1565C0', produce:true  },
+  { id:'movimiento', name:'Movimiento material', col:'#8A6A2F', produce:true  },
+  { id:'apoyo',      name:'Apoyo Clasificación', col:'#2E7D52', produce:true  },
+  { id:'mantencion', name:'Mantención',          col:'#6B4EA8', produce:false },
+  { id:'detenido',   name:'Detenido',            col:'#C0392B', produce:false },
+];
+const STOP_REASONS = ['Atoro trituradora','Falla mecánica','Sin material','Colación','Cambio de turno','Otro'];
+
+/* ── The clock must not invent hours ──────────────────────────────────────
+   While the loader is working a scoop lands every few minutes. If they stop
+   coming, either the operator changed activity and did not mark it, or he
+   left. After AVISO the app asks; after CORTE, with nobody answering, it
+   closes the stretch back at the last sign of life and leaves no state
+   running, so nothing gets counted that did not happen. */
+const IDLE_ASK = 20*60000;     // 20 minutes without scoops → the app asks
+const IDLE_CUT = 60*60000;     // an hour with no answer → the stretch is closed
+
+function stateOf(id){ return STATES.find(s=>s.id===id) || STATES[0] }
+
+/* ── State kept on this phone ─────────────────────────────────────────── */
+let state = {
+  tramos: [],     // {id, estado, motivo, ini, fin|null, mod}  stretches of time
+  paladas: [],    // {id, t, estado, cargaId|null, mod}
+  cargas: [],     // {id, ini, fin|null, mod}
+  borrados: {},   // {id: time} so an undo also travels to the other devices
+  config: { sheetUrl:'' },
+  actualizado: 0,
+};
+
+/* ── Small helpers ────────────────────────────────────────────────────── */
+const uid = p => p + Math.random().toString(36).slice(2,9);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function dayStart(d){ const x = new Date(d); x.setHours(0,0,0,0); return x.getTime() }
+function isoDay(t){
+  const d = new Date(t);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function clock(t){
+  const d = new Date(t);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+/* 4:48 for hours, 0:41 for a load. Always h:mm. */
+function hm(ms){
+  const m = Math.max(0, Math.round(ms/60000));
+  return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
+}
+function fmtNum(n){ return (Math.round(n*10)/10).toFixed(1).replace('.',',') }
+
+/* ── Today ────────────────────────────────────────────────────────────── */
+function today(){ return dayStart(Date.now()) }
+function tomorrow(){ return today() + 86400000 }
+/* How much of a stretch of time falls inside today: a shift that crosses
+   midnight counts on both days, each with its own share. */
+function msToday(tr){
+  const a = Math.max(tr.ini, today());
+  const b = Math.min(tr.fin || Date.now(), tomorrow());
+  return Math.max(0, b - a);
+}
+function scoopsToday(){ return state.paladas.filter(p=>p.t >= today() && p.t < tomorrow()) }
+function loadsToday(){ return state.cargas.filter(c=>c.ini >= today() && c.ini < tomorrow()) }
+
+function currentTramo(){ return state.tramos.find(t=>!t.fin) || null }
+/* The last sign that somebody is there: a scoop, the start of the stretch,
+   or the operator answering "sí, sigo". */
+function lastSign(tr){
+  const paladas = state.paladas.filter(p=>p.t >= tr.ini).map(p=>p.t);
+  return Math.max(tr.ini, tr.visto || 0, ...(paladas.length ? paladas : [0]));
+}
+function idleMs(tr){ return Date.now() - lastSign(tr) }
+function keepGoing(){
+  const tr = currentTramo();
+  if(!tr) return;
+  tr.visto = Date.now(); tr.mod = tr.visto;
+  save(); render();
+  toast('Listo, sigue corriendo el reloj.');
+}
+/* Closes a stretch that nobody confirmed, back at the last sign of life. */
+function cutIdle(tr){
+  const corte = lastSign(tr) + IDLE_ASK;
+  tr.fin = corte; tr.cierre = 'por inactividad'; tr.mod = Date.now();
+  save(); render();
+  toast(`Se cerró ${stateOf(tr.estado).name} a las ${clock(corte)}: pasó una hora sin paladas. Marca el estado actual.`, true);
+}
+/* Nothing stays open across days: at midnight the stretch is closed. */
+function closeAtMidnight(tr){
+  const fin = dayStart(tr.ini) + 86400000 - 1000;
+  tr.fin = fin; tr.cierre = 'fin del día'; tr.mod = Date.now();
+  save(); render();
+}
+function watchIdle(){
+  const tr = currentTramo();
+  const card = document.getElementById('idle-card');
+  if(!tr || !stateOf(tr.estado).produce){ card.style.display = 'none'; return }
+  if(dayStart(tr.ini) !== today()){ closeAtMidnight(tr); return }
+  const ms = idleMs(tr);
+  if(ms >= IDLE_CUT){ cutIdle(tr); card.style.display = 'none'; return }
+  if(ms >= IDLE_ASK){
+    card.style.display = 'block';
+    document.getElementById('idle-text').innerHTML =
+      `No se registran paladas desde las <b>${clock(lastSign(tr))}</b> y el cargador sigue marcado como
+       <b>${esc(stateOf(tr.estado).name)}</b>. ¿Sigue en eso?
+       Si nadie contesta, el reloj se detiene solo a las ${clock(lastSign(tr) + IDLE_ASK)}.`;
+  } else card.style.display = 'none';
+}
+function currentState(){ const t = currentTramo(); return t ? t.estado : null }
+function openLoad(){ return state.cargas.find(c=>!c.fin) || null }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ACTIONS
+   ══════════════════════════════════════════════════════════════════════════ */
+/* Changing state closes the stretch that was running. That is what makes the
+   clock of an activity stop when the loader stops doing it. */
+function setState(id, motivo){
+  const now = Date.now();
+  const cur = currentTramo();
+  if(cur && cur.estado === id && (cur.motivo||'') === (motivo||'')) return;   // already there
+  if(cur){ cur.fin = now; cur.cierre = 'manual'; cur.mod = now }
+  state.tramos.push({ id:uid('t'), estado:id, motivo:motivo||'', ini:now, fin:null, mod:now });
+  save(); render();
+  toast(`${stateOf(id).name}${motivo?` · ${motivo}`:''} desde las ${clock(now)}.`);
+}
+function pickState(id){
+  if(id === 'detenido'){ openStopModal(); return }
+  setState(id);
+}
+
+function addScoop(){
+  const st = currentState();
+  if(!st){ toast('Primero marca qué está haciendo el cargador.', true); return }
+  /* Scooping while the loader is stopped almost always means the state was
+     not updated; better to ask than to record an hour that never happened. */
+  if(!stateOf(st).produce){
+    toast(`El cargador está en ${stateOf(st).name}. Marca el estado que corresponde para registrar paladas.`, true);
+    return;
+  }
+  const now = Date.now(), carga = openLoad();
+  state.paladas.push({ id:uid('p'), t:now, estado:st, cargaId: carga ? carga.id : null, mod:now });
+  save(); render();
+  if(navigator.vibrate) navigator.vibrate(18);
+}
+function undoScoop(){
+  const hoy = scoopsToday().sort((a,b)=>a.t-b.t);
+  const last = hoy[hoy.length-1];
+  if(!last){ toast('No hay paladas para deshacer hoy.', true); return }
+  state.paladas = state.paladas.filter(p=>p.id !== last.id);
+  state.borrados[last.id] = Date.now();
+  save(); render();
+  toast(`Palada de las ${clock(last.t)} eliminada.`);
+}
+
+function startLoad(){
+  if(openLoad()) return;
+  const now = Date.now();
+  state.cargas.push({ id:uid('c'), ini:now, fin:null, mod:now });
+  save(); render();
+  toast(`Carga iniciada a las ${clock(now)}.`);
+}
+function askEndLoad(){
+  const c = openLoad();
+  if(!c) return;
+  const n = state.paladas.filter(p=>p.cargaId === c.id).length;
+  document.getElementById('load-summary').innerHTML =
+    `Empezó a las ${clock(c.ini)}, lleva <b>${n} palada${n===1?'':'s'}</b> y ${hm(Date.now()-c.ini)} de carga.`;
+  document.getElementById('ov-load').classList.add('is-open');
+}
+function confirmEndLoad(){
+  const c = openLoad();
+  if(c){ c.fin = Date.now(); c.mod = c.fin; save(); render() }
+  closeOverlay('ov-load');
+  if(c) toast(`Carga cerrada: ${state.paladas.filter(p=>p.cargaId===c.id).length} paladas en ${hm(c.fin-c.ini)}.`);
+}
+
+/* ── Stop reason ──────────────────────────────────────────────────────── */
+let stopSel = STOP_REASONS[0];
+function openStopModal(){
+  stopSel = STOP_REASONS[0];
+  document.getElementById('stop-text').value = '';
+  renderStopReasons();
+  document.getElementById('ov-stop').classList.add('is-open');
+}
+function renderStopReasons(){
+  document.getElementById('stop-reasons').innerHTML = STOP_REASONS.map(r=>
+    `<button type="button" aria-pressed="${r===stopSel}" onclick="pickStopReason('${r}')">${esc(r)}</button>`).join('');
+  document.getElementById('stop-other').style.display = stopSel === 'Otro' ? 'block' : 'none';
+}
+function pickStopReason(r){ stopSel = r; renderStopReasons(); if(r==='Otro') document.getElementById('stop-text').focus() }
+function confirmStop(){
+  const motivo = stopSel === 'Otro'
+    ? (document.getElementById('stop-text').value.trim() || 'Otro')
+    : stopSel;
+  closeOverlay('ov-stop');
+  setState('detenido', motivo);
+}
+
+function closeOverlay(id){ const el = document.getElementById(id); if(el) el.classList.remove('is-open') }
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape') document.querySelectorAll('.overlay.is-open').forEach(o=>o.classList.remove('is-open'));
+});
+document.querySelectorAll('.overlay').forEach(o=>
+  o.addEventListener('click', e=>{ if(e.target === o) o.classList.remove('is-open') }));
+
+let toastTimer;
+function toast(txt, malo){
+  const t = document.getElementById('toast');
+  t.textContent = txt;
+  t.className = 'on' + (malo ? ' malo' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.className = '' }, 2600);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RENDERING
+   ══════════════════════════════════════════════════════════════════════════ */
+function render(){
+  renderStates();
+  renderNums();
+  renderScoopButton();
+  renderLoad();
+  renderByState();
+  renderLoadsToday();
+  renderSyncState();
+  watchIdle();
+}
+
+function renderStates(){
+  const cur = currentTramo();
+  document.getElementById('states').innerHTML = STATES.map(s=>{
+    const on = cur && cur.estado === s.id;
+    const sub = on && s.id === 'detenido' && cur.motivo ? `<span class="state-sub">${esc(cur.motivo)}</span>` : '';
+    return `<button class="state-btn" aria-pressed="${!!on}"
+      style="${on ? `background:${s.col}` : ''}" onclick="pickState('${s.id}')">
+      <span>${on ? '<span class="play">▶</span>' : ''}${s.name}${s.id==='detenido' && !on ? ' · motivo' : ''}${sub}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderNums(){
+  const n = scoopsToday().length;
+  const trit = state.tramos.filter(t=>t.estado === 'triturando').reduce((s,t)=>s + msToday(t), 0);
+  const horas = trit / 3600000;
+  const critura = state.paladas.filter(p=>p.t >= today() && p.t < tomorrow() && p.estado === 'triturando').length;
+  document.getElementById('nums').innerHTML = `
+    <div><b style="color:#1B7A44">${n}</b><span>Paladas hoy</span></div>
+    <div><b style="color:#1B7A44">${hm(trit)}</b><span>H triturando</span></div>
+    <div><b style="color:#1B7A44">${horas > 0.02 ? fmtNum(critura/horas) : '—'}</b><span>Paladas / h</span></div>`;
+}
+
+function renderScoopButton(){
+  const st = currentState();
+  const s = st ? stateOf(st) : null;
+  const b = document.getElementById('btn-palada');
+  const carga = openLoad();
+  const activo = !!s && s.produce;
+  b.className = 'big' + (activo ? '' : ' ghost');
+  b.style.borderColor = activo ? s.col : '';
+  b.style.background = activo ? (s.col + '14') : '';
+  document.getElementById('palada-circle').style.background = activo ? s.col : '';
+  document.getElementById('palada-txt').style.color = activo ? s.col : '';
+  document.getElementById('palada-txt').textContent = carga ? 'Palada a camión' : 'Registrar palada';
+  document.getElementById('btn-undo').style.visibility = scoopsToday().length ? 'visible' : 'hidden';
+}
+
+function renderLoad(){
+  const c = openLoad();
+  const box = document.getElementById('load-body');
+  if(!c){
+    const hechas = loadsToday().filter(x=>x.fin).length;
+    box.innerHTML = `
+      <p class="mini" style="margin-bottom:.7rem">Ningún camión en carga${hechas?` · ${hechas} cargado${hechas===1?'':'s'} hoy`:''}.</p>
+      <button class="btn" style="width:100%;padding:.8rem" onclick="startLoad()">Empezar carga de camión</button>`;
+    return;
+  }
+  const n = state.paladas.filter(p=>p.cargaId === c.id).length;
+  box.innerHTML = `
+    <div class="nums" style="margin-bottom:.8rem">
+      <div><b style="color:#1565C0">${n}</b><span>Paladas</span></div>
+      <div><b style="color:#1565C0">${hm(Date.now() - c.ini)}</b><span>Tiempo carga</span></div>
+      <div><b style="color:#1565C0">${clock(c.ini)}</b><span>Empezó</span></div>
+    </div>
+    <button class="btn secondary" style="width:100%;padding:.8rem" onclick="askEndLoad()">Terminar carga</button>`;
+}
+
+function renderByState(){
+  const box = document.getElementById('by-state');
+  const cur = currentTramo();
+  const tot = {};
+  state.tramos.forEach(t=>{
+    const ms = msToday(t);
+    if(ms <= 0) return;
+    const k = t.estado + (t.estado === 'detenido' && t.motivo ? ' · ' + t.motivo : '');
+    tot[k] = (tot[k] || 0) + ms;
+  });
+  const filas = Object.entries(tot).sort((a,b)=>b[1]-a[1]);
+  if(!filas.length){ box.innerHTML = '<p class="empty">Todavía no se ha marcado ningún estado hoy.</p>'; return }
+  box.innerHTML = filas.map(([k, ms])=>{
+    const id = k.split(' · ')[0], s = stateOf(id);
+    const nombre = s.name + (k.includes(' · ') ? ` (${k.split(' · ')[1].toLowerCase()})` : '');
+    const activo = cur && (cur.estado + (cur.estado==='detenido' && cur.motivo ? ' · ' + cur.motivo : '')) === k;
+    return `<div class="row ${activo?'now':''}">
+      <span class="sw" style="background:${s.col}"></span>
+      <span class="lbl">${esc(nombre)}${activo?' · ahora':''}</span>
+      <span class="val">${hm(ms)}</span></div>`;
+  }).join('');
+}
+
+function renderLoadsToday(){
+  const box = document.getElementById('loads-today');
+  const l = loadsToday().sort((a,b)=>b.ini - a.ini);
+  if(!l.length){ box.innerHTML = '<p class="empty">Todavía no se carga ningún camión hoy.</p>'; return }
+  box.innerHTML = l.map((c, i)=>{
+    const n = state.paladas.filter(p=>p.cargaId === c.id).length;
+    const num = l.length - i;
+    return `<div class="row ${c.fin?'':'now'}">
+      <span class="lbl">Carga ${num} · ${n} palada${n===1?'':'s'}</span>
+      <span class="val">${c.fin ? `${hm(c.fin-c.ini)} · ${clock(c.fin)}` : 'en curso'}</span></div>`;
+  }).join('');
+}
+
+/* The running clocks need to move on their own. */
+setInterval(()=>{
+  if(document.hidden) return;
+  renderNums(); renderByState(); watchIdle();
+  if(openLoad()) renderLoad();
+}, 1000);
+/* A new day empties the counters by itself. */
+let renderedDay = today();
+setInterval(()=>{ if(today() !== renderedDay){ renderedDay = today(); render() } }, 30000);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SAVING AND SHARING
+   Same rule as the planner: the spreadsheet is merged record by record and
+   never replaced, and nothing is written before it has been read.
+   ══════════════════════════════════════════════════════════════════════════ */
+let lastSaved = null, lastSync = null, syncing = false, syncAgain = false, syncTimer = null;
+
+function allRecs(st){ return [...(st.tramos||[]), ...(st.paladas||[]), ...(st.cargas||[])] }
+function recKey(r, withMod){
+  const o = Object.assign({}, r);
+  if(!withMod) delete o.mod;
+  return JSON.stringify(o);
+}
+let lastSnap = new Map();
+function takeSnapshot(){ lastSnap = new Map(); allRecs(state).forEach(r=>lastSnap.set(r.id, recKey(r))) }
+function stampChanges(){
+  const now = Date.now();
+  state.borrados = state.borrados || {};
+  const seen = new Set();
+  allRecs(state).forEach(r=>{ seen.add(r.id); if(lastSnap.get(r.id) !== recKey(r)) r.mod = now });
+  lastSnap.forEach((_, id)=>{ if(!seen.has(id)) state.borrados[id] = now });
+}
+
+function save(local){
+  if(!local){ stampChanges(); state.actualizado = Date.now() }
+  takeSnapshot();
+  lastSaved = new Date();
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)) }catch(e){}
+  if(!local) scheduleSync();
+  renderSyncState();
+}
+function load(){
+  try{
+    const t = localStorage.getItem(STORE_KEY);
+    if(!t) return false;
+    const d = JSON.parse(t);
+    if(!d || !Array.isArray(d.paladas)) return false;
+    state = Object.assign(state, d);
+    state.tramos = state.tramos || []; state.cargas = state.cargas || [];
+    state.borrados = state.borrados || {}; state.config = state.config || { sheetUrl:'' };
+    return true;
+  }catch(e){ return false }
+}
+
+const TOMB_DAYS = 120;
+function mergeStates(local, remote){
+  const tomb = {};
+  [remote.borrados || {}, local.borrados || {}].forEach(t=>
+    Object.entries(t).forEach(([id, v])=>{ if(!tomb[id] || v > tomb[id]) tomb[id] = v }));
+  const cutoff = Date.now() - TOMB_DAYS*86400000;
+  Object.keys(tomb).forEach(id=>{ if(tomb[id] < cutoff) delete tomb[id] });
+  const pick = (L, R)=>{
+    const out = new Map();
+    const put = r=>{
+      if(!r || !r.id) return;
+      if(tomb[r.id] && tomb[r.id] >= (r.mod || 0)) return;
+      const cur = out.get(r.id);
+      if(!cur || (r.mod || 0) > (cur.mod || 0)) out.set(r.id, r);
+    };
+    (R || []).forEach(put); (L || []).forEach(put);
+    return [...out.values()];
+  };
+  return {
+    tramos:  pick(local.tramos,  remote.tramos),
+    paladas: pick(local.paladas, remote.paladas),
+    cargas:  pick(local.cargas,  remote.cargas),
+    borrados: tomb,
+  };
+}
+function contentKey(st){
+  const recs = l => (l || []).map(r=>recKey(r, true)).sort().join('\n');
+  return [recs(st.tramos), recs(st.paladas), recs(st.cargas),
+          JSON.stringify(Object.keys(st.borrados||{}).sort())].join('\u0001');
+}
+function applyMerged(m){
+  state.tramos = m.tramos; state.paladas = m.paladas; state.cargas = m.cargas; state.borrados = m.borrados;
+  /* Two phones could each leave a stretch open; keep only the newest. */
+  const abiertos = state.tramos.filter(t=>!t.fin).sort((a,b)=>a.ini - b.ini);
+  abiertos.slice(0, -1).forEach((t, i)=>{ t.fin = abiertos[i+1].ini });
+  save(true);
+  render();
+}
+
+function sheetUrl(){ return (SHEET_URL || (state.config && state.config.sheetUrl) || '').trim() }
+function scheduleSync(){
+  if(!sheetUrl()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncWithSheet, 1500);
+}
+
+/* One row per scoop: date, time, running number of the day, state and load. */
+function scoopRows(){
+  const rows = [['Fecha','Hora','N° palada del día','Paladas','Estado del cargador',
+                 'Motivo','Cargando camión','N° de carga del día']];
+  const porDia = {};
+  const cargaNum = new Map();
+  [...state.cargas].sort((a,b)=>a.ini-b.ini).forEach(c=>{
+    const d = isoDay(c.ini);
+    porDia[d] = (porDia[d] || 0) + 1;
+    cargaNum.set(c.id, porDia[d]);
+  });
+  const cuenta = {};
+  [...state.paladas].sort((a,b)=>a.t - b.t).forEach(p=>{
+    const d = isoDay(p.t);
+    cuenta[d] = (cuenta[d] || 0) + 1;
+    const tr = state.tramos.find(t=>t.ini <= p.t && (t.fin == null || t.fin >= p.t) && t.estado === p.estado);
+    rows.push([ new Date(p.t).toLocaleDateString('es-CL'), clock(p.t), cuenta[d], 1,
+      stateOf(p.estado).name, (tr && tr.motivo) || '',
+      p.cargaId ? 'Sí' : 'No', p.cargaId ? (cargaNum.get(p.cargaId) || '') : '' ]);
+  });
+  if(rows.length === 1) rows.push(['—','','','','Todavía no hay paladas registradas','','','']);
+  return rows;
+}
+/* One row per stretch of time, which is what makes the hours add up. */
+function stateRows(){
+  const rows = [['Fecha','Estado del cargador','Motivo','Inicio','Término','Duración (min)','Paladas','Cómo se cerró']];
+  [...state.tramos].sort((a,b)=>a.ini - b.ini).forEach(t=>{
+    const fin = t.fin || Date.now();
+    rows.push([ new Date(t.ini).toLocaleDateString('es-CL'), stateOf(t.estado).name, t.motivo || '',
+      clock(t.ini), t.fin ? clock(t.fin) : 'en curso',
+      Math.round((fin - t.ini)/60000),
+      state.paladas.filter(p=>p.t >= t.ini && p.t <= fin).length,
+      t.fin ? (t.cierre || 'manual') : 'en curso' ]);
+  });
+  if(rows.length === 1) rows.push(['—','Todavía no hay estados registrados','','','','','','']);
+  return rows;
+}
+function loadRows(){
+  const rows = [['Fecha','N° de carga del día','Inicio','Término','Duración (min)','Paladas']];
+  const porDia = {};
+  [...state.cargas].sort((a,b)=>a.ini - b.ini).forEach(c=>{
+    const d = isoDay(c.ini);
+    porDia[d] = (porDia[d] || 0) + 1;
+    rows.push([ new Date(c.ini).toLocaleDateString('es-CL'), porDia[d], clock(c.ini),
+      c.fin ? clock(c.fin) : 'en curso',
+      Math.round(((c.fin || Date.now()) - c.ini)/60000),
+      state.paladas.filter(p=>p.cargaId === c.id).length ]);
+  });
+  if(rows.length === 1) rows.push(['—','','','','','']);
+  return rows;
+}
+function payload(){
+  return {
+    tipo:'giri-cdr', version:1, actualizado: state.actualizado || Date.now(),
+    datos: { tramos:state.tramos, paladas:state.paladas, cargas:state.cargas, borrados:state.borrados||{} },
+    paladas: scoopRows(), estados: stateRows(), cargas: loadRows(),
+  };
+}
+
+async function readSheet(url){
+  const r = await fetch(url + '?accion=leer', { redirect:'follow', cache:'no-store' });
+  const j = await r.json();
+  if(!j || !j.ok) throw new Error('sin datos');
+  if(j.datos && Array.isArray(j.datos.paladas)) return j.datos;
+  return { tramos:[], paladas:[], cargas:[], borrados:{} };
+}
+async function writeSheet(url, body){
+  try{
+    const r = await fetch(url, { method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body });
+    if((await r.text()).includes('"ok":true')) return true;
+  }catch(e){}
+  await fetch(url, { method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'}, body });
+  return false;
+}
+async function syncWithSheet(manual){
+  const url = sheetUrl();
+  if(!url) return false;
+  if(syncing){ syncAgain = true; return false }
+  syncing = true;
+  let ok = false;
+  try{
+    const remote = await readSheet(url);
+    const merged = mergeStates(state, remote);
+    if(contentKey(merged) !== contentKey(state)) applyMerged(merged);
+    if(contentKey(merged) !== contentKey(remote)){
+      state.actualizado = Date.now();
+      save(true);
+      await writeSheet(url, JSON.stringify(payload()));
+    }
+    lastSync = new Date();
+    renderSyncState();
+    if(manual) toast('Planilla al día.');
+    ok = true;
+  }catch(e){
+    renderSyncState(true);
+    if(manual) toast('No se pudo conectar con la planilla.', true);
+    setTimeout(syncWithSheet, 30000);
+  }finally{
+    syncing = false;
+    if(syncAgain){ syncAgain = false; setTimeout(syncWithSheet, 300) }
+  }
+  return ok;
+}
+
+function renderSyncState(mal){
+  const pill = document.getElementById('sync-label');
+  const dot = document.querySelector('#sync-state .dot');
+  const hora = h => `${String(h.getHours()).padStart(2,'0')}:${String(h.getMinutes()).padStart(2,'0')}`;
+  if(!sheetUrl()){
+    dot.style.background = '#71717A';
+    pill.textContent = lastSaved ? hora(lastSaved) : 'Guardado';
+    document.getElementById('sync-state').title = 'Se guarda solo en este teléfono';
+    return;
+  }
+  if(mal){
+    dot.style.background = '#FF6B5A';
+    pill.textContent = 'Sin conexión';
+    document.getElementById('sync-state').title = 'No se pudo llegar a la planilla; el registro sigue guardándose aquí';
+    return;
+  }
+  dot.style.background = 'var(--neon)';
+  const ref = lastSync || lastSaved;
+  pill.textContent = ref ? hora(ref) : 'Conectado';
+  document.getElementById('sync-state').title = 'Enviado a la planilla del equipo';
+}
+function openSyncModal(){
+  const fija = !!SHEET_URL;
+  document.getElementById('sync-note').textContent = fija
+    ? 'Esta página ya viene conectada con la planilla del equipo. Todo lo que registres se envía solo.'
+    : (sheetUrl() ? 'Conectado. Todo lo que registres se envía solo a la planilla.'
+                  : 'Todavía no está conectada: el registro se guarda solo en este teléfono.');
+  document.getElementById('sync-url-field').style.display = fija ? 'none' : 'block';
+  document.getElementById('f-url').value = state.config.sheetUrl || '';
+  document.getElementById('ov-sync').classList.add('is-open');
+}
+async function connectSheet(){
+  const url = document.getElementById('f-url').value.trim();
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)){
+    toast('La dirección debe empezar con https://script.google.com/ y terminar en /exec', true);
+    return;
+  }
+  state.config.sheetUrl = url;
+  save(true);
+  closeOverlay('ov-sync');
+  await syncWithSheet(true);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   START
+   ══════════════════════════════════════════════════════════════════════════ */
+load();
+takeSnapshot();
+/* The app may have been closed on Friday with a stretch still running. */
+(function cerrarColgados(){
+  const tr = currentTramo();
+  if(!tr) return;
+  if(dayStart(tr.ini) !== today()) closeAtMidnight(tr);
+  else if(stateOf(tr.estado).produce && idleMs(tr) >= IDLE_CUT) cutIdle(tr);
+})();
+render();
+const vEl = document.getElementById('version');
+if(vEl) vEl.title = VERSION;
+if(SHEET_URL){
+  state.config = state.config || {};
+  if(state.config.sheetUrl !== SHEET_URL){ state.config.sheetUrl = SHEET_URL; save(true) }
+}
+if(sheetUrl()){
+  syncWithSheet();
+  setInterval(()=>{ if(!document.querySelector('.overlay.is-open')) syncWithSheet() }, 60*1000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncWithSheet() });
+}
+if(location.search.includes('diagnostico')) setTimeout(selfCheck, 500);
+
+/* A quick self-check, same idea as the planner: open with ?diagnostico. */
+function selfCheck(){
+  const out = [];
+  const add = (c, t)=>out.push(`${c?'OK   ':'FALLA'}  ${t}`);
+  add(!!document.querySelector('meta[name=viewport]'), 'La página trae viewport (vista de celular)');
+  add(document.querySelectorAll('#states .state-btn').length === 6, 'Los 6 botones de estado');
+  ['pickState','addScoop','undoScoop','startLoad','askEndLoad','syncWithSheet']
+    .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
+  add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
+  const box = document.createElement('div');
+  box.id = 'diag-box';
+  box.style.cssText = 'position:fixed;inset:auto 8px 8px 8px;z-index:300;background:#031716;color:#CCFF00;'
+    + 'font:12px/1.5 monospace;padding:12px;border-radius:8px;max-height:60vh;overflow:auto;white-space:pre';
+  box.textContent = VERSION + '\n' + out.join('\n');
+  box.onclick = ()=>box.remove();
+  document.body.appendChild(box);
+}
+</script>
+</body>
+</html>
