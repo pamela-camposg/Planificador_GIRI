@@ -7,292 +7,293 @@
 <title>Registro CDR · Ambipar Chile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 /* =========================================================================
-   Same design system as the planner: lime #CCFF00 · ink #031716 · Barlow.
-   Large containers get 8px corners; anything small and coloured stays square.
-   Built for a phone held with one hand inside a loader cab: big targets,
-   high contrast, no menu to hunt through.
+   Same look as the GIRI "Registro de Paladas" app: one white card on a
+   light grey page, Montserrat for words, Roboto Mono for numbers and times,
+   soft tinted buttons that fill with colour when they are the active one.
    ========================================================================= */
 :root{
-  --neon:#CCFF00; --neon-suave:#FBFFE8; --tinta:#031716;
-  --z50:#FAFAFA; --z100:#F4F4F5; --z200:#E4E4E7; --z300:#D4D4D8;
-  --z400:#A1A1AA; --z500:#71717A; --z600:#52525B; --z700:#3F3F46;
-  --rojo:#C0392B; --rojoBg:#FCEDEB; --ambar:#E8A33D;
+  --neon:#CCFF00; --tinta:#031716;
+  --green:#00873D; --green-dark:#006830; --green-light:#E8F5EE; --green-mid:#B8DFC8;
+  --white:#FFFFFF; --g50:#F4F5F4; --g100:#EAECEA; --g300:#C8CDC8; --g500:#7A877A; --g800:#1E271E;
+  --red:#C0392B; --red-light:#FDF0EE;
+  --amber:#E67E22; --amber-light:#FEF6EE; --amber-mid:#F5D5B0; --amber-dark:#B35C00;
+  --shadow:0 4px 24px rgba(0,87,40,.13);
+  --radius:16px; --radius-sm:8px;
 }
-*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0 }
+*{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
 html,body{ overflow-x:hidden }
-body{
-  font-family:'Neo Sans','Neo Sans W01','Barlow Semi Condensed',system-ui,sans-serif;
-  background:#F4F4F5; color:var(--tinta); -webkit-font-smoothing:antialiased;
-  font-size:14px; min-height:100vh; padding-bottom:2rem;
-}
-.premium-heading{ letter-spacing:-0.01em }
-::selection{ background:var(--neon); color:var(--tinta) }
+body{ font-family:'Montserrat',system-ui,sans-serif; background:var(--g50); color:var(--g800);
+  min-height:100vh; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; align-items:center }
 button{ font-family:inherit; cursor:pointer }
-input,select{ font-family:inherit }
-
-/* ---------- WATERMARK ---------- */
-.watermark{
-  pointer-events:none; position:fixed; left:-230px; top:-10px; z-index:-10;
-  height:600px; width:600px; user-select:none; opacity:.17;
-}
-.watermark img,.watermark svg{ height:100%; width:100%; object-fit:contain; display:block }
-#a-fallback{ display:none; padding:18% }
+input{ font-family:inherit }
+.mono{ font-family:'Roboto Mono',ui-monospace,monospace }
 
 /* ---------- TOP BAR ---------- */
-header.topbar{ position:sticky; top:0; z-index:60; background:var(--neon) }
-.topbar-in{ margin:0 auto; max-width:760px; display:flex; align-items:center; gap:.65rem;
-  min-height:4rem; padding:.55rem .9rem }
-.topbar-in .logo{ height:1.5rem; width:auto; display:block; flex:0 0 auto }
-svg.logo{ width:124px }
-.divider{ width:1px; align-self:stretch; background:rgba(3,23,22,.25) }
-.app-title{ min-width:0; flex:1 1 auto; overflow:hidden }
-.app-title p{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.app-title p:first-child{ font-size:11.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; line-height:1.25 }
-.app-title p:last-child{ font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:rgba(3,23,22,.6) }
-.topbar-right{ margin-left:auto; flex:0 0 auto }
-.pill{ display:inline-flex; align-items:center; gap:.45rem; background:var(--tinta); color:#fff;
-  border-radius:999px; padding:.35rem .7rem; font-size:10.5px; letter-spacing:.04em; border:0 }
+.topbar{ position:sticky; top:0; z-index:60; width:100%; background:var(--neon); padding:10px 16px;
+  display:flex; align-items:center; gap:12px }
+.topbar-logo{ height:28px; width:auto; display:block; flex:0 0 auto }
+svg.topbar-logo{ width:120px }
+.topbar-sep{ width:1px; height:20px; background:rgba(0,0,0,.25); flex:0 0 auto }
+.topbar-title{ font-size:11px; font-weight:700; color:var(--g800); letter-spacing:.06em; text-transform:uppercase;
+  line-height:1.3; min-width:0; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.pill{ margin-left:auto; flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; border:0;
+  background:rgba(3,23,22,.88); color:#fff; border-radius:999px; padding:6px 10px; font-size:10.5px; font-weight:600 }
 .pill .dot{ height:7px; width:7px; border-radius:50%; background:var(--neon) }
 
-/* ---------- LAYOUT ---------- */
-.wrap{ max-width:760px; margin:0 auto; padding:1rem 1rem 0 }
-.card{ background:#fff; border:1px solid var(--z200); border-radius:8px; padding:.9rem 1rem 1rem; margin-bottom:.8rem; position:relative }
-.card-title{ display:flex; align-items:center; gap:.5rem; font-size:10.5px; font-weight:600;
-  letter-spacing:.16em; text-transform:uppercase; color:var(--z500); margin-bottom:.7rem }
-.card-title .pt{ height:6px; width:6px; background:var(--z300) }
+/* ---------- CARD ---------- */
+.card{ background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow);
+  width:calc(100% - 32px); max-width:420px; margin:16px 0; padding:14px 18px 16px }
+.label{ font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--g500); margin-bottom:6px }
 
-/* ---------- STATE BUTTONS ---------- */
-.states{ display:grid; grid-template-columns:1fr 1fr; gap:.55rem }
-.state-btn{ border:1px solid var(--z200); background:#fff; border-radius:6px; padding:.85rem .6rem;
-  font-size:14px; font-weight:600; color:var(--tinta); line-height:1.2; min-height:52px;
-  display:flex; align-items:center; justify-content:center; text-align:center; transition:.12s }
-.state-btn:active{ transform:scale(.98) }
-.state-btn[aria-pressed=true]{ color:#fff; border-color:transparent }
-.state-btn .play{ margin-right:.35rem; font-size:11px }
-.state-sub{ display:block; font-size:10.5px; font-weight:500; opacity:.85; margin-top:2px }
+/* ---------- CURRENT ACTIVITY BANNER ---------- */
+.banner{ --c:var(--g500); background:color-mix(in srgb, var(--c) 8%, white);
+  border:1.5px solid color-mix(in srgb, var(--c) 30%, white); border-radius:var(--radius-sm);
+  padding:9px 11px; display:flex; align-items:center; gap:9px; margin-bottom:10px }
+.banner-dot{ width:9px; height:9px; border-radius:50%; background:var(--c); flex:0 0 auto; animation:pulse 2s infinite }
+.banner.none .banner-dot{ animation:none; background:var(--g300) }
+@keyframes pulse{ 0%,100%{ opacity:1 } 50%{ opacity:.4 } }
+.banner-info{ flex:1; min-width:0 }
+.banner-title{ font-size:9.5px; font-weight:700; color:color-mix(in srgb, var(--c) 80%, black); text-transform:uppercase; letter-spacing:.06em }
+.banner-detail{ font-size:14px; font-weight:600; color:var(--g800); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.banner-line{ font-size:10.5px; font-weight:600; color:var(--g500); margin-top:1px }
 
-/* ---------- NUMBERS ---------- */
-.nums{ display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; text-align:center }
-.nums b{ display:block; font-size:30px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums }
-.nums span{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--z500); margin-top:6px }
+/* ---------- IDLE WARNING ---------- */
+.warn{ background:var(--amber-light); border:1.5px solid var(--amber-mid); border-radius:var(--radius-sm);
+  padding:10px 12px; margin-bottom:10px }
+.warn-title{ font-size:9.5px; font-weight:700; color:var(--amber-dark); text-transform:uppercase; letter-spacing:.06em }
+.warn p{ font-size:12.5px; font-weight:500; color:var(--g800); line-height:1.45; margin-top:3px }
+.warn-actions{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px }
+.warn-actions button{ border-radius:var(--radius-sm); padding:10px 8px; font-size:11px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; border:1.5px solid var(--amber-mid); background:#fff; color:var(--amber-dark) }
+.warn-actions button:first-child{ background:var(--amber); border-color:var(--amber); color:#fff; box-shadow:0 4px 12px rgba(230,126,34,.3) }
 
-/* ---------- BIG BUTTON ---------- */
-.big{ width:100%; border:1px solid; border-radius:8px; padding:1.4rem 1rem; background:var(--neon-suave);
-  display:flex; flex-direction:column; align-items:center; gap:.6rem; transition:.12s }
-.big:active{ transform:scale(.99) }
-.big .circle{ height:56px; width:56px; border-radius:50%; color:#fff; font-size:30px; font-weight:400;
-  display:flex; align-items:center; justify-content:center; line-height:1 }
-.big .txt{ font-size:17px; font-weight:700; letter-spacing:.06em; text-transform:uppercase }
-.big.ghost{ background:#fff; border-color:var(--z200) }
-.big.ghost .circle{ background:var(--z400) }
-.big.ghost .txt{ color:var(--z600) }
+/* ---------- COUNTER ---------- */
+.counter{ text-align:center; padding:8px 0; border-top:1px solid var(--g100); border-bottom:1px solid var(--g100); margin-bottom:10px }
+.counter-number{ font-family:'Roboto Mono',monospace; font-size:56px; font-weight:500; color:var(--green); line-height:1;
+  transition:transform .15s cubic-bezier(.34,1.56,.64,1); display:inline-block }
+.counter-number.bump{ transform:scale(1.1) }
+.counter-meta{ font-size:11px; font-weight:700; color:var(--green); margin-top:4px; letter-spacing:.08em; text-transform:uppercase }
 
-/* ---------- LISTS ---------- */
-.row{ display:flex; align-items:baseline; gap:.6rem; padding:.42rem 0; border-bottom:1px solid var(--z100); font-size:13.5px }
+/* ---------- REGISTER BUTTON ---------- */
+.btn-register{ --c:var(--green); width:100%; border-radius:var(--radius); padding:14px 12px;
+  background:color-mix(in srgb, var(--c) 9%, white); border:2px solid color-mix(in srgb, var(--c) 28%, white);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; user-select:none; outline:none;
+  transition:background .15s, transform .1s, border-color .15s, opacity .15s }
+.btn-register:active{ transform:scale(.97); background:color-mix(in srgb, var(--c) 25%, white) }
+.btn-register.success{ background:var(--c); border-color:var(--c) }
+.btn-register.off{ opacity:.45 }
+.btn-register.off:active{ transform:none }
+.btn-icon{ width:46px; height:46px; border-radius:50%; background:var(--c); color:#fff; font-size:28px; font-weight:400; line-height:1;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px color-mix(in srgb, var(--c) 30%, transparent) }
+.btn-register.success .btn-icon{ background:rgba(255,255,255,.2); box-shadow:none }
+.btn-text{ font-size:13px; font-weight:700; color:var(--c); letter-spacing:.04em; text-transform:uppercase }
+.btn-register.success .btn-text{ color:#fff }
+.hint{ text-align:center; font-size:11px; font-weight:600; color:var(--g500); margin-top:6px; min-height:0 }
+.hint:empty{ display:none }
+
+/* ---------- SECONDARY BUTTONS (activities, truck) ---------- */
+.btn-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+.btn-sec{ --c:var(--g500); padding:9px 10px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:8px;
+  min-height:50px; border:2px solid color-mix(in srgb, var(--c) 28%, white); background:color-mix(in srgb, var(--c) 8%, white);
+  text-align:left; transition:transform .1s, background .15s; user-select:none }
+.btn-sec:active{ transform:scale(.97) }
+.btn-icon-sm{ width:22px; height:22px; border-radius:50%; flex:0 0 auto; background:var(--c);
+  box-shadow:0 2px 6px color-mix(in srgb, var(--c) 30%, transparent); display:flex; align-items:center; justify-content:center }
+.btn-icon-sm::after{ content:''; width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.85) }
+.btn-text-sm{ font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; line-height:1.2;
+  color:color-mix(in srgb, var(--c) 78%, black) }
+.btn-sec[aria-pressed=true]{ background:var(--c); border-color:var(--c) }
+.btn-sec[aria-pressed=true] .btn-text-sm{ color:#fff }
+.btn-sec[aria-pressed=true] .btn-icon-sm{ background:rgba(255,255,255,.25); box-shadow:none }
+.section{ margin-top:12px }
+.truck{ margin-top:8px }
+
+/* ---------- HISTORY ---------- */
+.history{ display:flex; flex-direction:column; gap:4px; max-height:52vh; overflow-y:auto; padding-right:2px }
+.hist{ --c:var(--green); display:flex; align-items:center; justify-content:space-between; background:var(--g50);
+  border-radius:var(--radius-sm); border-left:3px solid var(--c); padding:6px 8px 6px 10px; flex-shrink:0; animation:slideIn .2s ease }
+@keyframes slideIn{ from{ opacity:0; transform:translateY(-5px) } to{ opacity:1; transform:none } }
+.hist-info{ display:flex; flex-direction:column; flex:1; min-width:0 }
+.hist-time{ font-family:'Roboto Mono',monospace; font-size:11.5px; color:var(--g800); font-weight:500 }
+.hist-op{ font-size:9.5px; font-weight:700; color:color-mix(in srgb, var(--c) 80%, black); text-transform:uppercase; letter-spacing:.04em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.hist-causa{ font-size:9px; font-weight:600; color:var(--g500) }
+.btn-delete{ background:none; border:none; color:var(--g300); padding:6px; border-radius:6px; display:flex; align-items:center;
+  margin-left:6px; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; gap:4px }
+.btn-delete.armed{ color:var(--red); background:var(--red-light) }
+.empty{ text-align:center; color:var(--g500); font-size:11px; font-weight:600; padding:8px 0 }
+.more{ text-align:center; color:var(--g500); font-size:10px; font-weight:600; padding:4px 0 }
+
+/* ---------- DAY SUMMARY ---------- */
+details.summary{ margin-top:12px; border-top:1px solid var(--g100); padding-top:10px }
+details.summary > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--g500) }
+details.summary > summary::-webkit-details-marker{ display:none }
+details.summary > summary::after{ content:'Ver'; margin-left:auto; color:var(--green) }
+details.summary[open] > summary::after{ content:'Ocultar' }
+.sub-title{ font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--g500); margin:10px 0 3px }
+.row{ display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--g100); font-size:12px; font-weight:600 }
 .row:last-child{ border-bottom:0 }
-.row .lbl{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--z700) }
-.row .val{ font-weight:600; font-variant-numeric:tabular-nums }
-.row .sw{ height:9px; width:9px; flex:0 0 auto }
-.row.now .lbl{ font-weight:600; color:var(--tinta) }
-.empty{ font-size:12.5px; color:var(--z400); padding:.3rem 0 }
-.card.warn{ border-color:#E6D5B0; background:#FFF8EC }
-.card.warn p{ font-size:13.5px; color:#7A4A05; line-height:1.5 }
-.idle-actions{ display:flex; gap:.5rem; margin-top:.8rem }
-.idle-actions .btn{ flex:1; padding:.75rem }
-.mini{ font-size:11px; color:var(--z400); letter-spacing:.04em }
+.row .sw{ height:8px; width:8px; border-radius:50%; flex:0 0 auto }
+.row .lbl{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.row .val{ font-family:'Roboto Mono',monospace; font-weight:500 }
+.row.now .lbl{ color:var(--green) }
 
-.link-btn{ background:none; border:0; padding:2px 4px; font-family:inherit; font-size:11px;
-  letter-spacing:.08em; text-transform:uppercase; color:var(--z400) }
-.link-btn:hover{ color:var(--tinta) }
-.card-title .link-btn{ margin-left:auto }
+.note{ text-align:center; font-size:10px; font-weight:600; color:var(--g500); line-height:1.5; margin-top:12px }
+footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em; padding:0 0 18px; text-align:center }
 
-.btn{ display:inline-flex; align-items:center; justify-content:center; gap:.4rem; border:1px solid var(--tinta);
-  background:var(--tinta); color:#fff; border-radius:6px; padding:.6rem 1rem; font-size:13.5px; font-weight:500 }
-.btn.secondary{ background:#fff; color:var(--tinta); border-color:var(--z200) }
-.btn:disabled{ opacity:.45 }
-
-/* ---------- MODAL ---------- */
-.overlay{ position:fixed; inset:0; background:rgba(3,23,22,.45); z-index:100; display:none;
-  align-items:flex-end; justify-content:center; padding:0 }
-.overlay.is-open{ display:flex }
-.sheet{ background:#fff; border-radius:12px 12px 0 0; border-top:3px solid var(--neon);
-  padding:1.2rem 1rem 1.4rem; width:100%; max-width:760px; max-height:90vh; overflow-y:auto }
-.sheet h3{ font-size:17px; font-weight:600 }
-.sheet .sub{ font-size:12.5px; color:var(--z500); margin-top:.3rem; line-height:1.5 }
-.field{ margin-top:.9rem }
-.field label{ display:block; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--z500); margin-bottom:.3rem }
-.field input{ width:100%; border:1px solid var(--z200); border-radius:6px; padding:.65rem .75rem; font-size:15px; color:var(--tinta); background:#fff; outline:none }
-.field input:focus{ border-color:var(--neon); box-shadow:0 0 0 3px rgba(204,255,0,.3) }
-.reasons{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-top:.6rem }
-.reasons button{ border:1px solid var(--z200); background:#fff; border-radius:6px; padding:.75rem .5rem;
-  font-size:13.5px; font-family:inherit; color:var(--tinta) }
-.reasons button[aria-pressed=true]{ background:var(--rojo); border-color:var(--rojo); color:#fff; font-weight:600 }
-.sheet-actions{ display:flex; gap:.5rem; margin-top:1.1rem }
-.sheet-actions .btn{ flex:1; padding:.8rem 1rem; font-size:14.5px }
+/* ---------- OVERLAY PANELS ---------- */
+.overlay{ position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:100; display:flex; flex-direction:column; align-items:center;
+  opacity:0; pointer-events:none; transition:opacity .2s }
+.overlay.is-open{ opacity:1; pointer-events:all }
+.panel{ background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 18px 16px;
+  width:calc(100% - 32px); max-width:420px; margin-top:48px; max-height:calc(100dvh - 64px); overflow-y:auto }
+.panel-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px }
+.panel-title{ font-size:13px; font-weight:800; color:var(--g800); text-transform:uppercase; letter-spacing:.04em }
+.panel-sub{ font-size:11.5px; font-weight:500; color:var(--g500); line-height:1.45; margin-bottom:12px }
+.btn-close{ background:var(--g50); border:none; border-radius:50%; width:30px; height:30px; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center; color:var(--g500); font-size:16px; line-height:1 }
+.options{ display:flex; flex-direction:column; gap:5px }
+.opt{ --c:var(--amber); background:var(--g50); border:1.5px solid var(--g100); border-radius:var(--radius-sm); padding:11px 12px;
+  font-size:13px; font-weight:600; color:var(--g800); text-align:left; width:100%; display:flex; align-items:center; gap:10px;
+  transition:all .15s }
+.opt .dot{ width:10px; height:10px; border-radius:50%; background:var(--c); flex:0 0 auto }
+.opt small{ display:block; font-size:10px; font-weight:500; color:var(--g500); margin-top:1px }
+.opt:active,.opt[aria-pressed=true]{ background:color-mix(in srgb, var(--c) 10%, white); border-color:var(--c);
+  color:color-mix(in srgb, var(--c) 80%, black) }
+.field{ margin-top:10px }
+.field label{ display:block; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--g500); margin-bottom:4px }
+.field input{ width:100%; background:var(--g50); border:1.5px solid var(--g300); border-radius:var(--radius-sm); padding:10px 12px;
+  font-size:14px; font-weight:600; color:var(--g800); outline:none }
+.field input:focus{ border-color:var(--green) }
+.btn-confirm{ --c:var(--amber); width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--c);
+  font-size:13px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:.06em; margin-top:12px;
+  box-shadow:0 4px 12px color-mix(in srgb, var(--c) 30%, transparent) }
 
 /* ---------- TOAST ---------- */
-#toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:1.2rem; z-index:200;
-  background:var(--tinta); color:#fff; padding:.7rem 1.1rem; border-radius:6px; font-size:13px;
-  max-width:92vw; text-align:center; opacity:0; pointer-events:none; transition:.2s }
+#toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:200; background:var(--g800); color:#fff;
+  padding:10px 16px; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; max-width:calc(100vw - 32px);
+  text-align:center; line-height:1.4; opacity:0; pointer-events:none; transition:opacity .2s; box-shadow:var(--shadow) }
 #toast.on{ opacity:1 }
-#toast.malo{ background:var(--rojo) }
-
-footer{ max-width:760px; margin:1.2rem auto 0; padding:0 1rem; display:flex; flex-wrap:wrap; gap:.2rem 1rem;
-  justify-content:space-between; font-size:10.5px; color:var(--z400); letter-spacing:.04em }
-
-@media (min-width:700px){
-  .states{ grid-template-columns:repeat(3,1fr) }
-  .overlay{ align-items:center; padding:1rem }
-  .sheet{ border-radius:8px; max-width:460px }
-}
+#toast.malo{ background:var(--red) }
 </style>
 </head>
 <body>
 
-<!-- MARCA DE AGUA: la "a" del logo Ambipar en megazoom -->
-<div aria-hidden="true" class="watermark">
-  <img src="ambipar-a-verde.png" alt=""
-       onerror="this.style.display='none';document.getElementById('a-fallback').style.display='block'">
-  <div id="a-fallback">
-    <svg viewBox="0 0 100 100">
-      <g fill="none" stroke="#CCFF00" stroke-linecap="butt">
-        <rect x="22" y="22" width="56" height="56" rx="13" transform="rotate(45 50 50)" stroke-width="7"/>
-        <circle cx="48.5" cy="55" r="10.5" stroke-width="6.5"/>
-        <path d="M59 41.5 V 68.5" stroke-width="6.5"/>
-      </g>
-    </svg>
-  </div>
-</div>
-
 <header class="topbar">
-  <div class="topbar-in">
-    <img src="ambipar-logo.png" alt="Ambipar" class="logo"
-         onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
-    <svg id="logo-fallback" viewBox="0 0 260 46" class="logo" style="display:none" aria-label="Ambipar">
-      <text x="0" y="35" font-family="'Barlow Semi Condensed', sans-serif" font-size="42"
-            font-weight="600" letter-spacing="-1" fill="#031716">ambipar</text>
-      <g transform="translate(220 3)" fill="none" stroke="#031716" stroke-linecap="butt">
-        <rect x="5" y="5" width="26" height="26" rx="6" transform="rotate(45 18 18)" stroke-width="3.2"/>
-        <circle cx="17.4" cy="19.8" r="4.9" stroke-width="3"/>
-        <path d="M22.3 13.4 V 26.2" stroke-width="3"/>
-      </g>
-    </svg>
-    <span class="divider"></span>
-    <div class="app-title">
-      <p class="premium-heading">Registro CDR</p>
-      <p>CDR GIRI</p>
-    </div>
-    <div class="topbar-right">
-      <button class="pill" id="sync-state" onclick="openSyncModal()">
-        <span class="dot"></span><span id="sync-label">Guardado</span>
-      </button>
-    </div>
-  </div>
+  <img src="ambipar-logo.png" alt="Ambipar" class="topbar-logo"
+       onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
+  <svg id="logo-fallback" viewBox="0 0 260 46" class="topbar-logo" style="display:none" aria-label="Ambipar">
+    <text x="0" y="35" font-family="Montserrat, sans-serif" font-size="40" font-weight="600" letter-spacing="-1" fill="#1E271E">ambipar</text>
+    <g transform="translate(212 3)" fill="none" stroke="#1E271E">
+      <rect x="5" y="5" width="26" height="26" rx="6" transform="rotate(45 18 18)" stroke-width="3.2"/>
+      <circle cx="17.4" cy="19.8" r="4.9" stroke-width="3"/>
+      <path d="M22.3 13.4 V 26.2" stroke-width="3"/>
+    </g>
+  </svg>
+  <span class="topbar-sep"></span>
+  <div class="topbar-title">Registro CDR<br>Clasificación GIRI</div>
+  <button class="pill" id="sync-state" onclick="openSyncModal()"><span class="dot"></span><span id="sync-label">Guardado</span></button>
 </header>
 
-<div class="wrap">
+<main class="card">
 
-  <!-- ============ ESTADO DEL CARGADOR ============ -->
-  <section class="card">
-    <p class="card-title"><span class="pt"></span>Estado del cargador Doosan</p>
-    <div class="states" id="states"></div>
-  </section>
+  <p class="label">Actividad del cargador</p>
+  <div class="banner none" id="banner"></div>
 
-  <!-- ============ AVISO DE INACTIVIDAD ============ -->
-  <section class="card warn" id="idle-card" style="display:none">
-    <p class="card-title" style="color:#7A4A05"><span class="pt" style="background:#B26A00"></span>Sin paladas hace rato</p>
+  <div class="warn" id="idle-card" style="display:none">
+    <div class="warn-title">Hace rato que no hay paladas</div>
     <p id="idle-text"></p>
-    <div class="idle-actions">
-      <button class="btn" onclick="keepGoing()">Sí, sigo</button>
-      <button class="btn secondary" onclick="document.getElementById('states').scrollIntoView({behavior:'smooth',block:'center'})">Cambiar estado</button>
+    <div class="warn-actions">
+      <button onclick="keepGoing()">Sí, sigo</button>
+      <button onclick="document.getElementById('states').scrollIntoView({behavior:'smooth',block:'center'})">Cambiar actividad</button>
     </div>
-  </section>
-
-  <!-- ============ NÚMEROS DEL DÍA ============ -->
-  <section class="card">
-    <div class="nums" id="nums"></div>
-  </section>
-
-  <!-- ============ REGISTRAR PALADA ============ -->
-  <button class="big" id="btn-palada" onclick="addScoop()">
-    <span class="circle" id="palada-circle">＋</span>
-    <span class="txt" id="palada-txt">Registrar palada</span>
-  </button>
-  <div style="display:flex;justify-content:center;margin:.5rem 0 .9rem">
-    <button class="link-btn" id="btn-undo" onclick="undoScoop()">Deshacer la última</button>
   </div>
 
-  <!-- ============ CAMIÓN EN CARGA ============ -->
-  <section class="card" id="card-load">
-    <p class="card-title"><span class="pt"></span>Carga de camión</p>
-    <div id="load-body"></div>
-  </section>
+  <div class="counter">
+    <p class="label" style="margin-bottom:2px">Paladas totales hoy</p>
+    <div class="counter-number" id="counter-number">0</div>
+    <div class="counter-meta" id="counter-meta"></div>
+  </div>
 
-  <!-- ============ TIEMPO POR ESTADO ============ -->
-  <section class="card">
-    <p class="card-title"><span class="pt"></span>Tiempo del día por estado</p>
+  <button class="btn-register" id="btn-palada" onclick="addScoop()">
+    <span class="btn-icon">+</span>
+    <span class="btn-text" id="palada-txt">Registrar palada</span>
+  </button>
+  <p class="hint" id="palada-hint"></p>
+
+  <div class="truck btn-row" id="truck" style="display:none"></div>
+
+  <div class="section">
+    <p class="label">Cambiar actividad</p>
+    <div class="btn-row" id="states"></div>
+  </div>
+
+  <div class="section">
+    <p class="label">Últimos registros del día</p>
+    <div class="history" id="history"></div>
+  </div>
+
+  <details class="summary" id="summary">
+    <summary>Resumen del día</summary>
+    <p class="sub-title">Tiempo en cada actividad</p>
     <div id="by-state"></div>
-  </section>
-
-  <!-- ============ HISTORIAL ============ -->
-  <section class="card">
-    <p class="card-title"><span class="pt"></span>Cargas de hoy</p>
+    <p class="sub-title">Camiones cargados</p>
     <div id="loads-today"></div>
-  </section>
+  </details>
 
-</div>
+  <p class="note">Cada actividad termina cuando empieza la siguiente.<br>
+    Si pasa una hora sin paladas, el reloj se detiene solo.</p>
+</main>
 
-<footer>
-  <span>Ambipar Chile - GIRI - Registro CDR</span>
-  <span id="version">Inteligencia Circular LATAM</span>
-</footer>
+<footer><span id="version">Inteligencia Circular LATAM</span></footer>
 
 <!-- ============ MOTIVO DE DETENCIÓN ============ -->
 <div class="overlay" id="ov-stop">
-  <div class="sheet">
-    <h3>¿Por qué está detenido?</h3>
-    <div class="sub">Queda registrado junto con el tiempo que dure la detención.</div>
-    <div class="reasons" id="stop-reasons"></div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">¿Por qué está detenido?</span>
+      <button class="btn-close" onclick="closeOverlay('ov-stop')" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="panel-sub">Toca el motivo y listo.</p>
+    <div class="options" id="stop-reasons"></div>
     <div class="field" id="stop-other" style="display:none">
       <label>Escribe el motivo</label>
-      <input type="text" id="stop-text" placeholder="Ej: espera de camión">
+      <input type="text" id="stop-text" placeholder="Ej: espera de camión" onkeydown="if(event.key==='Enter') confirmStop()">
     </div>
-    <div class="sheet-actions">
-      <button class="btn secondary" onclick="closeOverlay('ov-stop')">Cancelar</button>
-      <button class="btn" onclick="confirmStop()">Marcar detenido</button>
-    </div>
+    <button class="btn-confirm" id="stop-ok" onclick="confirmStop()" style="display:none;--c:var(--red)">Marcar detenido</button>
   </div>
 </div>
 
-<!-- ============ TERMINAR CARGA ============ -->
-<div class="overlay" id="ov-load">
-  <div class="sheet">
-    <h3>Terminar la carga</h3>
-    <div class="sub" id="load-summary"></div>
-    <div class="sheet-actions">
-      <button class="btn secondary" onclick="closeOverlay('ov-load')">Seguir cargando</button>
-      <button class="btn" onclick="confirmEndLoad()">Terminar</button>
+<!-- ============ DESTINO DEL CAMIÓN ============ -->
+<div class="overlay" id="ov-dest">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title" id="dest-title">¿Para dónde va el camión?</span>
+      <button class="btn-close" onclick="closeOverlay('ov-dest')" aria-label="Cerrar">✕</button>
     </div>
+    <p class="panel-sub">Los camiones siguientes van al mismo destino hasta que lo cambies.</p>
+    <div class="options" id="dest-options"></div>
   </div>
 </div>
 
 <!-- ============ CONEXIÓN ============ -->
 <div class="overlay" id="ov-sync">
-  <div class="sheet">
-    <h3>Conexión con la planilla</h3>
-    <div class="sub" id="sync-note"></div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Conexión con la planilla</span>
+      <button class="btn-close" onclick="closeOverlay('ov-sync')" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="panel-sub" id="sync-note"></p>
     <div class="field" id="sync-url-field">
       <label>Dirección de la aplicación web (termina en /exec)</label>
       <input type="text" id="f-url" placeholder="https://script.google.com/macros/s/.../exec">
     </div>
-    <div class="sheet-actions">
-      <button class="btn secondary" onclick="closeOverlay('ov-sync')">Cerrar</button>
-      <button class="btn" onclick="connectSheet()">Conectar</button>
-    </div>
+    <button class="btn-confirm" style="--c:var(--green)" onclick="connectSheet()">Conectar</button>
   </div>
 </div>
 
@@ -310,23 +311,36 @@ footer{ max-width:760px; margin:1.2rem auto 0; padding:0 1rem; display:flex; fle
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v1 · 23-09-2026';
+const VERSION = 'cdr v4 · 29-09-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = '';
 
 const STORE_KEY = 'giri_cdr_v1';
 
-/* The six states from the operator's day. `esfuerzo` marks the ones where the
-   loader is actually producing, so the counters can tell them apart. */
+/* The six states of the operator's day. `paladas` marks the two where scoops
+   are actually counted: moving material around the yard or helping in
+   Clasificación is time, not production, so there the button stays off.
+   `camion` marks the state that means a truck is being loaded. */
 const STATES = [
   { id:'triturando', name:'Triturando',          col:'#1B7A44', produce:true  },
-  { id:'piso',       name:'Carga piso caminante',col:'#1565C0', produce:true  },
-  { id:'movimiento', name:'Movimiento material', col:'#8A6A2F', produce:true  },
-  { id:'apoyo',      name:'Apoyo Clasificación', col:'#2E7D52', produce:true  },
+  { id:'piso',       name:'Carga de camión',     col:'#1565C0', produce:true, camion:true },
+  { id:'movimiento', name:'Movimiento material', col:'#8A6A2F', produce:false },
+  { id:'apoyo',      name:'Apoyo Clasificación', col:'#2E7D52', produce:false },
   { id:'mantencion', name:'Mantención',          col:'#6B4EA8', produce:false },
   { id:'detenido',   name:'Detenido',            col:'#C0392B', produce:false },
 ];
+/* Where the truck being loaded is going. Stored on each load as `destino`
+   (the id), so the spreadsheet can split loads and scoops by destination. */
+const DESTINOS = [
+  { id:'cementeras', name:'CDR a cementeras',   short:'Cementeras', note:'Piso caminante',  col:'#1565C0' },
+  { id:'arauco',     name:'Madera a Arauco',    short:'Arauco', note:'Piso caminante',  col:'#8A6A2F' },
+  { id:'kdm',        name:'Eliminación en KDM', short:'KDM', note:'Camión a eliminación', col:'#52525B' },
+];
+function destOf(id){ return DESTINOS.find(d=>d.id===id) || null }
+function destName(id){ const d = destOf(id); return d ? d.name : 'Sin destino' }
+function destShort(id){ const d = destOf(id); return d ? d.short : 'Sin destino' }
+
 const STOP_REASONS = ['Atoro trituradora','Falla mecánica','Sin material','Colación','Cambio de turno','Otro'];
 
 /* ── The clock must not invent hours ──────────────────────────────────────
@@ -344,7 +358,7 @@ function stateOf(id){ return STATES.find(s=>s.id===id) || STATES[0] }
 let state = {
   tramos: [],     // {id, estado, motivo, ini, fin|null, mod}  stretches of time
   paladas: [],    // {id, t, estado, cargaId|null, mod}
-  cargas: [],     // {id, ini, fin|null, mod}
+  cargas: [],     // {id, ini, fin|null, destino, mod}
   borrados: {},   // {id: time} so an undo also travels to the other devices
   config: { sheetUrl:'' },
   actualizado: 0,
@@ -361,6 +375,14 @@ function isoDay(t){
 function clock(t){
   const d = new Date(t);
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function clockS(t){
+  const d = new Date(t);
+  return `${clock(t)}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+function dateCL(t){
+  const d = new Date(t);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 /* 4:48 for hours, 0:41 for a load. Always h:mm. */
 function hm(ms){
@@ -401,13 +423,15 @@ function keepGoing(){
 function cutIdle(tr){
   const corte = lastSign(tr) + IDLE_ASK;
   tr.fin = corte; tr.cierre = 'por inactividad'; tr.mod = Date.now();
+  closeTruck(corte);              /* si había un camión en carga, se cierra igual */
   save(); render();
-  toast(`Se cerró ${stateOf(tr.estado).name} a las ${clock(corte)}: pasó una hora sin paladas. Marca el estado actual.`, true);
+  toast(`El reloj de ${stateOf(tr.estado).name} se detuvo a las ${clock(corte)}: pasó una hora sin paladas. Toca lo que está haciendo ahora.`, true);
 }
 /* Nothing stays open across days: at midnight the stretch is closed. */
 function closeAtMidnight(tr){
   const fin = dayStart(tr.ini) + 86400000 - 1000;
   tr.fin = fin; tr.cierre = 'fin del día'; tr.mod = Date.now();
+  closeTruck(fin);
   save(); render();
 }
 function watchIdle(){
@@ -420,9 +444,8 @@ function watchIdle(){
   if(ms >= IDLE_ASK){
     card.style.display = 'block';
     document.getElementById('idle-text').innerHTML =
-      `No se registran paladas desde las <b>${clock(lastSign(tr))}</b> y el cargador sigue marcado como
-       <b>${esc(stateOf(tr.estado).name)}</b>. ¿Sigue en eso?
-       Si nadie contesta, el reloj se detiene solo a las ${clock(lastSign(tr) + IDLE_ASK)}.`;
+      `La última palada fue a las <b>${clock(lastSign(tr))}</b>. ¿Sigue en <b>${esc(stateOf(tr.estado).name)}</b>?
+       Si nadie contesta, el reloj se detiene solo.`;
   } else card.style.display = 'none';
 }
 function currentState(){ const t = currentTramo(); return t ? t.estado : null }
@@ -433,33 +456,120 @@ function openLoad(){ return state.cargas.find(c=>!c.fin) || null }
    ══════════════════════════════════════════════════════════════════════════ */
 /* Changing state closes the stretch that was running. That is what makes the
    clock of an activity stop when the loader stops doing it. */
-function setState(id, motivo){
+function setState(id, motivo, destino){
   const now = Date.now();
   const cur = currentTramo();
   if(cur && cur.estado === id && (cur.motivo||'') === (motivo||'')) return;   // already there
   if(cur){ cur.fin = now; cur.cierre = 'manual'; cur.mod = now }
   state.tramos.push({ id:uid('t'), estado:id, motivo:motivo||'', ini:now, fin:null, mod:now });
+  /* Loading the walking floor IS loading a truck: the load opens and closes
+     with the state, so the operator has one less thing to remember. */
+  if(stateOf(id).camion) openTruck(now, destino); else closeTruck(now);
   save(); render();
-  toast(`${stateOf(id).name}${motivo?` · ${motivo}`:''} desde las ${clock(now)}.`);
+  toast(`${stateOf(id).name}${motivo?` · ${motivo}`:''}${destino?` · ${destName(destino)}`:''} desde las ${clock(now)}.`);
+}
+function openTruck(now, destino){
+  if(openLoad()) return;
+  state.cargas.push({ id:uid('c'), ini:now, fin:null, destino:destino||'', mod:now });
+}
+/* A load with no scoops never happened: it is dropped instead of closed. */
+function closeTruck(now){
+  const c = openLoad();
+  if(!c) return;
+  if(!state.paladas.some(p=>p.cargaId === c.id)){
+    state.cargas = state.cargas.filter(x=>x.id !== c.id);
+    state.borrados[c.id] = now;
+    return;
+  }
+  c.fin = now; c.mod = now;
+}
+/* One truck leaves, the next one comes in without leaving the state. */
+function nextTruck(){
+  const c = openLoad();
+  const now = Date.now();
+  const n = c ? state.paladas.filter(p=>p.cargaId === c.id).length : 0;
+  const destino = c ? c.destino : '';
+  closeTruck(now);
+  openTruck(now, destino);
+  save(); render();
+  toast(n ? `Camión cerrado con ${n} palada${n===1?'':'s'}. Empieza el siguiente a ${destName(destino)}.`
+          : 'Empieza el siguiente camión.');
+}
+
+/* ── Truck destination ────────────────────────────────────────────────
+   Asked when the loader starts loading; tapping the running "Carga de
+   camión" again, or "Cambiar" on the truck card, re-labels the truck
+   being loaded without closing it. */
+let destMode = 'start';
+function openDestModal(mode){
+  destMode = mode;
+  const c = openLoad();
+  document.getElementById('dest-title').textContent =
+    mode === 'change' ? '¿Para dónde va este camión?' : '¿Para dónde va el camión?';
+  document.getElementById('dest-options').innerHTML = DESTINOS.map((d, i)=>
+    `<button type="button" class="opt" style="--c:${d.col}" aria-pressed="${mode==='change' && !!c && c.destino===d.id}"
+      onclick="pickDest(${i})"><span class="dot"></span><span>${esc(d.name)}<small>${esc(d.note)}</small></span></button>`).join('');
+  document.getElementById('ov-dest').classList.add('is-open');
+}
+function pickDest(i){
+  const d = DESTINOS[i];
+  closeOverlay('ov-dest');
+  const c = openLoad();
+  if(destMode === 'change' && c){
+    c.destino = d.id;
+    save(); render();
+    toast(`Este camión va a ${d.name}.`);
+    return;
+  }
+  setState('piso', '', d.id);
 }
 function pickState(id){
   if(id === 'detenido'){ openStopModal(); return }
+  if(stateOf(id).camion){
+    const cur = currentTramo();
+    openDestModal(cur && cur.estado === id && openLoad() ? 'change' : 'start');
+    return;
+  }
   setState(id);
 }
 
 function addScoop(){
   const st = currentState();
-  if(!st){ toast('Primero marca qué está haciendo el cargador.', true); return }
+  if(!st){ toast('Primero toca arriba lo que está haciendo el cargador.', true);
+    document.getElementById('states').scrollIntoView({behavior:'smooth',block:'center'}); return }
   /* Scooping while the loader is stopped almost always means the state was
      not updated; better to ask than to record an hour that never happened. */
   if(!stateOf(st).produce){
-    toast(`El cargador está en ${stateOf(st).name}. Marca el estado que corresponde para registrar paladas.`, true);
+    toast(`En ${stateOf(st).name} no se cuentan paladas. Marca Triturando o Carga de camión.`, true);
     return;
   }
   const now = Date.now(), carga = openLoad();
   state.paladas.push({ id:uid('p'), t:now, estado:st, cargaId: carga ? carga.id : null, mod:now });
   save(); render();
   if(navigator.vibrate) navigator.vibrate(18);
+  const b = document.getElementById('btn-palada');
+  b.classList.add('success');
+  clearTimeout(flashTimer); flashTimer = setTimeout(()=>b.classList.remove('success'), 260);
+  const num = document.getElementById('counter-number');
+  num.classList.add('bump'); setTimeout(()=>num.classList.remove('bump'), 160);
+}
+let flashTimer;
+/* Any scoop can be removed from the history. The first tap arms the X, the
+   second one deletes, so a thumb brushing the list does not erase anything. */
+let armedId = null, armTimer;
+function deleteScoop(id){
+  if(armedId !== id){
+    armedId = id; renderHistory();
+    clearTimeout(armTimer); armTimer = setTimeout(()=>{ armedId = null; renderHistory() }, 4000);
+    return;
+  }
+  armedId = null; clearTimeout(armTimer);
+  const p = state.paladas.find(x=>x.id === id);
+  if(!p) return;
+  state.paladas = state.paladas.filter(x=>x.id !== id);
+  state.borrados[id] = Date.now();
+  save(); render();
+  toast(`Palada de las ${clockS(p.t)} borrada.`);
 }
 function undoScoop(){
   const hoy = scoopsToday().sort((a,b)=>a.t-b.t);
@@ -471,46 +581,32 @@ function undoScoop(){
   toast(`Palada de las ${clock(last.t)} eliminada.`);
 }
 
-function startLoad(){
-  if(openLoad()) return;
-  const now = Date.now();
-  state.cargas.push({ id:uid('c'), ini:now, fin:null, mod:now });
-  save(); render();
-  toast(`Carga iniciada a las ${clock(now)}.`);
-}
-function askEndLoad(){
-  const c = openLoad();
-  if(!c) return;
-  const n = state.paladas.filter(p=>p.cargaId === c.id).length;
-  document.getElementById('load-summary').innerHTML =
-    `Empezó a las ${clock(c.ini)}, lleva <b>${n} palada${n===1?'':'s'}</b> y ${hm(Date.now()-c.ini)} de carga.`;
-  document.getElementById('ov-load').classList.add('is-open');
-}
-function confirmEndLoad(){
-  const c = openLoad();
-  if(c){ c.fin = Date.now(); c.mod = c.fin; save(); render() }
-  closeOverlay('ov-load');
-  if(c) toast(`Carga cerrada: ${state.paladas.filter(p=>p.cargaId===c.id).length} paladas en ${hm(c.fin-c.ini)}.`);
-}
+
 
 /* ── Stop reason ──────────────────────────────────────────────────────── */
-let stopSel = STOP_REASONS[0];
+/* One tap on a reason marks the loader stopped. Only "Otro" asks for words. */
+let stopSel = null;
 function openStopModal(){
-  stopSel = STOP_REASONS[0];
+  stopSel = null;
   document.getElementById('stop-text').value = '';
   renderStopReasons();
   document.getElementById('ov-stop').classList.add('is-open');
 }
 function renderStopReasons(){
-  document.getElementById('stop-reasons').innerHTML = STOP_REASONS.map(r=>
-    `<button type="button" aria-pressed="${r===stopSel}" onclick="pickStopReason('${r}')">${esc(r)}</button>`).join('');
-  document.getElementById('stop-other').style.display = stopSel === 'Otro' ? 'block' : 'none';
+  document.getElementById('stop-reasons').innerHTML = STOP_REASONS.map((r, i)=>
+    `<button type="button" class="opt" style="--c:var(--red)" aria-pressed="${r===stopSel}" onclick="pickStopReason(${i})"><span class="dot"></span>${esc(r)}</button>`).join('');
+  const otro = stopSel === 'Otro';
+  document.getElementById('stop-other').style.display = otro ? 'block' : 'none';
+  document.getElementById('stop-ok').style.display = otro ? 'block' : 'none';
 }
-function pickStopReason(r){ stopSel = r; renderStopReasons(); if(r==='Otro') document.getElementById('stop-text').focus() }
+function pickStopReason(i){
+  const r = STOP_REASONS[i];
+  if(r !== 'Otro'){ closeOverlay('ov-stop'); setState('detenido', r); return }
+  stopSel = r; renderStopReasons();
+  document.getElementById('stop-text').focus();
+}
 function confirmStop(){
-  const motivo = stopSel === 'Otro'
-    ? (document.getElementById('stop-text').value.trim() || 'Otro')
-    : stopSel;
+  const motivo = document.getElementById('stop-text').value.trim() || 'Otro';
   closeOverlay('ov-stop');
   setState('detenido', motivo);
 }
@@ -535,72 +631,132 @@ function toast(txt, malo){
    RENDERING
    ══════════════════════════════════════════════════════════════════════════ */
 function render(){
-  renderStates();
+  renderBanner();
   renderNums();
   renderScoopButton();
   renderLoad();
+  renderStates();
+  renderHistory();
   renderByState();
   renderLoadsToday();
   renderSyncState();
   watchIdle();
 }
 
-function renderStates(){
+/* What the loader is doing now, with its own running clock. */
+function truckNum(c){ return loadsToday().sort((a,b)=>a.ini-b.ini).findIndex(x=>x.id === c.id) + 1 }
+function renderBanner(){
+  const box = document.getElementById('banner');
   const cur = currentTramo();
-  document.getElementById('states').innerHTML = STATES.map(s=>{
-    const on = cur && cur.estado === s.id;
-    const sub = on && s.id === 'detenido' && cur.motivo ? `<span class="state-sub">${esc(cur.motivo)}</span>` : '';
-    return `<button class="state-btn" aria-pressed="${!!on}"
-      style="${on ? `background:${s.col}` : ''}" onclick="pickState('${s.id}')">
-      <span>${on ? '<span class="play">▶</span>' : ''}${s.name}${s.id==='detenido' && !on ? ' · motivo' : ''}${sub}</span>
-    </button>`;
-  }).join('');
+  if(!cur){
+    box.className = 'banner none'; box.style.removeProperty('--c');
+    box.innerHTML = `<span class="banner-dot"></span><div class="banner-info">
+      <div class="banner-title">Sin actividad marcada</div>
+      <div class="banner-detail">Toca abajo lo que está haciendo</div></div>`;
+    return;
+  }
+  const s = stateOf(cur.estado);
+  box.className = 'banner'; box.style.setProperty('--c', s.col);
+  box.innerHTML = `<span class="banner-dot"></span><div class="banner-info">
+    <div class="banner-title">Cargador en actividad</div>
+    <div class="banner-detail">${esc(s.name)}${cur.motivo ? ` · ${esc(cur.motivo)}` : ''}</div>
+    <div class="banner-line" id="banner-line"></div></div>`;
+  bannerClock();
+}
+function bannerClock(){
+  const el = document.getElementById('banner-line');
+  const cur = currentTramo();
+  if(!el || !cur) return;
+  const c = stateOf(cur.estado).camion ? openLoad() : null;
+  el.textContent = `desde ${clock(cur.ini)} · ${hm(Date.now() - cur.ini)}`
+    + (c ? ` · camión ${truckNum(c)} · ${destShort(c.destino)}` : '');
 }
 
 function renderNums(){
   const n = scoopsToday().length;
   const trit = state.tramos.filter(t=>t.estado === 'triturando').reduce((s,t)=>s + msToday(t), 0);
   const horas = trit / 3600000;
-  const critura = state.paladas.filter(p=>p.t >= today() && p.t < tomorrow() && p.estado === 'triturando').length;
-  document.getElementById('nums').innerHTML = `
-    <div><b style="color:#1B7A44">${n}</b><span>Paladas hoy</span></div>
-    <div><b style="color:#1B7A44">${hm(trit)}</b><span>H triturando</span></div>
-    <div><b style="color:#1B7A44">${horas > 0.02 ? fmtNum(critura/horas) : '—'}</b><span>Paladas / h</span></div>`;
+  const ptrit = scoopsToday().filter(p=>p.estado === 'triturando').length;
+  document.getElementById('counter-number').textContent = n;
+  const c = openLoad();
+  let meta = `Triturando ${hm(trit)}${horas > 0.02 ? ` · ${fmtNum(ptrit/horas)} por hora` : ''}`;
+  if(c){
+    const k = state.paladas.filter(p=>p.cargaId === c.id).length;
+    meta = `Camión ${truckNum(c)} · ${k} palada${k===1?'':'s'}`;
+  }
+  document.getElementById('counter-meta').textContent = meta;
 }
 
+/* The button always answers: if it cannot count now, the line below says why. */
 function renderScoopButton(){
   const st = currentState();
   const s = st ? stateOf(st) : null;
   const b = document.getElementById('btn-palada');
-  const carga = openLoad();
   const activo = !!s && s.produce;
-  b.className = 'big' + (activo ? '' : ' ghost');
-  b.style.borderColor = activo ? s.col : '';
-  b.style.background = activo ? (s.col + '14') : '';
-  document.getElementById('palada-circle').style.background = activo ? s.col : '';
-  document.getElementById('palada-txt').style.color = activo ? s.col : '';
-  document.getElementById('palada-txt').textContent = carga ? 'Palada a camión' : 'Registrar palada';
-  document.getElementById('btn-undo').style.visibility = scoopsToday().length ? 'visible' : 'hidden';
+  b.classList.toggle('off', !activo);
+  b.style.setProperty('--c', activo ? s.col : 'var(--green)');
+  document.getElementById('palada-txt').textContent = activo && openLoad() ? 'Palada al camión' : 'Registrar palada';
+  document.getElementById('palada-hint').textContent = activo ? ''
+    : (!s ? 'Primero marca qué está haciendo el cargador.'
+          : `En ${s.name} no se cuentan paladas.`);
 }
 
+/* Truck buttons only while a truck is being loaded. */
 function renderLoad(){
   const c = openLoad();
-  const box = document.getElementById('load-body');
-  if(!c){
-    const hechas = loadsToday().filter(x=>x.fin).length;
-    box.innerHTML = `
-      <p class="mini" style="margin-bottom:.7rem">Ningún camión en carga${hechas?` · ${hechas} cargado${hechas===1?'':'s'} hoy`:''}.</p>
-      <button class="btn" style="width:100%;padding:.8rem" onclick="startLoad()">Empezar carga de camión</button>`;
-    return;
-  }
-  const n = state.paladas.filter(p=>p.cargaId === c.id).length;
+  const box = document.getElementById('truck');
+  box.style.display = c ? 'grid' : 'none';
+  if(!c) return;
+  const d = destOf(c.destino);
   box.innerHTML = `
-    <div class="nums" style="margin-bottom:.8rem">
-      <div><b style="color:#1565C0">${n}</b><span>Paladas</span></div>
-      <div><b style="color:#1565C0">${hm(Date.now() - c.ini)}</b><span>Tiempo carga</span></div>
-      <div><b style="color:#1565C0">${clock(c.ini)}</b><span>Empezó</span></div>
-    </div>
-    <button class="btn secondary" style="width:100%;padding:.8rem" onclick="askEndLoad()">Terminar carga</button>`;
+    <button class="btn-sec" style="--c:#1565C0" onclick="nextTruck()">
+      <span class="btn-icon-sm"></span><span class="btn-text-sm">Camión ${truckNum(c)} listo<br>empezar otro</span></button>
+    <button class="btn-sec" style="--c:${d ? d.col : '#7A877A'}" onclick="openDestModal('change')">
+      <span class="btn-icon-sm"></span><span class="btn-text-sm">Destino ${esc(destShort(c.destino))}<br>cambiar</span></button>`;
+}
+
+function renderStates(){
+  const cur = currentTramo();
+  document.getElementById('states').innerHTML = STATES.map(s=>{
+    const on = !!cur && cur.estado === s.id;
+    return `<button class="btn-sec state-btn" aria-pressed="${on}" style="--c:${s.col}" onclick="pickState('${s.id}')">
+      <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span></button>`;
+  }).join('');
+}
+
+/* Every scoop and every change of activity of the day, newest first. */
+const HISTORY_MAX = 80;
+function renderHistory(){
+  const box = document.getElementById('history');
+  const cargaNum = new Map();
+  loadsToday().sort((a,b)=>a.ini-b.ini).forEach((c, i)=>cargaNum.set(c.id, { n:i+1, d:c.destino }));
+  const hoy = scoopsToday().sort((a,b)=>a.t-b.t);
+  const items = hoy.map((p, i)=>({ t:p.t, kind:'p', p, n:i+1 }));
+  state.tramos.filter(t=>t.ini >= today() && t.ini < tomorrow()).forEach(t=>items.push({ t:t.ini, kind:'t', tr:t }));
+  items.sort((a,b)=>b.t - a.t);
+  if(!items.length){ box.innerHTML = '<p class="empty">Todavía no hay registros hoy.</p>'; return }
+  const html = items.slice(0, HISTORY_MAX).map(it=>{
+    if(it.kind === 'p'){
+      const p = it.p, s = stateOf(p.estado), c = p.cargaId ? cargaNum.get(p.cargaId) : null;
+      const op = c ? `Palada ${it.n} · camión ${c.n}` : `Palada ${it.n}`;
+      const causa = c ? `${s.name} · ${destName(c.d)}` : s.name;
+      const armed = armedId === p.id;
+      return `<div class="hist" style="--c:${s.col}">
+        <div class="hist-info"><span class="hist-time">${dateCL(p.t)} · ${clockS(p.t)}</span>
+          <span class="hist-op">${esc(op)}</span><span class="hist-causa">${esc(causa)}</span></div>
+        <button class="btn-delete${armed?' armed':''}" onclick="deleteScoop('${p.id}')" aria-label="Borrar palada">${armed ? '¿Borrar?' : ''}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg></button>
+      </div>`;
+    }
+    const t = it.tr, s = stateOf(t.estado);
+    const fin = t.fin ? `hasta ${clock(t.fin)} · ${hm(t.fin - t.ini)}${t.cierre && t.cierre !== 'manual' ? ` · cerrado ${t.cierre}` : ''}` : 'En curso';
+    return `<div class="hist" style="--c:${s.col}">
+      <div class="hist-info"><span class="hist-time">${dateCL(t.ini)} · ${clockS(t.ini)}</span>
+        <span class="hist-op">▸ ${esc(s.name)}</span>
+        <span class="hist-causa">${t.motivo ? esc(t.motivo) + ' · ' : ''}${fin}</span></div></div>`;
+  }).join('');
+  box.innerHTML = html + (items.length > HISTORY_MAX
+    ? `<p class="more">y ${items.length - HISTORY_MAX} registros anteriores en la planilla</p>` : '');
 }
 
 function renderByState(){
@@ -614,7 +770,7 @@ function renderByState(){
     tot[k] = (tot[k] || 0) + ms;
   });
   const filas = Object.entries(tot).sort((a,b)=>b[1]-a[1]);
-  if(!filas.length){ box.innerHTML = '<p class="empty">Todavía no se ha marcado ningún estado hoy.</p>'; return }
+  if(!filas.length){ box.innerHTML = '<p class="empty">Todavía no se marca ninguna actividad hoy.</p>'; return }
   box.innerHTML = filas.map(([k, ms])=>{
     const id = k.split(' · ')[0], s = stateOf(id);
     const nombre = s.name + (k.includes(' · ') ? ` (${k.split(' · ')[1].toLowerCase()})` : '');
@@ -629,12 +785,12 @@ function renderByState(){
 function renderLoadsToday(){
   const box = document.getElementById('loads-today');
   const l = loadsToday().sort((a,b)=>b.ini - a.ini);
-  if(!l.length){ box.innerHTML = '<p class="empty">Todavía no se carga ningún camión hoy.</p>'; return }
+  if(!l.length){ box.innerHTML = '<p class="empty">Ningún camión cargado hoy.</p>'; return }
   box.innerHTML = l.map((c, i)=>{
     const n = state.paladas.filter(p=>p.cargaId === c.id).length;
     const num = l.length - i;
     return `<div class="row ${c.fin?'':'now'}">
-      <span class="lbl">Carga ${num} · ${n} palada${n===1?'':'s'}</span>
+      <span class="lbl">Camión ${num} · ${esc(destName(c.destino))} · ${n} palada${n===1?'':'s'}</span>
       <span class="val">${c.fin ? `${hm(c.fin-c.ini)} · ${clock(c.fin)}` : 'en curso'}</span></div>`;
   }).join('');
 }
@@ -642,8 +798,7 @@ function renderLoadsToday(){
 /* The running clocks need to move on their own. */
 setInterval(()=>{
   if(document.hidden) return;
-  renderNums(); renderByState(); watchIdle();
-  if(openLoad()) renderLoad();
+  bannerClock(); renderNums(); renderByState(); watchIdle();
 }, 1000);
 /* A new day empties the counters by itself. */
 let renderedDay = today();
@@ -742,13 +897,13 @@ function scheduleSync(){
 /* One row per scoop: date, time, running number of the day, state and load. */
 function scoopRows(){
   const rows = [['Fecha','Hora','N° palada del día','Paladas','Estado del cargador',
-                 'Motivo','Cargando camión','N° de carga del día']];
+                 'Motivo','Cargando camión','N° de carga del día','Destino']];
   const porDia = {};
-  const cargaNum = new Map();
+  const cargaNum = new Map(), cargaDest = new Map();
   [...state.cargas].sort((a,b)=>a.ini-b.ini).forEach(c=>{
     const d = isoDay(c.ini);
     porDia[d] = (porDia[d] || 0) + 1;
-    cargaNum.set(c.id, porDia[d]);
+    cargaNum.set(c.id, porDia[d]); cargaDest.set(c.id, c.destino);
   });
   const cuenta = {};
   [...state.paladas].sort((a,b)=>a.t - b.t).forEach(p=>{
@@ -757,9 +912,10 @@ function scoopRows(){
     const tr = state.tramos.find(t=>t.ini <= p.t && (t.fin == null || t.fin >= p.t) && t.estado === p.estado);
     rows.push([ new Date(p.t).toLocaleDateString('es-CL'), clock(p.t), cuenta[d], 1,
       stateOf(p.estado).name, (tr && tr.motivo) || '',
-      p.cargaId ? 'Sí' : 'No', p.cargaId ? (cargaNum.get(p.cargaId) || '') : '' ]);
+      p.cargaId ? 'Sí' : 'No', p.cargaId ? (cargaNum.get(p.cargaId) || '') : '',
+      p.cargaId ? destName(cargaDest.get(p.cargaId)) : '' ]);
   });
-  if(rows.length === 1) rows.push(['—','','','','Todavía no hay paladas registradas','','','']);
+  if(rows.length === 1) rows.push(['—','','','','Todavía no hay paladas registradas','','','','']);
   return rows;
 }
 /* One row per stretch of time, which is what makes the hours add up. */
@@ -777,24 +933,63 @@ function stateRows(){
   return rows;
 }
 function loadRows(){
-  const rows = [['Fecha','N° de carga del día','Inicio','Término','Duración (min)','Paladas']];
+  const rows = [['Fecha','N° de carga del día','Destino','Inicio','Término','Duración (min)','Paladas']];
   const porDia = {};
   [...state.cargas].sort((a,b)=>a.ini - b.ini).forEach(c=>{
     const d = isoDay(c.ini);
     porDia[d] = (porDia[d] || 0) + 1;
-    rows.push([ new Date(c.ini).toLocaleDateString('es-CL'), porDia[d], clock(c.ini),
+    rows.push([ new Date(c.ini).toLocaleDateString('es-CL'), porDia[d], destName(c.destino), clock(c.ini),
       c.fin ? clock(c.fin) : 'en curso',
       Math.round(((c.fin || Date.now()) - c.ini)/60000),
       state.paladas.filter(p=>p.cargaId === c.id).length ]);
   });
-  if(rows.length === 1) rows.push(['—','','','','','']);
+  if(rows.length === 1) rows.push(['—','','','','','','']);
   return rows;
 }
+/* The same card the operator sees, but one row per day and in hours, so it
+   can be charted: how the day was split between activities. */
+function dayRows(){
+  const cabecera = ['Fecha','Paladas','Camiones cargados'];
+  STATES.forEach(s=>cabecera.push('H ' + s.name.toLowerCase()));
+  cabecera.push('Paladas por hora triturando');
+  DESTINOS.forEach(d=>cabecera.push('Camiones ' + d.name.toLowerCase()));
+  const rows = [cabecera];
+
+  const dias = new Set();
+  const dia = t => dayStart(t);
+  state.paladas.forEach(p=>dias.add(dia(p.t)));
+  state.tramos.forEach(t=>dias.add(dia(t.ini)));
+  state.cargas.forEach(c=>dias.add(dia(c.ini)));
+
+  /* How much of a stretch falls inside one particular day. */
+  const msEnDia = (tr, d)=>{
+    const a = Math.max(tr.ini, d), b = Math.min(tr.fin || Date.now(), d + 86400000);
+    return Math.max(0, b - a);
+  };
+  [...dias].sort().forEach(d=>{
+    const paladas = state.paladas.filter(p=>dia(p.t) === d);
+    const fila = [ new Date(d).toLocaleDateString('es-CL'), paladas.length,
+                   state.cargas.filter(c=>dia(c.ini) === d && c.fin).length ];
+    let hTrit = 0;
+    STATES.forEach(s=>{
+      const ms = state.tramos.filter(t=>t.estado === s.id).reduce((x, t)=>x + msEnDia(t, d), 0);
+      if(s.id === 'triturando') hTrit = ms / 3600000;
+      fila.push(Math.round(ms / 36000) / 100);      // horas con dos decimales
+    });
+    const pTrit = paladas.filter(p=>p.estado === 'triturando').length;
+    fila.push(hTrit > 0.02 ? Math.round(pTrit / hTrit * 10) / 10 : '');
+    DESTINOS.forEach(x=>fila.push(state.cargas.filter(c=>dia(c.ini) === d && c.fin && c.destino === x.id).length));
+    rows.push(fila);
+  });
+  if(rows.length === 1) rows.push(new Array(cabecera.length).fill('').map((v,i)=>i ? v : '—'));
+  return rows;
+}
+
 function payload(){
   return {
     tipo:'giri-cdr', version:1, actualizado: state.actualizado || Date.now(),
     datos: { tramos:state.tramos, paladas:state.paladas, cargas:state.cargas, borrados:state.borrados||{} },
-    paladas: scoopRows(), estados: stateRows(), cargas: loadRows(),
+    paladas: scoopRows(), estados: stateRows(), cargas: loadRows(), dia: dayRows(),
   };
 }
 
@@ -920,7 +1115,9 @@ function selfCheck(){
   const add = (c, t)=>out.push(`${c?'OK   ':'FALLA'}  ${t}`);
   add(!!document.querySelector('meta[name=viewport]'), 'La página trae viewport (vista de celular)');
   add(document.querySelectorAll('#states .state-btn').length === 6, 'Los 6 botones de estado');
-  ['pickState','addScoop','undoScoop','startLoad','askEndLoad','syncWithSheet']
+  add(!!document.getElementById('btn-palada') && !!document.getElementById('history'), 'Botón de palada e historial');
+  add(CSS.supports('color','color-mix(in srgb, red 50%, white)'), 'El navegador muestra los colores (color-mix)');
+  ['pickState','addScoop','deleteScoop','nextTruck','pickDest','syncWithSheet','dayRows']
     .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
   add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
   const box = document.createElement('div');
