@@ -174,6 +174,53 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
   font-size:13px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:.06em; margin-top:12px;
   box-shadow:0 4px 12px color-mix(in srgb, var(--c) 30%, transparent) }
 
+/* ---------- TABS ---------- */
+.tabs{ display:grid; grid-template-columns:1fr 1fr; gap:4px; background:var(--g50); border-radius:var(--radius-sm); padding:4px; margin-bottom:14px }
+.tabs button{ border:0; background:transparent; border-radius:6px; padding:9px 6px; font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--g500) }
+.tabs button[aria-selected=true]{ background:#fff; color:var(--green); box-shadow:0 1px 4px rgba(0,87,40,.12) }
+
+/* ---------- OPERATOR ---------- */
+.select-wrapper{ position:relative }
+#operador{ width:100%; appearance:none; -webkit-appearance:none; background:var(--g50); border:1.5px solid var(--g300);
+  border-radius:var(--radius-sm); padding:10px 40px 10px 14px; font-size:14px; font-weight:600; color:var(--g800); outline:none }
+#operador:focus{ border-color:var(--green) }
+#operador.missing{ border-color:var(--amber); background:var(--amber-light); color:var(--amber-dark) }
+.select-arrow{ position:absolute; right:13px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--green) }
+.turno-line{ font-size:10.5px; font-weight:600; color:var(--g500); margin-top:5px }
+
+/* ---------- RATES ---------- */
+.rates{ display:flex; justify-content:center; gap:14px; margin-top:6px; flex-wrap:wrap }
+.rate{ font-size:10.5px; font-weight:600; color:var(--g500); display:flex; align-items:center; gap:5px }
+.rate b{ font-family:'Roboto Mono',monospace; font-size:13px; font-weight:500; color:var(--g800) }
+.rate i{ width:7px; height:7px; border-radius:50%; background:var(--c) }
+
+/* ---------- TRUCK ---------- */
+.truck-info{ font-size:11px; font-weight:600; color:var(--g500); text-align:center; margin-bottom:6px }
+.truck-info b{ color:var(--g800); font-family:'Roboto Mono',monospace; font-weight:500 }
+
+/* ---------- SUMMARY TAB ---------- */
+.seg{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px }
+.seg button{ border:1.5px solid var(--g100); background:var(--g50); border-radius:var(--radius-sm); padding:9px 4px;
+  font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--g500) }
+.seg button[aria-pressed=true]{ background:var(--green-light); border-color:var(--green-mid); color:var(--green-dark) }
+.period-nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin:12px 0 10px }
+.period-nav span{ font-size:13px; font-weight:700; text-align:center; flex:1 }
+.period-nav .btn-close{ font-size:20px }
+.kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px }
+.kpi{ background:var(--g50); border-radius:var(--radius-sm); padding:10px 6px; text-align:center }
+.kpi b{ display:block; font-family:'Roboto Mono',monospace; font-size:22px; font-weight:500; color:var(--green); line-height:1.1 }
+.kpi span{ display:block; font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--g500); margin-top:4px; line-height:1.25 }
+table.sum{ width:100%; border-collapse:collapse; font-size:12px }
+table.sum th{ font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--g500);
+  text-align:right; padding:6px 4px; border-bottom:1.5px solid var(--g100) }
+table.sum th:first-child, table.sum td:first-child{ text-align:left }
+table.sum td{ padding:7px 4px; border-bottom:1px solid var(--g100); text-align:right; font-family:'Roboto Mono',monospace; font-weight:500 }
+table.sum td:first-child{ font-family:'Montserrat',sans-serif; font-weight:600 }
+table.sum tr.total td{ border-top:1.5px solid var(--g300); border-bottom:0; font-weight:700; color:var(--green-dark) }
+table.sum td.low{ color:var(--amber-dark) }
+table.sum td.ok{ color:var(--green) }
+
 /* ---------- IDLE POPUP ---------- */
 #ov-idle{ background:rgba(0,0,0,.45) }
 .idle-badge{ display:inline-flex; align-items:center; gap:7px; --c:var(--amber); background:var(--amber-light);
@@ -212,43 +259,74 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
 
 <main class="card">
 
-  <p class="label">Actividad del cargador</p>
-  <div class="banner none" id="banner"></div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-registro" aria-selected="true" onclick="showTab('registro')">Registro</button>
+    <button role="tab" id="tab-resumen" aria-selected="false" onclick="showTab('resumen')">Resumen</button>
+  </nav>
 
-  <div class="counter">
-    <p class="label" style="margin-bottom:2px">Paladas totales hoy</p>
-    <div class="counter-number" id="counter-number">0</div>
-    <div class="counter-meta" id="counter-meta"></div>
-  </div>
+  <!-- ================= REGISTRO ================= -->
+  <section id="view-registro">
+    <p class="label">Operador actual</p>
+    <div class="select-wrapper">
+      <select id="operador" onchange="pickOperator(this.value)"></select>
+      <svg class="select-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l4 4 4-4"/></svg>
+    </div>
+    <p class="turno-line" id="turno-line"></p>
 
-  <button class="btn-register" id="btn-palada" onclick="addScoop()">
-    <span class="btn-icon">+</span>
-    <span class="btn-text" id="palada-txt">Registrar palada</span>
-  </button>
-  <p class="hint" id="palada-hint"></p>
+    <p class="label" style="margin-top:10px">Actividad del cargador</p>
+    <div class="banner none" id="banner"></div>
 
-  <div class="truck btn-row" id="truck" style="display:none"></div>
+    <div class="counter">
+      <p class="label" style="margin-bottom:2px" id="counter-label">Paladas del turno</p>
+      <div class="counter-number" id="counter-number">0</div>
+      <div class="counter-meta" id="counter-meta"></div>
+      <div class="rates" id="rates"></div>
+    </div>
 
-  <div class="section">
-    <p class="label">Cambiar actividad</p>
-    <div class="btn-row" id="states"></div>
-  </div>
+    <button class="btn-register" id="btn-palada" onclick="addScoop()">
+      <span class="btn-icon">+</span>
+      <span class="btn-text" id="palada-txt">Registrar palada</span>
+    </button>
+    <p class="hint" id="palada-hint"></p>
 
-  <div class="section">
-    <p class="label">Últimos registros del día</p>
-    <div class="history" id="history"></div>
-  </div>
+    <div class="truck" id="truck" style="display:none"></div>
 
-  <details class="summary" id="summary">
-    <summary>Resumen del día</summary>
-    <p class="sub-title">Tiempo en cada actividad</p>
-    <div id="by-state"></div>
-    <p class="sub-title">Camiones cargados</p>
-    <div id="loads-today"></div>
-  </details>
+    <div class="section">
+      <p class="label">Cambiar actividad</p>
+      <div class="btn-row" id="states"></div>
+    </div>
 
-  <p class="note">Cada actividad termina cuando empieza la siguiente.<br>
-    Si pasa una hora sin paladas, el reloj se detiene solo.</p>
+    <div class="section">
+      <p class="label">Últimos registros del día</p>
+      <div class="history" id="history"></div>
+    </div>
+
+    <p class="note">Turno día 08:30 a 18:30 · turno noche 18:30 a 21:00.<br>
+      Cada actividad termina cuando empieza la siguiente o al cambio de turno.</p>
+  </section>
+
+  <!-- ================= RESUMEN ================= -->
+  <section id="view-resumen" hidden>
+    <div class="seg" role="group">
+      <button aria-pressed="false" onclick="setPeriod('dia')" id="per-dia">Día</button>
+      <button aria-pressed="true" onclick="setPeriod('semana')" id="per-semana">Semana</button>
+      <button aria-pressed="false" onclick="setPeriod('mes')" id="per-mes">Mes</button>
+    </div>
+    <div class="period-nav">
+      <button class="btn-close" onclick="movePeriod(-1)" aria-label="Anterior">‹</button>
+      <span id="period-label"></span>
+      <button class="btn-close" onclick="movePeriod(1)" aria-label="Siguiente">›</button>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div id="sum-table"></div>
+    <div id="sum-day" hidden>
+      <p class="sub-title">Tiempo en cada actividad</p>
+      <div id="by-state"></div>
+      <p class="sub-title">Camiones cargados</p>
+      <div id="loads-day"></div>
+    </div>
+    <p class="note">Paladas por hora = paladas de la actividad ÷ horas marcadas en esa actividad.</p>
+  </section>
 </main>
 
 <footer><span id="version">Inteligencia Circular LATAM</span></footer>
@@ -271,6 +349,18 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
       <p class="panel-sub" id="idle-change-sub"></p>
       <div class="btn-row" id="idle-states"></div>
     </div>
+  </div>
+</div>
+
+<!-- ============ ¿QUÉ HACE AHORA? (después de camión listo) ============ -->
+<div class="overlay" id="ov-next">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">¿Qué hace ahora el cargador?</span>
+      <button class="btn-close" onclick="closeOverlay('ov-next')" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="panel-sub" id="next-sub"></p>
+    <div class="btn-row" id="next-states"></div>
   </div>
 </div>
 
@@ -333,7 +423,7 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v5 · 30-09-2026';
+const VERSION = 'cdr v6 · 30-09-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = '';
@@ -362,6 +452,35 @@ const DESTINOS = [
 function destOf(id){ return DESTINOS.find(d=>d.id===id) || null }
 function destName(id){ const d = destOf(id); return d ? d.name : 'Sin destino' }
 function destShort(id){ const d = destOf(id); return d ? d.short : 'Sin destino' }
+
+/* ── Operators and target come from the sheet "CDR Configuración" ─────
+   Column A lists the operators (one per row), cell B2 holds the target of
+   scoops per shift. These names are only used until the sheet answers. */
+const DEFAULT_OPERATORS = ['Leonardo Oyanedel','Víctor Zúñiga','Francisco Hume'];
+function operatorList(){
+  const l = state.config && Array.isArray(state.config.operadores) && state.config.operadores.length
+    ? state.config.operadores : DEFAULT_OPERATORS;
+  return l;
+}
+function target(){ const m = Number(state.config && state.config.meta); return m > 0 ? m : 0 }
+
+/* ── Shifts ────────────────────────────────────────────────────────────
+   Día until 18:30, noche from 18:30 to 21:00. At each boundary whatever is
+   running is closed and the operator is asked again. */
+const SHIFT_CHANGE = 18*60 + 30;   // 18:30
+const SHIFT_END    = 21*60;        // 21:00
+function minOfDay(t){ const d = new Date(t); return d.getHours()*60 + d.getMinutes() }
+function shiftOf(t){ return minOfDay(t) < SHIFT_CHANGE ? 'día' : 'noche' }
+function shiftKey(t){ return isoDay(t) + ' ' + shiftOf(t) }
+function shiftWindow(t){
+  const d = dayStart(t);
+  return shiftOf(t) === 'día' ? [d, d + SHIFT_CHANGE*60000] : [d + SHIFT_CHANGE*60000, d + 86400000];
+}
+/* The operator chosen on this phone belongs to one shift; a new shift starts empty. */
+function currentOperator(){
+  const c = state.config || {};
+  return c.operador && c.operadorTurno === shiftKey(Date.now()) ? c.operador : '';
+}
 
 const STOP_REASONS = ['Atoro trituradora','Falla mecánica','Sin material','Colación','Cambio de turno','Otro'];
 
@@ -517,6 +636,26 @@ function changeTime(cur){
   if(c && cur && c.tramo === cur.id && Date.now() < c.until && c.t >= cur.ini) return c.t;
   return Date.now();
 }
+/* Whatever is running when the shift changes (18:30) or ends (21:00) is
+   closed right at that minute; the next operator starts fresh. */
+function watchShift(){
+  const tr = currentTramo();
+  if(!tr) return false;
+  const d = dayStart(tr.ini);
+  for(const [min, why] of [[SHIFT_CHANGE, 'cambio de turno'], [SHIFT_END, 'fin de turno']]){
+    const b = d + min*60000;
+    if(tr.ini < b && Date.now() >= b){
+      tr.fin = b; tr.cierre = why; tr.mod = Date.now();
+      closeTruck(b);
+      save(); render();
+      toast(why === 'cambio de turno'
+        ? 'Cambio de turno 18:30: se cerró la actividad. El siguiente operador elige su nombre.'
+        : 'Fin del turno noche 21:00: se cerró la actividad.', true);
+      return true;
+    }
+  }
+  return false;
+}
 function currentState(){ const t = currentTramo(); return t ? t.estado : null }
 function openLoad(){ return state.cargas.find(c=>!c.fin) || null }
 
@@ -530,7 +669,7 @@ function setState(id, motivo, destino){
   const now = changeTime(cur);
   if(cur && cur.estado === id && (cur.motivo||'') === (motivo||'')) return;   // already there
   if(cur){ cur.fin = now; cur.cierre = 'manual'; cur.mod = now }
-  state.tramos.push({ id:uid('t'), estado:id, motivo:motivo||'', ini:now, fin:null, mod:now });
+  state.tramos.push({ id:uid('t'), estado:id, motivo:motivo||'', operador:currentOperator(), ini:now, fin:null, mod:now });
   /* Loading the walking floor IS loading a truck: the load opens and closes
      with the state, so the operator has one less thing to remember. */
   if(stateOf(id).camion) openTruck(now, destino); else closeTruck(now);
@@ -539,7 +678,7 @@ function setState(id, motivo, destino){
 }
 function openTruck(now, destino){
   if(openLoad()) return;
-  state.cargas.push({ id:uid('c'), ini:now, fin:null, destino:destino||'', mod:now });
+  state.cargas.push({ id:uid('c'), ini:now, fin:null, destino:destino||'', operador:currentOperator(), mod:now });
 }
 /* A load with no scoops never happened: it is dropped instead of closed. */
 function closeTruck(now){
@@ -552,17 +691,53 @@ function closeTruck(now){
   }
   c.fin = now; c.mod = now;
 }
-/* One truck leaves, the next one comes in without leaving the state. */
-function nextTruck(){
-  const c = openLoad();
+/* "Camión listo": the truck is closed and so is the loading; the counter
+   of the next truck starts at zero when loading starts again. */
+function truckDone(){
+  const c = openLoad(), cur = currentTramo();
   const now = Date.now();
   const n = c ? state.paladas.filter(p=>p.cargaId === c.id).length : 0;
-  const destino = c ? c.destino : '';
+  const num = c ? truckNum(c) : 0;
   closeTruck(now);
-  openTruck(now, destino);
+  if(cur && stateOf(cur.estado).camion){ cur.fin = now; cur.cierre = 'camión listo'; cur.mod = now }
   save(); render();
-  toast(n ? `Camión cerrado con ${n} palada${n===1?'':'s'}. Empieza el siguiente a ${destName(destino)}.`
-          : 'Empieza el siguiente camión.');
+  toast(n ? `Camión ${num} listo: ${n} palada${n===1?'':'s'}.` : 'Carga terminada.');
+  openNext(n ? `Camión ${num} cerrado con ${n} palada${n===1?'':'s'} a las ${clock(now)}.` : '');
+}
+function openNext(sub){
+  document.getElementById('next-sub').textContent = sub || '';
+  document.getElementById('next-states').innerHTML = STATES.map(s=>
+    `<button class="btn-sec" style="--c:${s.col}" onclick="closeOverlay('ov-next');pickState('${s.id}')">
+      <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span></button>`).join('');
+  document.getElementById('ov-next').classList.add('is-open');
+}
+
+/* ── Operator ─────────────────────────────────────────────────────────
+   Changing operator in the middle of an activity splits it, so each hour
+   and each scoop stays with the person who did it. */
+function needOperator(){
+  if(currentOperator()) return false;
+  toast('Primero selecciona el operador.', true);
+  const sel = document.getElementById('operador');
+  sel.scrollIntoView({behavior:'smooth', block:'center'}); sel.focus();
+  return true;
+}
+function pickOperator(name){
+  state.config.operador = name;
+  state.config.operadorTurno = shiftKey(Date.now());
+  const cur = currentTramo();
+  /* Split only when the person really changes; another phone choosing the
+     same operator must not cut the running activity. */
+  if(name && cur && cur.operador !== name){
+    const now = Date.now();
+    if(cur.operador){
+      cur.fin = now; cur.cierre = 'cambio de operador'; cur.mod = now;
+      state.tramos.push({ id:uid('t'), estado:cur.estado, motivo:cur.motivo||'', operador:name, ini:now, fin:null, mod:now });
+    } else { cur.operador = name; cur.mod = now }
+    save();
+  } else save(true);
+  render();
+  if(name) toast(`Operador: ${name}.`);
 }
 
 /* ── Truck destination ────────────────────────────────────────────────
@@ -593,6 +768,7 @@ function pickDest(i){
   setState('piso', '', d.id);
 }
 function pickState(id){
+  if(needOperator()) return;
   if(id === 'detenido'){ openStopModal(); return }
   if(stateOf(id).camion){
     const cur = currentTramo();
@@ -603,6 +779,7 @@ function pickState(id){
 }
 
 function addScoop(){
+  if(needOperator()) return;
   const st = currentState();
   if(!st){ toast('Primero toca arriba lo que está haciendo el cargador.', true);
     document.getElementById('states').scrollIntoView({behavior:'smooth',block:'center'}); return }
@@ -613,7 +790,7 @@ function addScoop(){
     return;
   }
   const now = Date.now(), carga = openLoad();
-  state.paladas.push({ id:uid('p'), t:now, estado:st, cargaId: carga ? carga.id : null, mod:now });
+  state.paladas.push({ id:uid('p'), t:now, estado:st, cargaId: carga ? carga.id : null, operador:currentOperator(), mod:now });
   save(); render();
   if(navigator.vibrate) navigator.vibrate(18);
   const b = document.getElementById('btn-palada');
@@ -700,14 +877,15 @@ function toast(txt, malo){
    RENDERING
    ══════════════════════════════════════════════════════════════════════════ */
 function render(){
+  if(watchShift()) return;
+  renderOperator();
   renderBanner();
   renderNums();
   renderScoopButton();
   renderLoad();
   renderStates();
   renderHistory();
-  renderByState();
-  renderLoadsToday();
+  if(tab === 'resumen') renderSummary();
   renderSyncState();
   watchIdle();
 }
@@ -741,19 +919,49 @@ function bannerClock(){
     + (c ? ` · camión ${truckNum(c)} · ${destShort(c.destino)}` : '');
 }
 
+function renderOperator(){
+  const sel = document.getElementById('operador');
+  const cur = currentOperator();
+  const list = operatorList().slice();
+  if(cur && !list.includes(cur)) list.push(cur);
+  const html = `<option value="">— Seleccione su nombre —</option>` +
+    list.map(n=>`<option value="${esc(n)}"${n===cur?' selected':''}>${esc(n)}</option>`).join('');
+  if(sel.dataset.html !== html){ sel.innerHTML = html; sel.dataset.html = html }
+  sel.value = cur;
+  sel.classList.toggle('missing', !cur);
+  const now = Date.now();
+  const [a, b] = shiftWindow(now);
+  document.getElementById('turno-line').textContent = shiftOf(now) === 'día'
+    ? 'Turno día · 08:30 a 18:30'
+    : (minOfDay(now) < SHIFT_END ? 'Turno noche · 18:30 a 21:00' : 'Fuera de turno · después de las 21:00');
+}
+
+/* Scoops of the shift against the target, and scoops per hour of each
+   productive activity, each against its own hours. */
+function msIn(tr, a, b){ return Math.max(0, Math.min(tr.fin || Date.now(), b) - Math.max(tr.ini, a)) }
+function stats(a, b){
+  const pal = state.paladas.filter(p=>p.t >= a && p.t < b);
+  const hours = id => state.tramos.filter(t=>t.estado === id).reduce((x, t)=>x + msIn(t, a, b), 0) / 3600000;
+  const o = { paladas: pal.length, trit: pal.filter(p=>p.estado==='triturando').length,
+              carga: pal.filter(p=>p.estado==='piso').length, hTrit: hours('triturando'), hCarga: hours('piso') };
+  o.phTrit = o.hTrit > 0.02 ? o.trit / o.hTrit : null;
+  o.phCarga = o.hCarga > 0.02 ? o.carga / o.hCarga : null;
+  return o;
+}
+const ph = v => v == null ? '—' : fmtNum(v);
 function renderNums(){
-  const n = scoopsToday().length;
-  const trit = state.tramos.filter(t=>t.estado === 'triturando').reduce((s,t)=>s + msToday(t), 0);
-  const horas = trit / 3600000;
-  const ptrit = scoopsToday().filter(p=>p.estado === 'triturando').length;
-  document.getElementById('counter-number').textContent = n;
-  const c = openLoad();
-  let meta = `Triturando ${hm(trit)}${horas > 0.02 ? ` · ${fmtNum(ptrit/horas)} por hora` : ''}`;
-  if(c){
-    const k = state.paladas.filter(p=>p.cargaId === c.id).length;
-    meta = `Camión ${truckNum(c)} · ${k} palada${k===1?'':'s'}`;
-  }
-  document.getElementById('counter-meta').textContent = meta;
+  const now = Date.now();
+  const [a, b] = shiftWindow(now);
+  const st = stats(a, b);
+  document.getElementById('counter-label').textContent = `Paladas del turno ${shiftOf(now)}`;
+  document.getElementById('counter-number').textContent = st.paladas;
+  const m = target();
+  const meta = document.getElementById('counter-meta');
+  meta.textContent = m ? `Meta: ${m}${st.paladas < m ? ` · faltan ${m - st.paladas}` : ' · cumplida'}` : '';
+  meta.style.display = m ? 'block' : 'none';
+  document.getElementById('rates').innerHTML = `
+    <span class="rate" style="--c:${stateOf('triturando').col}"><i></i>Triturando <b>${ph(st.phTrit)}</b> p/h</span>
+    <span class="rate" style="--c:${stateOf('piso').col}"><i></i>Carga camión <b>${ph(st.phCarga)}</b> p/h</span>`;
 }
 
 /* The button always answers: if it cannot count now, the line below says why. */
@@ -765,7 +973,10 @@ function renderScoopButton(){
   b.classList.toggle('off', !activo);
   b.style.setProperty('--c', activo ? s.col : 'var(--green)');
   document.getElementById('palada-txt').textContent = activo && openLoad() ? 'Palada al camión' : 'Registrar palada';
-  document.getElementById('palada-hint').textContent = activo ? ''
+  const op = !!currentOperator();
+  b.classList.toggle('off', !activo || !op);
+  document.getElementById('palada-hint').textContent = !op ? 'Primero selecciona el operador.'
+    : activo ? ''
     : (!s ? 'Primero marca qué está haciendo el cargador.'
           : `En ${s.name} no se cuentan paladas.`);
 }
@@ -774,14 +985,18 @@ function renderScoopButton(){
 function renderLoad(){
   const c = openLoad();
   const box = document.getElementById('truck');
-  box.style.display = c ? 'grid' : 'none';
+  box.style.display = c ? 'block' : 'none';
   if(!c) return;
   const d = destOf(c.destino);
+  const n = state.paladas.filter(p=>p.cargaId === c.id).length;
   box.innerHTML = `
-    <button class="btn-sec" style="--c:#1565C0" onclick="nextTruck()">
-      <span class="btn-icon-sm"></span><span class="btn-text-sm">Camión ${truckNum(c)} listo<br>empezar otro</span></button>
-    <button class="btn-sec" style="--c:${d ? d.col : '#7A877A'}" onclick="openDestModal('change')">
-      <span class="btn-icon-sm"></span><span class="btn-text-sm">Destino ${esc(destShort(c.destino))}<br>cambiar</span></button>`;
+    <p class="truck-info">Camión ${truckNum(c)} · ${esc(destName(c.destino))} · <b>${n}</b> palada${n===1?'':'s'} · <b>${hm(Date.now()-c.ini)}</b></p>
+    <div class="btn-row">
+      <button class="btn-sec" style="--c:${d ? d.col : '#7A877A'}" onclick="openDestModal('change')">
+        <span class="btn-icon-sm"></span><span class="btn-text-sm">Cambiar destino</span></button>
+      <button class="btn-sec" style="--c:#1565C0" onclick="truckDone()">
+        <span class="btn-icon-sm"></span><span class="btn-text-sm">Camión listo</span></button>
+    </div>`;
 }
 
 function renderStates(){
@@ -808,7 +1023,7 @@ function renderHistory(){
     if(it.kind === 'p'){
       const p = it.p, s = stateOf(p.estado), c = p.cargaId ? cargaNum.get(p.cargaId) : null;
       const op = c ? `Palada ${it.n} · camión ${c.n}` : `Palada ${it.n}`;
-      const causa = c ? `${s.name} · ${destName(c.d)}` : s.name;
+      const causa = (c ? `${s.name} · ${destName(c.d)}` : s.name) + (p.operador ? ` · ${p.operador}` : '');
       const armed = armedId === p.id;
       return `<div class="hist" style="--c:${s.col}">
         <div class="hist-info"><span class="hist-time">${dateCL(p.t)} · ${clockS(p.t)}</span>
@@ -822,44 +1037,120 @@ function renderHistory(){
     return `<div class="hist" style="--c:${s.col}">
       <div class="hist-info"><span class="hist-time">${dateCL(t.ini)} · ${clockS(t.ini)}</span>
         <span class="hist-op">▸ ${esc(s.name)}</span>
-        <span class="hist-causa">${t.motivo ? esc(t.motivo) + ' · ' : ''}${fin}</span></div></div>`;
+        <span class="hist-causa">${t.motivo ? esc(t.motivo) + ' · ' : ''}${fin}${t.operador ? ' · ' + esc(t.operador) : ''}</span></div></div>`;
   }).join('');
   box.innerHTML = html + (items.length > HISTORY_MAX
     ? `<p class="more">y ${items.length - HISTORY_MAX} registros anteriores en la planilla</p>` : '');
 }
 
-function renderByState(){
+/* ══════════════════════════════════════════════════════════════════════════
+   SUMMARY TAB · day, week (Monday to Sunday) and month
+   ══════════════════════════════════════════════════════════════════════════ */
+let tab = 'registro', period = 'semana', periodRef = Date.now();
+const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function showTab(t){
+  tab = t;
+  document.getElementById('view-registro').hidden = t !== 'registro';
+  document.getElementById('view-resumen').hidden = t !== 'resumen';
+  document.getElementById('tab-registro').setAttribute('aria-selected', t === 'registro');
+  document.getElementById('tab-resumen').setAttribute('aria-selected', t === 'resumen');
+  if(t === 'resumen') renderSummary();
+  window.scrollTo(0, 0);
+}
+function setPeriod(p){ period = p; periodRef = Date.now(); renderSummary() }
+function periodRange(){
+  const d = new Date(dayStart(periodRef));
+  if(period === 'dia') return [d.getTime(), d.getTime() + 86400000];
+  if(period === 'semana'){
+    const back = (d.getDay() + 6) % 7;                 // Monday = 0
+    const a = new Date(d); a.setDate(d.getDate() - back);
+    const b = new Date(a); b.setDate(a.getDate() + 7);
+    return [a.getTime(), b.getTime()];
+  }
+  const a = new Date(d.getFullYear(), d.getMonth(), 1), b = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+  return [a.getTime(), b.getTime()];
+}
+function movePeriod(k){
+  const d = new Date(periodRef);
+  if(period === 'dia') d.setDate(d.getDate() + k);
+  else if(period === 'semana') d.setDate(d.getDate() + 7*k);
+  else d.setMonth(d.getMonth() + k, 1);
+  periodRef = d.getTime(); renderSummary();
+}
+const dm = t => { const d = new Date(t); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` };
+function renderSummary(){
+  ['dia','semana','mes'].forEach(p=>document.getElementById('per-'+p).setAttribute('aria-pressed', p === period));
+  const [a, b] = periodRange();
+  const lbl = document.getElementById('period-label');
+  if(period === 'dia') lbl.textContent = `${DOW[new Date(a).getDay()]} ${dateCL(a)}`;
+  else if(period === 'semana') lbl.textContent = `Semana ${dm(a)} al ${dm(b - 86400000)}`;
+  else { const d = new Date(a); lbl.textContent = `${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
+
+  const tot = stats(a, b);
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi"><b>${tot.paladas}</b><span>Paladas</span></div>
+    <div class="kpi"><b>${ph(tot.phTrit)}</b><span>P/h triturando</span></div>
+    <div class="kpi"><b>${ph(tot.phCarga)}</b><span>P/h carga camión</span></div>`;
+
+  /* Rows: shifts for one day, days for a week or a month. */
+  const m = target();
+  let rows = [];
+  if(period === 'dia'){
+    rows = [['Turno día', a, a + SHIFT_CHANGE*60000], ['Turno noche', a + SHIFT_CHANGE*60000, b]];
+  } else {
+    for(let t = a; t < b; ){
+      const n = new Date(t); n.setDate(n.getDate() + 1);
+      rows.push([`${DOW[new Date(t).getDay()]} ${dm(t)}`, t, n.getTime()]);
+      t = n.getTime();
+    }
+  }
+  const body = rows.map(([name, x, y])=>{
+    const s2 = stats(x, y);
+    if(period !== 'dia' && !s2.paladas && !s2.hTrit && !s2.hCarga) return '';
+    const cls = period === 'dia' && m ? (s2.paladas >= m ? 'ok' : 'low') : '';
+    return `<tr><td>${name}</td><td class="${cls}">${s2.paladas}</td><td>${ph(s2.phTrit)}</td><td>${ph(s2.phCarga)}</td></tr>`;
+  }).join('');
+  document.getElementById('sum-table').innerHTML = body
+    ? `<table class="sum"><thead><tr><th>${period === 'dia' ? 'Turno' : 'Día'}</th><th>Paladas</th><th>P/h trit.</th><th>P/h carga</th></tr></thead>
+       <tbody>${body}<tr class="total"><td>Total</td><td>${tot.paladas}</td><td>${ph(tot.phTrit)}</td><td>${ph(tot.phCarga)}</td></tr></tbody></table>
+       ${period === 'dia' && m ? `<p class="note" style="margin-top:6px">Meta por turno: ${m} paladas.</p>` : ''}`
+    : '<p class="empty">No hay registros en este período.</p>';
+
+  const dayBox = document.getElementById('sum-day');
+  dayBox.hidden = period !== 'dia';
+  if(period === 'dia'){ renderByState(a, b); renderLoadsDay(a, b) }
+}
+function renderByState(a, b){
   const box = document.getElementById('by-state');
   const cur = currentTramo();
   const tot = {};
   state.tramos.forEach(t=>{
-    const ms = msToday(t);
+    const ms = msIn(t, a, b);
     if(ms <= 0) return;
     const k = t.estado + (t.estado === 'detenido' && t.motivo ? ' · ' + t.motivo : '');
     tot[k] = (tot[k] || 0) + ms;
   });
-  const filas = Object.entries(tot).sort((a,b)=>b[1]-a[1]);
-  if(!filas.length){ box.innerHTML = '<p class="empty">Todavía no se marca ninguna actividad hoy.</p>'; return }
+  const filas = Object.entries(tot).sort((x,y)=>y[1]-x[1]);
+  if(!filas.length){ box.innerHTML = '<p class="empty">No se marcó ninguna actividad.</p>'; return }
   box.innerHTML = filas.map(([k, ms])=>{
     const id = k.split(' · ')[0], s = stateOf(id);
     const nombre = s.name + (k.includes(' · ') ? ` (${k.split(' · ')[1].toLowerCase()})` : '');
-    const activo = cur && (cur.estado + (cur.estado==='detenido' && cur.motivo ? ' · ' + cur.motivo : '')) === k;
+    const activo = cur && (cur.estado + (cur.estado==='detenido' && cur.motivo ? ' · ' + cur.motivo : '')) === k && cur.ini < b && Date.now() >= a;
     return `<div class="row ${activo?'now':''}">
       <span class="sw" style="background:${s.col}"></span>
       <span class="lbl">${esc(nombre)}${activo?' · ahora':''}</span>
       <span class="val">${hm(ms)}</span></div>`;
   }).join('');
 }
-
-function renderLoadsToday(){
-  const box = document.getElementById('loads-today');
-  const l = loadsToday().sort((a,b)=>b.ini - a.ini);
-  if(!l.length){ box.innerHTML = '<p class="empty">Ningún camión cargado hoy.</p>'; return }
+function renderLoadsDay(a, b){
+  const box = document.getElementById('loads-day');
+  const l = state.cargas.filter(c=>c.ini >= a && c.ini < b).sort((x,y)=>y.ini - x.ini);
+  if(!l.length){ box.innerHTML = '<p class="empty">Ningún camión cargado.</p>'; return }
   box.innerHTML = l.map((c, i)=>{
     const n = state.paladas.filter(p=>p.cargaId === c.id).length;
-    const num = l.length - i;
     return `<div class="row ${c.fin?'':'now'}">
-      <span class="lbl">Camión ${num} · ${esc(destName(c.destino))} · ${n} palada${n===1?'':'s'}</span>
+      <span class="lbl">Camión ${l.length - i} · ${esc(destName(c.destino))} · ${n} palada${n===1?'':'s'}</span>
       <span class="val">${c.fin ? `${hm(c.fin-c.ini)} · ${clock(c.fin)}` : 'en curso'}</span></div>`;
   }).join('');
 }
@@ -867,7 +1158,12 @@ function renderLoadsToday(){
 /* The running clocks need to move on their own. */
 setInterval(()=>{
   if(document.hidden) return;
-  bannerClock(); renderNums(); renderByState(); watchIdle();
+  if(watchShift()) return;
+  bannerClock(); renderNums(); watchIdle();
+  if(openLoad()) renderLoad();
+  if(tab === 'resumen' && period === 'dia') renderSummary();
+  const sel = document.getElementById('operador');
+  if(sel && sel.value !== currentOperator()) render();
 }, 1000);
 /* A new day empties the counters by itself. */
 let renderedDay = today();
@@ -966,7 +1262,7 @@ function scheduleSync(){
 /* One row per scoop: date, time, running number of the day, state and load. */
 function scoopRows(){
   const rows = [['Fecha','Hora','N° palada del día','Paladas','Estado del cargador',
-                 'Motivo','Cargando camión','N° de carga del día','Destino']];
+                 'Motivo','Cargando camión','N° de carga del día','Destino','Turno','Operador']];
   const porDia = {};
   const cargaNum = new Map(), cargaDest = new Map();
   [...state.cargas].sort((a,b)=>a.ini-b.ini).forEach(c=>{
@@ -982,27 +1278,27 @@ function scoopRows(){
     rows.push([ new Date(p.t).toLocaleDateString('es-CL'), clock(p.t), cuenta[d], 1,
       stateOf(p.estado).name, (tr && tr.motivo) || '',
       p.cargaId ? 'Sí' : 'No', p.cargaId ? (cargaNum.get(p.cargaId) || '') : '',
-      p.cargaId ? destName(cargaDest.get(p.cargaId)) : '' ]);
+      p.cargaId ? destName(cargaDest.get(p.cargaId)) : '', shiftOf(p.t), p.operador || '' ]);
   });
-  if(rows.length === 1) rows.push(['—','','','','Todavía no hay paladas registradas','','','','']);
+  if(rows.length === 1) rows.push(['—','','','','Todavía no hay paladas registradas','','','','','','']);
   return rows;
 }
 /* One row per stretch of time, which is what makes the hours add up. */
 function stateRows(){
-  const rows = [['Fecha','Estado del cargador','Motivo','Inicio','Término','Duración (min)','Paladas','Cómo se cerró']];
+  const rows = [['Fecha','Estado del cargador','Motivo','Inicio','Término','Duración (min)','Paladas','Cómo se cerró','Turno','Operador']];
   [...state.tramos].sort((a,b)=>a.ini - b.ini).forEach(t=>{
     const fin = t.fin || Date.now();
     rows.push([ new Date(t.ini).toLocaleDateString('es-CL'), stateOf(t.estado).name, t.motivo || '',
       clock(t.ini), t.fin ? clock(t.fin) : 'en curso',
       Math.round((fin - t.ini)/60000),
       state.paladas.filter(p=>p.t >= t.ini && p.t <= fin).length,
-      t.fin ? (t.cierre || 'manual') : 'en curso' ]);
+      t.fin ? (t.cierre || 'manual') : 'en curso', shiftOf(t.ini), t.operador || '' ]);
   });
-  if(rows.length === 1) rows.push(['—','Todavía no hay estados registrados','','','','','','']);
+  if(rows.length === 1) rows.push(['—','Todavía no hay estados registrados','','','','','','','','']);
   return rows;
 }
 function loadRows(){
-  const rows = [['Fecha','N° de carga del día','Destino','Inicio','Término','Duración (min)','Paladas']];
+  const rows = [['Fecha','N° de carga del día','Destino','Inicio','Término','Duración (min)','Paladas','Turno','Operador']];
   const porDia = {};
   [...state.cargas].sort((a,b)=>a.ini - b.ini).forEach(c=>{
     const d = isoDay(c.ini);
@@ -1010,9 +1306,9 @@ function loadRows(){
     rows.push([ new Date(c.ini).toLocaleDateString('es-CL'), porDia[d], destName(c.destino), clock(c.ini),
       c.fin ? clock(c.fin) : 'en curso',
       Math.round(((c.fin || Date.now()) - c.ini)/60000),
-      state.paladas.filter(p=>p.cargaId === c.id).length ]);
+      state.paladas.filter(p=>p.cargaId === c.id).length, shiftOf(c.ini), c.operador || '' ]);
   });
-  if(rows.length === 1) rows.push(['—','','','','','','']);
+  if(rows.length === 1) rows.push(['—','','','','','','','','']);
   return rows;
 }
 /* The same card the operator sees, but one row per day and in hours, so it
@@ -1020,7 +1316,7 @@ function loadRows(){
 function dayRows(){
   const cabecera = ['Fecha','Paladas','Camiones cargados'];
   STATES.forEach(s=>cabecera.push('H ' + s.name.toLowerCase()));
-  cabecera.push('Paladas por hora triturando');
+  cabecera.push('Paladas por hora triturando', 'Paladas por hora carga camión');
   DESTINOS.forEach(d=>cabecera.push('Camiones ' + d.name.toLowerCase()));
   const rows = [cabecera];
 
@@ -1047,6 +1343,9 @@ function dayRows(){
     });
     const pTrit = paladas.filter(p=>p.estado === 'triturando').length;
     fila.push(hTrit > 0.02 ? Math.round(pTrit / hTrit * 10) / 10 : '');
+    const hCar = state.tramos.filter(t=>t.estado === 'piso').reduce((x, t)=>x + msEnDia(t, d), 0) / 3600000;
+    const pCar = paladas.filter(p=>p.estado === 'piso').length;
+    fila.push(hCar > 0.02 ? Math.round(pCar / hCar * 10) / 10 : '');
     DESTINOS.forEach(x=>fila.push(state.cargas.filter(c=>dia(c.ini) === d && c.fin && c.destino === x.id).length));
     rows.push(fila);
   });
@@ -1066,6 +1365,7 @@ async function readSheet(url){
   const r = await fetch(url + '?accion=leer', { redirect:'follow', cache:'no-store' });
   const j = await r.json();
   if(!j || !j.ok) throw new Error('sin datos');
+  if(j.config) applyConfig(j.config);
   if(j.datos && Array.isArray(j.datos.paladas)) return j.datos;
   return { tramos:[], paladas:[], cargas:[], borrados:{} };
 }
@@ -1109,6 +1409,19 @@ async function syncWithSheet(manual){
   return ok;
 }
 
+/* Operators and target as the sheet has them. Kept on the phone so the
+   list is there even without signal. */
+function applyConfig(cfg){
+  const ops = Array.isArray(cfg.operadores) ? cfg.operadores.map(x=>String(x).trim()).filter(Boolean) : [];
+  const meta = Number(cfg.meta) > 0 ? Number(cfg.meta) : 0;
+  const before = JSON.stringify([state.config.operadores, state.config.meta]);
+  if(ops.length) state.config.operadores = ops;
+  state.config.meta = meta;
+  if(JSON.stringify([state.config.operadores, state.config.meta]) !== before){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)) }catch(e){}
+    renderOperator(); renderNums();
+  }
+}
 function renderSyncState(mal){
   const pill = document.getElementById('sync-label');
   const dot = document.querySelector('#sync-state .dot');
@@ -1159,6 +1472,7 @@ load();
 takeSnapshot();
 /* The app may have been closed on Friday with a stretch still running. */
 (function cerrarColgados(){
+  if(watchShift()) return;         // closed at 18:30 or 21:00 of its own day
   const tr = currentTramo();
   if(!tr) return;
   if(dayStart(tr.ini) !== today()) closeAtMidnight(tr);
@@ -1186,9 +1500,11 @@ function selfCheck(){
   add(document.querySelectorAll('#states .state-btn').length === 6, 'Los 6 botones de estado');
   add(!!document.getElementById('btn-palada') && !!document.getElementById('history'), 'Botón de palada e historial');
   add(CSS.supports('color','color-mix(in srgb, red 50%, white)'), 'El navegador muestra los colores (color-mix)');
-  ['pickState','addScoop','deleteScoop','nextTruck','pickDest','idleYes','idleNo','syncWithSheet','dayRows']
+  ['pickState','addScoop','deleteScoop','truckDone','pickOperator','pickDest','idleYes','idleNo','renderSummary','syncWithSheet','dayRows']
     .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
   add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
+  add(operatorList().length > 0, `Operadores: ${operatorList().join(', ')}`);
+  add(true, `Meta por turno: ${target() || 'sin meta'}`);
   const box = document.createElement('div');
   box.id = 'diag-box';
   box.style.cssText = 'position:fixed;inset:auto 8px 8px 8px;z-index:300;background:#031716;color:#CCFF00;'
