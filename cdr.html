@@ -230,6 +230,7 @@ table.sum td.ok{ color:var(--green) }
 .chart .meta-line{ stroke:var(--amber); stroke-width:1.5; stroke-dasharray:5 4 }
 .chart .meta-lbl{ font-size:9.5px; font-weight:700; fill:var(--amber-dark); font-family:'Montserrat',sans-serif }
 .chart .last{ font-family:'Roboto Mono',monospace; font-size:11px; font-weight:500; fill:var(--g800) }
+.chart .last.in{ fill:#fff; font-size:10.5px }
 .chart .hit{ cursor:pointer }
 .tip{ position:absolute; background:var(--g800); color:#fff; font-size:11px; font-weight:600; padding:6px 9px;
   border-radius:6px; white-space:nowrap; pointer-events:none; box-shadow:var(--shadow) }
@@ -337,7 +338,7 @@ table.sum td.ok{ color:var(--green) }
       <p class="sub-title">Camiones cargados</p>
       <div id="loads-day"></div>
     </div>
-    <p class="note">Meta: <span id="meta-note">120</span> paladas de trituración por día.<br>
+    <p class="note">Meta paladas trituradas: <span id="meta-note">120</span> por día.<br>
       Paladas por hora = paladas de la actividad ÷ horas marcadas en esa actividad.</p>
   </section>
 </main>
@@ -436,7 +437,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v7 · 30-09-2026';
+const VERSION = 'cdr v9 · 30-09-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = '';
@@ -965,7 +966,7 @@ function renderNums(){
   document.getElementById('counter-number').textContent = st.paladas;
   const m = target();
   document.getElementById('counter-meta').textContent =
-    `Meta trituración: ${st.trit} de ${m}${st.trit >= m ? ' · cumplida' : ''}`;
+    `Meta paladas trituradas: ${st.trit} de ${m}${st.trit >= m ? ' · cumplida' : ''}`;
   document.getElementById('rates').innerHTML = `
     <span class="rate" style="--c:${stateOf('triturando').col}"><i></i>Triturando <b>${ph(st.phTrit)}</b> p/h</span>
     <span class="rate" style="--c:${stateOf('piso').col}"><i></i>Carga camión <b>${ph(st.phCarga)}</b> p/h</span>`;
@@ -1108,7 +1109,7 @@ function renderSummary(){
   const now = Date.now();
   let pts = [], title;
   if(period === 'dia'){
-    title = `Paladas trituración acumuladas - ${DOW[new Date(a).getDay()]} ${dateCL(a)}`;
+    title = `Paladas trituradas acumuladas - ${DOW[new Date(a).getDay()]} ${dateCL(a)}`;
     let acc = 0;
     for(let h = 8; h <= 21; h++){
       const t = a + h*3600000;
@@ -1117,7 +1118,7 @@ function renderSummary(){
       pts.push({ x:`${String(h).padStart(2,'0')}`, v:acc, tip:`Hasta las ${String(h).padStart(2,'0')}:00 · ${acc} paladas` });
     }
   } else {
-    title = `Paladas trituración - ${lbl.textContent}`;
+    title = `Paladas trituradas - ${lbl.textContent}`;
     for(let t = a; t < b; ){
       const n = new Date(t); n.setDate(n.getDate() + 1);
       if(t <= now){
@@ -1154,8 +1155,8 @@ function renderSummary(){
   dayBox.hidden = period !== 'dia';
   if(period === 'dia'){ renderByState(a, b); renderLoadsDay(a, b) }
 }
-/* One series, straight segments, the target as a dashed reference line.
-   Every point has a tap/hover area wider than the dot that shows its value. */
+/* One series of bars, the target as a dashed reference line. Every bar has
+   a tap/hover area as wide as its slot that shows its value. */
 function niceMax(v){
   const steps = [8,20,40,60,80,100,120,140,160,200,240,280,320,400,480,600,800,1000,1200,1600,2000,4000];
   return steps.find(x=>x >= v) || Math.ceil(v/4000)*4000;   // divisible by 4: round ticks
@@ -1164,26 +1165,37 @@ function drawChart(box, title, pts, meta){
   if(!pts.length){ box.innerHTML = `<p class="chart-title">${esc(title)}</p><p class="empty">Sin datos todavía.</p>`; return }
   const W = 340, H = 190, L = 30, R = 12, T = 12, B = 24;
   const max = niceMax(Math.max(meta * 1.1, ...pts.map(p=>p.v), 1));
-  const x = i => pts.length === 1 ? (L + (W - R)) / 2 : L + i * (W - L - R) / (pts.length - 1);
+  const n = pts.length, slot = (W - L - R) / n;
+  const bw = Math.min(28, Math.max(4, slot - 2));          // 2px surface gap between bars
+  const x = i => L + (i + 0.5) * slot;                     // bar centre
   const y = v => T + (H - T - B) * (1 - v / max);
   const ticks = [0, max/4, max/2, max*3/4, max].map(v=>Math.round(v));
-  const every = pts.length > 16 ? Math.ceil(pts.length / 8) : 1;
+  const every = n > 16 ? Math.ceil(n / 8) : (n > 8 ? 2 : 1);
   const col = stateOf('triturando').col;
-  const line = pts.map((p, i)=>`${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
-  const slot = pts.length === 1 ? (W - L - R) : (W - L - R) / (pts.length - 1);
+  const base = y(0);
+  /* rounded top, square base anchored on the axis */
+  const bar = (i, v)=>{
+    const x0 = x(i) - bw/2, top = y(v), h = base - top;
+    if(h <= 0) return '';
+    const r = Math.min(3, h, bw/2);
+    return `<path d="M${x0},${base} V${top + r} Q${x0},${top} ${x0 + r},${top} H${x0 + bw - r} Q${x0 + bw},${top} ${x0 + bw},${top + r} V${base} Z" fill="${col}"/>`;
+  };
+  const showAll = n <= 8;
   box.innerHTML = `<p class="chart-title">${esc(title)}</p>
     <div class="chart-wrap">
     <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">
       ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="grid"/>
         <text x="${L-6}" y="${y(v)+3}" class="ax" text-anchor="end">${v}</text>`).join('')}
       <line x1="${L}" x2="${W-R}" y1="${y(meta)}" y2="${y(meta)}" class="meta-line"/>
-      <text x="${W-R}" y="${y(meta)-5}" class="meta-lbl" text-anchor="end">Meta ${meta}</text>
-      <path d="${line}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
-      ${pts.map((p, i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="${col}" stroke="#fff" stroke-width="2"/>`).join('')}
-      ${pts.map((p, i)=> i % every && i !== pts.length - 1 ? '' :
+      ${pts.map((p, i)=>bar(i, p.v)).join('')}
+      <text x="${W-R}" y="${y(meta)-5}" class="meta-lbl" text-anchor="end">Meta paladas trituradas: ${meta}</text>
+      ${pts.map((p, i)=> i % every && !(i === n - 1 && (n - 1) % every >= Math.ceil(every / 2)) ? '' :
         `<text x="${x(i)}" y="${H-7}" class="ax" text-anchor="middle">${esc(p.x)}</text>`).join('')}
-      <text x="${x(pts.length-1)}" y="${y(pts[pts.length-1].v) - 9}" class="last" text-anchor="${pts.length > 1 ? 'end' : 'middle'}">${pts[pts.length-1].v}</text>
-      ${pts.map((p, i)=>`<rect x="${x(i) - slot/2}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent"
+      ${pts.map((p, i)=> (showAll || i === n - 1) && p.v > 0
+        ? (base - y(p.v) > 20 && bw >= 18
+            ? `<text x="${x(i)}" y="${y(p.v) + 13}" class="last in" text-anchor="middle">${p.v}</text>`
+            : `<text x="${x(i)}" y="${y(p.v) - 4}" class="last" text-anchor="middle">${p.v}</text>`) : '').join('')}
+      ${pts.map((p, i)=>`<rect x="${L + i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent"
         data-i="${i}" class="hit"/>`).join('')}
     </svg>
     <div class="tip" hidden></div></div>`;
@@ -1583,7 +1595,7 @@ function selfCheck(){
     .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
   add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
   add(operatorList().length > 0, `Operadores: ${operatorList().join(', ')}`);
-  add(target() > 0, `Meta trituración por día: ${target()}`);
+  add(target() > 0, `Meta paladas trituradas por día: ${target()}`);
   const box = document.createElement('div');
   box.id = 'diag-box';
   box.style.cssText = 'position:fixed;inset:auto 8px 8px 8px;z-index:300;background:#031716;color:#CCFF00;'
