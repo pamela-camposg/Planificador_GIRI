@@ -174,6 +174,16 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
   font-size:13px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:.06em; margin-top:12px;
   box-shadow:0 4px 12px color-mix(in srgb, var(--c) 30%, transparent) }
 
+/* ---------- IDLE POPUP ---------- */
+#ov-idle{ background:rgba(0,0,0,.45) }
+.idle-badge{ display:inline-flex; align-items:center; gap:7px; --c:var(--amber); background:var(--amber-light);
+  border:1.5px solid var(--amber-mid); border-radius:999px; padding:5px 10px; font-size:10px; font-weight:700;
+  color:var(--amber-dark); text-transform:uppercase; letter-spacing:.05em }
+.idle-badge .banner-dot{ background:var(--amber) }
+.btn-plain{ width:100%; margin-top:8px; padding:12px; border-radius:var(--radius-sm); border:1.5px solid var(--g300);
+  background:#fff; font-size:13px; font-weight:700; color:var(--g800); text-transform:uppercase; letter-spacing:.06em }
+#idle-states .btn-sec{ min-height:54px }
+
 /* ---------- TOAST ---------- */
 #toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:200; background:var(--g800); color:#fff;
   padding:10px 16px; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; max-width:calc(100vw - 32px);
@@ -204,15 +214,6 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
 
   <p class="label">Actividad del cargador</p>
   <div class="banner none" id="banner"></div>
-
-  <div class="warn" id="idle-card" style="display:none">
-    <div class="warn-title">Hace rato que no hay paladas</div>
-    <p id="idle-text"></p>
-    <div class="warn-actions">
-      <button onclick="keepGoing()">Sí, sigo</button>
-      <button onclick="document.getElementById('states').scrollIntoView({behavior:'smooth',block:'center'})">Cambiar actividad</button>
-    </div>
-  </div>
 
   <div class="counter">
     <p class="label" style="margin-bottom:2px">Paladas totales hoy</p>
@@ -251,6 +252,27 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
 </main>
 
 <footer><span id="version">Inteligencia Circular LATAM</span></footer>
+
+<!-- ============ AVISO: SIN PALADAS HACE 20 MINUTOS ============ -->
+<div class="overlay" id="ov-idle">
+  <div class="panel">
+    <div id="idle-ask">
+      <div class="idle-badge"><span class="banner-dot"></span><span id="idle-min-txt">Hace 20 minutos que no hay paladas</span></div>
+      <p class="panel-title" style="margin:10px 0 4px">¿Sigue tirando paladas?</p>
+      <p class="panel-sub" id="idle-text"></p>
+      <button class="btn-confirm" style="--c:var(--green);margin-top:4px" onclick="idleYes()">Sí, sigo tirando paladas</button>
+      <button class="btn-plain" onclick="idleNo()">No, cambiar actividad</button>
+    </div>
+    <div id="idle-change" style="display:none">
+      <div class="panel-header">
+        <span class="panel-title">¿Qué está haciendo ahora?</span>
+        <button class="btn-close" onclick="idleBack()" aria-label="Volver">←</button>
+      </div>
+      <p class="panel-sub" id="idle-change-sub"></p>
+      <div class="btn-row" id="idle-states"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ============ MOTIVO DE DETENCIÓN ============ -->
 <div class="overlay" id="ov-stop">
@@ -311,7 +333,7 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v4 · 29-09-2026';
+const VERSION = 'cdr v5 · 30-09-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = '';
@@ -434,19 +456,66 @@ function closeAtMidnight(tr){
   closeTruck(fin);
   save(); render();
 }
+/* ── The 20-minute question ────────────────────────────────────────────
+   A window on top of everything: "¿Sigue tirando paladas?". Yes keeps the
+   clock running; No shows the activities right there. The new activity is
+   dated back to the last scoop, because that is when the loader actually
+   stopped scooping; otherwise the 20 minutes of waiting would count as
+   Triturando. */
+function idleOpen(){ return document.getElementById('ov-idle').classList.contains('is-open') }
+function otherOverlayOpen(){ return !!document.querySelector('.overlay.is-open:not(#ov-idle)') }
 function watchIdle(){
   const tr = currentTramo();
-  const card = document.getElementById('idle-card');
-  if(!tr || !stateOf(tr.estado).produce){ card.style.display = 'none'; return }
+  const ov = document.getElementById('ov-idle');
+  if(!tr || !stateOf(tr.estado).produce){ if(idleOpen()) ov.classList.remove('is-open'); return }
   if(dayStart(tr.ini) !== today()){ closeAtMidnight(tr); return }
   const ms = idleMs(tr);
-  if(ms >= IDLE_CUT){ cutIdle(tr); card.style.display = 'none'; return }
-  if(ms >= IDLE_ASK){
-    card.style.display = 'block';
-    document.getElementById('idle-text').innerHTML =
-      `La última palada fue a las <b>${clock(lastSign(tr))}</b>. ¿Sigue en <b>${esc(stateOf(tr.estado).name)}</b>?
-       Si nadie contesta, el reloj se detiene solo.`;
-  } else card.style.display = 'none';
+  if(ms >= IDLE_CUT){ ov.classList.remove('is-open'); cutIdle(tr); return }
+  if(ms < IDLE_ASK){ if(idleOpen()) ov.classList.remove('is-open'); return }
+  document.getElementById('idle-min-txt').textContent = `Hace ${Math.floor(ms / 60000)} minutos que no hay paladas`;
+  document.getElementById('idle-text').innerHTML =
+    `La última palada fue a las <b>${clock(lastSign(tr))}</b> y el cargador sigue marcado en
+     <b>${esc(stateOf(tr.estado).name)}</b>. Si nadie contesta, el reloj se detiene solo a las
+     ${clock(lastSign(tr) + IDLE_CUT)}.`;
+  if(!idleOpen() && !otherOverlayOpen()){
+    idleBack();
+    ov.classList.add('is-open');
+    if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  }
+}
+function idleYes(){
+  document.getElementById('ov-idle').classList.remove('is-open');
+  keepGoing();
+}
+function idleNo(){
+  const tr = currentTramo();
+  if(!tr) return;
+  document.getElementById('idle-ask').style.display = 'none';
+  document.getElementById('idle-change').style.display = 'block';
+  document.getElementById('idle-change-sub').textContent =
+    `Se va a registrar desde las ${clock(lastSign(tr))}, la hora de la última palada.`;
+  document.getElementById('idle-states').innerHTML = STATES.filter(s=>s.id !== tr.estado).map(s=>
+    `<button class="btn-sec" style="--c:${s.col}" onclick="idlePick('${s.id}')">
+      <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span></button>`).join('');
+}
+function idleBack(){
+  document.getElementById('idle-ask').style.display = 'block';
+  document.getElementById('idle-change').style.display = 'none';
+}
+function idlePick(id){
+  const tr = currentTramo();
+  if(tr) changeAt = { tramo: tr.id, t: lastSign(tr), until: Date.now() + 5*60000 };
+  document.getElementById('ov-idle').classList.remove('is-open');
+  pickState(id);
+}
+/* Set only by the idle window: the start time for the next activity. It
+   applies to the stretch that was running when it was set, and expires if
+   the operator walks away from the reason or destination window. */
+let changeAt = null;
+function changeTime(cur){
+  const c = changeAt; changeAt = null;
+  if(c && cur && c.tramo === cur.id && Date.now() < c.until && c.t >= cur.ini) return c.t;
+  return Date.now();
 }
 function currentState(){ const t = currentTramo(); return t ? t.estado : null }
 function openLoad(){ return state.cargas.find(c=>!c.fin) || null }
@@ -457,8 +526,8 @@ function openLoad(){ return state.cargas.find(c=>!c.fin) || null }
 /* Changing state closes the stretch that was running. That is what makes the
    clock of an activity stop when the loader stops doing it. */
 function setState(id, motivo, destino){
-  const now = Date.now();
   const cur = currentTramo();
+  const now = changeTime(cur);
   if(cur && cur.estado === id && (cur.motivo||'') === (motivo||'')) return;   // already there
   if(cur){ cur.fin = now; cur.cierre = 'manual'; cur.mod = now }
   state.tramos.push({ id:uid('t'), estado:id, motivo:motivo||'', ini:now, fin:null, mod:now });
@@ -613,9 +682,9 @@ function confirmStop(){
 
 function closeOverlay(id){ const el = document.getElementById(id); if(el) el.classList.remove('is-open') }
 document.addEventListener('keydown', e=>{
-  if(e.key === 'Escape') document.querySelectorAll('.overlay.is-open').forEach(o=>o.classList.remove('is-open'));
+  if(e.key === 'Escape') document.querySelectorAll('.overlay.is-open:not(#ov-idle)').forEach(o=>o.classList.remove('is-open'));
 });
-document.querySelectorAll('.overlay').forEach(o=>
+document.querySelectorAll('.overlay:not(#ov-idle)').forEach(o=>
   o.addEventListener('click', e=>{ if(e.target === o) o.classList.remove('is-open') }));
 
 let toastTimer;
@@ -1104,7 +1173,7 @@ if(SHEET_URL){
 }
 if(sheetUrl()){
   syncWithSheet();
-  setInterval(()=>{ if(!document.querySelector('.overlay.is-open')) syncWithSheet() }, 60*1000);
+  setInterval(()=>{ if(!otherOverlayOpen()) syncWithSheet() }, 60*1000);
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncWithSheet() });
 }
 if(location.search.includes('diagnostico')) setTimeout(selfCheck, 500);
@@ -1117,7 +1186,7 @@ function selfCheck(){
   add(document.querySelectorAll('#states .state-btn').length === 6, 'Los 6 botones de estado');
   add(!!document.getElementById('btn-palada') && !!document.getElementById('history'), 'Botón de palada e historial');
   add(CSS.supports('color','color-mix(in srgb, red 50%, white)'), 'El navegador muestra los colores (color-mix)');
-  ['pickState','addScoop','deleteScoop','nextTruck','pickDest','syncWithSheet','dayRows']
+  ['pickState','addScoop','deleteScoop','nextTruck','pickDest','idleYes','idleNo','syncWithSheet','dayRows']
     .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
   add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
   const box = document.createElement('div');
