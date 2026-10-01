@@ -358,6 +358,7 @@ aside{ position:sticky; top:6.5rem }
 .field textarea{ resize:vertical; line-height:1.5; text-transform:uppercase }
 .field textarea::placeholder{ text-transform:none }
 .field textarea:focus{ border-color:var(--neon); box-shadow:0 0 0 3px rgba(204,255,0,.3) }
+.field input.is-missing{ border-color:var(--rojo); background:var(--rojoBg) }
 .field input:focus,.field select:focus{ border-color:var(--neon); box-shadow:0 0 0 3px rgba(204,255,0,.3) }
 .row2{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem }
 .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:.7rem }
@@ -670,8 +671,9 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
         </select>
       </div>
       <div class="field">
-        <label>Agendado por</label>
-        <input type="text" id="f-by" list="dl-by" placeholder="Tu nombre" autocomplete="off">
+        <label>Agendado por <i style="color:var(--rojo)">— obligatorio</i></label>
+        <input type="text" id="f-by" list="dl-by" placeholder="Tu nombre" autocomplete="off" required
+               oninput="this.classList.remove('is-missing')">
         <datalist id="dl-by"></datalist>
       </div>
     </div>
@@ -837,7 +839,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v33 · 21-09-2026';
+const VERSION = 'v35 · 01-10-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -873,19 +875,19 @@ const MOVES = [
 const COLLECTORS = ['CDR', 'KDM', 'VALORIZADORES', 'RESIMPLE'];
 
 /* Bales are planned in Nave Clasificación. */
-const WASTE_BALES = [
+let WASTE_BALES = [
   'FARDOS REGIONES', 'FARDOS MIXTOS', 'FARDOS DE CARTÓN', 'FARDOS DE PLÁSTICO',
   'FARDOS PET', 'FARDOS PEBD', 'FARDOS PAPEL', 'FARDOS DE LATAS',
 ];
 
 /* Waste catalogue. All uppercase, the way the plant records it. */
-const WASTE_RESIMPLE = [
+let WASTE_RESIMPLE = [
   'PP FLEXIBLE', 'PE FLEXIBLE', 'PET TRANSPARENTE', 'PET COLOR', 'PP RÍGIDO', 'PE RÍGIDO',
   'METAL NO FERROSO (ALUMINIO)', 'METAL FERROSO (HOJALATA)', 'PAPEL Y CARTÓN', 'CARTÓN',
   'CARTÓN PARA LÍQUIDOS'
 ];
 
-const WASTE_GENERAL = [
+let WASTE_GENERAL = [
   'BOTELLA TRANSPARENTE', 'BOTELLA COLOR', 'BOTELLAS FLAKE', 'CLAMSHELL ENTERO',
   'CLAMSHELL FLAKE', 'GARRAFÓN MOLIDO', 'IMPRESO', 'PREFORMA ENTERA', 'PREFORMA MOLIDA', 'REDES',
   'RESINA O FILTRADO', 'TORTA', 'ZUNCHO PET', 'BANDEJA NEGRA',
@@ -933,22 +935,48 @@ const WASTE_GENERAL = [
 
 /* One catalogue for every dock: the general list plus the Resimple types that
    were not already in it. */
-const WASTE_ALL = [...WASTE_GENERAL,
+let WASTE_ALL = [...WASTE_GENERAL,
   ...WASTE_RESIMPLE.filter(v=>!WASTE_GENERAL.includes(v)),
   ...WASTE_BALES.filter(v=>!WASTE_GENERAL.includes(v))];
 
-const CATALOG = {
-  clasif: { groups:[['FARDOS', WASTE_BALES], ['OTROS RESIDUOS', WASTE_ALL]],
-            quick:['FARDOS REGIONES','FARDOS MIXTOS','FARDOS DE CARTÓN','FARDOS DE PLÁSTICO','PAPEL Y CARTÓN','CARTÓN'] },
-  cdr:    { groups:[['RESIDUOS', WASTE_ALL]],
-            quick:['CDR','RESIDUOS NO RECICLABLES','MEZCLA DE PLÁSTICOS','MADERA','TEXTIL','SÓLIDOS CONTAMINADOS','ESCOMBROS','ASIMILABLE A DOMICILIARIO'] },
-  envase: { groups:[['RESIDUOS', WASTE_ALL]],
-            quick:['MEZCLA DE ENVASES Y EMBALAJES','ALIMENTO DESCARTADO','COSMÉTICOS','FÁRMACOS','INVENTARIO','DECOMISOS','MATERIAS PRIMAS','BALDES ENTEROS'] },
-  madera: { groups:[['MADERA', ['PALLETS BUENOS','PALLETS MALOS','PALLETS ENTEROS','PALLETS TRITURADOS',
-                                'DESPUNTES','OTRAS MADERAS','MADERA','ESQUINERO','CARRETE ENTERO','CARRETE MOLIDO']],
-                    ['OTROS RESIDUOS', WASTE_ALL]],
-            quick:['PALLETS BUENOS','PALLETS MALOS','DESPUNTES','OTRAS MADERAS','MADERA','ESQUINERO'] },
-};
+/* The list written in this page. It seeds the sheet "Configuración
+   Planificador" the first time, and is what the page uses whenever that
+   sheet cannot be read. */
+const DEFAULT_CATALOG = WASTE_ALL.slice();
+
+/* Groups and shortcut chips per unloading point. Shortcuts that are no
+   longer in the catalogue simply disappear. */
+function makeCatalog(){
+  const has = v => WASTE_ALL.includes(v);
+  const only = a => a.filter(has);
+  return {
+    clasif: { groups:[['FARDOS', WASTE_BALES], ['OTROS RESIDUOS', WASTE_ALL]],
+              quick: only(['FARDOS REGIONES','FARDOS MIXTOS','FARDOS DE CARTÓN','FARDOS DE PLÁSTICO','PAPEL Y CARTÓN','CARTÓN']) },
+    cdr:    { groups:[['RESIDUOS', WASTE_ALL]],
+              quick: only(['CDR','RESIDUOS NO RECICLABLES','MEZCLA DE PLÁSTICOS','MADERA','TEXTIL','SÓLIDOS CONTAMINADOS','ESCOMBROS','ASIMILABLE A DOMICILIARIO']) },
+    envase: { groups:[['RESIDUOS', WASTE_ALL]],
+              quick: only(['MEZCLA DE ENVASES Y EMBALAJES','ALIMENTO DESCARTADO','COSMÉTICOS','FÁRMACOS','INVENTARIO','DECOMISOS','MATERIAS PRIMAS','BALDES ENTEROS']) },
+    madera: { groups:[['MADERA', only(['PALLETS BUENOS','PALLETS MALOS','PALLETS ENTEROS','PALLETS TRITURADOS',
+                                       'DESPUNTES','OTRAS MADERAS','MADERA','ESQUINERO','CARRETE ENTERO','CARRETE MOLIDO'])],
+                      ['OTROS RESIDUOS', WASTE_ALL]],
+              quick: only(['PALLETS BUENOS','PALLETS MALOS','DESPUNTES','OTRAS MADERAS','MADERA','ESQUINERO']) },
+  };
+}
+let CATALOG = makeCatalog();
+
+/* The catalogue as the sheet has it (one waste per row). Anything starting
+   with FARDO is still a bale: counted in units and grouped as FARDOS.
+   Bookings that carry a waste no longer in the list keep showing it. */
+function applyCatalog(list){
+  const l = [...new Set((list || []).map(v=>String(v).trim().toUpperCase()).filter(Boolean))];
+  if(!l.length) return false;
+  WASTE_GENERAL = l;
+  WASTE_RESIMPLE = [];
+  WASTE_BALES = l.filter(v=>/^FARDO/.test(v));
+  WASTE_ALL = l.slice();
+  CATALOG = makeCatalog();
+  return true;
+}
 
 const OPEN_MIN = 8*60+30, CLOSE_MIN = 22*60, STEP_MIN = 30;      // 08:30 to 22:00, half-hour steps
 const SLOTS = (CLOSE_MIN - OPEN_MIN) / STEP_MIN;
@@ -1936,6 +1964,7 @@ function openBooking(id, pre){
   document.getElementById('f-customer').value = base.cliente;
   document.getElementById('f-vehicle').value = base.veh || 'Camión';
   document.getElementById('f-by').value = base.quien || '';
+  document.getElementById('f-by').classList.remove('is-missing');
   document.getElementById('f-notes').value = base.notas || '';
   setStatus(base.estado || 'confirmado');
   document.getElementById('f-search').value = '';
@@ -2224,6 +2253,12 @@ function saveBooking(){
   };
   if(obj.ini + obj.dur > CLOSE_MIN){ toast(`La descarga terminaría después de las ${hhmm(CLOSE_MIN)}.`, true); return }
   if(!obj.items.length){ toast('Falta indicar al menos un tipo de residuo.', true); return }
+  /* Who booked it is required: it is how the plant knows whom to call. */
+  if(!obj.quien){
+    const by = document.getElementById('f-by');
+    by.classList.add('is-missing'); by.scrollIntoView({behavior:'smooth', block:'center'}); by.focus();
+    toast('Falta indicar quién agenda.', true); return;
+  }
 
   obj.residuo = obj.items.length ? obj.items[0].r : '';   /* kept for backwards compatibility */
   obj.ton = obj.items.reduce((s,i)=>s+i.t,0);
@@ -2540,13 +2575,13 @@ function downloadExcel(){
   if(!list.length){ toast('No hay ingresos agendados en esta semana.', true); return }
   /* Two sheets: the day-by-day count, and the detail behind it. */
   const sheets = [
-    { name:'Resumen por día', rows:summaryRows(list),
+    { name:'Resumen Planificador', rows:summaryRows(list),
       widths:[13,13,13,11,10,22,11,13,14,14,22,18,20] },
-    { name:'Detalle', rows:detailRows(list),
+    { name:'Registro Planificador', rows:detailRows(list),
       widths:[14,12,12,11,26,11,13,13,26,30,16,16,20,22,20,13,14,16,20,20,14,16,18,34,30] },
   ];
   downloadWorkbook(sheets, `GIRI_planificacion_${ds[0]}_a_${ds[5]}.xlsx`);
-  toast('Excel descargado: resumen por día y detalle.');
+  toast('Excel descargado: Resumen Planificador y Registro Planificador.');
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -2715,6 +2750,9 @@ function payload(){
              borrados:state.borrados || {} },
     resumen: summaryRows(state.reservas),
     detalle: detailRows(state.reservas),
+    /* Only until the sheet has its own catalogue: it creates
+       "Configuración Planificador" with this list, once. */
+    catalogo: (state.config && state.config.catalogo) ? undefined : DEFAULT_CATALOG,
   };
 }
 
@@ -2722,8 +2760,20 @@ async function readSheet(url){
   const r = await fetch(url + '?accion=leer', { redirect:'follow', cache:'no-store' });
   const j = await r.json();
   if(!j || !j.ok) throw new Error('sin datos');
+  if(j.config && Array.isArray(j.config.residuos)) takeCatalog(j.config.residuos);
   if(j.datos && Array.isArray(j.datos.reservas)) return j.datos;
   return { reservas:[], bloqueos:[], listas:{}, borrados:{}, vacia:true };
+}
+/* Keeps the sheet's catalogue on this device, so it is there without signal. */
+function takeCatalog(list){
+  const l = [...new Set(list.map(v=>String(v).trim().toUpperCase()).filter(Boolean))];
+  if(!l.length) return;
+  state.config = state.config || {};
+  if(JSON.stringify(l) === JSON.stringify(state.config.catalogo)) return;
+  state.config.catalogo = l;
+  applyCatalog(l);
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)) }catch(e){}
+  if(document.getElementById('ov').classList.contains('is-open')) refreshWasteOptions();
 }
 /* Returns true when the sheet confirmed it. If the browser will not let us
    read the answer we still send it; the next read shows whether it arrived,
@@ -3012,6 +3062,9 @@ function runSelfCheck(){
   /* 6 · state of the shared spreadsheet */
   add(!!sheetUrl(), 'Conectado a la planilla', sheetUrl() ? '' : 'sin dirección: cada equipo guarda su copia');
 
+  add(WASTE_ALL.length > 0, `Catálogo de residuos: ${WASTE_ALL.length}`,
+      state.config && state.config.catalogo ? 'desde la hoja Configuración Planificador' : 'lista de la página (la hoja aún no responde)');
+
   /* 7 · errors caught since the page opened */
   add(bootErrors.length===0, 'Sin errores al cargar', bootErrors.slice(0,3).join(' · '));
 
@@ -3046,6 +3099,7 @@ if(!load()){
   else state.bloqueos = [defaultLunchBreak()];
   save(true);
 }
+if(state.config && Array.isArray(state.config.catalogo)) applyCatalog(state.config.catalogo);
 takeSnapshot();
 /* Old records may carry a tonnage from a different bale weight. */
 if(normalizeBaleTons()) save(true);
