@@ -437,7 +437,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v10 · 30-09-2026';
+const VERSION = 'cdr v11 · 01-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxk14A4U47z_k6rP3zgWJiJFJ17Ak4sO0HQlq1aehK8NPdrW3CRTcpyPivaZZSzriJijg/exec';
@@ -1350,97 +1350,39 @@ function scheduleSync(){
   syncTimer = setTimeout(syncWithSheet, 1500);
 }
 
-/* One row per scoop: date, time, running number of the day, state and load. */
-function scoopRows(){
-  const rows = [['Fecha','Hora','N° palada del día','Paladas','Estado del cargador',
-                 'Motivo','Cargando camión','N° de carga del día','Destino','Turno','Operador']];
-  const porDia = {};
-  const cargaNum = new Map(), cargaDest = new Map();
-  [...state.cargas].sort((a,b)=>a.ini-b.ini).forEach(c=>{
-    const d = isoDay(c.ini);
-    porDia[d] = (porDia[d] || 0) + 1;
-    cargaNum.set(c.id, porDia[d]); cargaDest.set(c.id, c.destino);
+/* ONE sheet for everything: a row per scoop and a row per activity, in the
+   order they happened. Filter column "Registro" for Palada or Actividad. */
+function registroRows(){
+  const rows = [['Fecha','Hora','Registro','Actividad','Motivo','Operador','Turno',
+                 'N° palada del día','Camión N°','Destino','Inicio','Término','Duración (min)','Cómo se cerró']];
+  const truckNo = new Map(), porDia = {};
+  [...state.cargas].sort((a,b)=>a.ini - b.ini).forEach(c=>{
+    const d = isoDay(c.ini); porDia[d] = (porDia[d] || 0) + 1; truckNo.set(c.id, porDia[d]);
   });
+  const cargaOf = id => state.cargas.find(c=>c.id === id);
+  const ev = [];
   const cuenta = {};
   [...state.paladas].sort((a,b)=>a.t - b.t).forEach(p=>{
-    const d = isoDay(p.t);
-    cuenta[d] = (cuenta[d] || 0) + 1;
+    const d = isoDay(p.t); cuenta[d] = (cuenta[d] || 0) + 1;
     const tr = state.tramos.find(t=>t.ini <= p.t && (t.fin == null || t.fin >= p.t) && t.estado === p.estado);
-    rows.push([ new Date(p.t).toLocaleDateString('es-CL'), clock(p.t), cuenta[d], 1,
-      stateOf(p.estado).name, (tr && tr.motivo) || '',
-      p.cargaId ? 'Sí' : 'No', p.cargaId ? (cargaNum.get(p.cargaId) || '') : '',
-      p.cargaId ? destName(cargaDest.get(p.cargaId)) : '', shiftOf(p.t), p.operador || '' ]);
+    const c = p.cargaId ? cargaOf(p.cargaId) : null;
+    ev.push([p.t, 1, [ new Date(p.t).toLocaleDateString('es-CL'), clockS(p.t), 'Palada', stateOf(p.estado).name,
+      (tr && tr.motivo) || '', p.operador || '', shiftOf(p.t), cuenta[d],
+      c ? truckNo.get(c.id) || '' : '', c ? destName(c.destino) : '', '', '', '', '' ]]);
   });
-  if(rows.length === 1) rows.push(['—','','','','Todavía no hay paladas registradas','','','','','','']);
-  return rows;
-}
-/* One row per stretch of time, which is what makes the hours add up. */
-function stateRows(){
-  const rows = [['Fecha','Estado del cargador','Motivo','Inicio','Término','Duración (min)','Paladas','Cómo se cerró','Turno','Operador']];
-  [...state.tramos].sort((a,b)=>a.ini - b.ini).forEach(t=>{
+  state.tramos.forEach(t=>{
     const fin = t.fin || Date.now();
-    rows.push([ new Date(t.ini).toLocaleDateString('es-CL'), stateOf(t.estado).name, t.motivo || '',
-      clock(t.ini), t.fin ? clock(t.fin) : 'en curso',
-      Math.round((fin - t.ini)/60000),
-      state.paladas.filter(p=>p.t >= t.ini && p.t <= fin).length,
-      t.fin ? (t.cierre || 'manual') : 'en curso', shiftOf(t.ini), t.operador || '' ]);
+    const c = stateOf(t.estado).camion
+      ? state.cargas.find(x=>x.ini >= t.ini && x.ini <= fin) : null;
+    ev.push([t.ini, 0, [ new Date(t.ini).toLocaleDateString('es-CL'), clockS(t.ini), 'Actividad', stateOf(t.estado).name,
+      t.motivo || '', t.operador || '', shiftOf(t.ini), '',
+      c ? truckNo.get(c.id) || '' : '', c ? destName(c.destino) : '',
+      clock(t.ini), t.fin ? clock(t.fin) : 'en curso', Math.round((fin - t.ini)/60000),
+      t.fin ? (t.cierre || 'manual') : 'en curso' ]]);
   });
-  if(rows.length === 1) rows.push(['—','Todavía no hay estados registrados','','','','','','','','']);
-  return rows;
-}
-function loadRows(){
-  const rows = [['Fecha','N° de carga del día','Destino','Inicio','Término','Duración (min)','Paladas','Turno','Operador']];
-  const porDia = {};
-  [...state.cargas].sort((a,b)=>a.ini - b.ini).forEach(c=>{
-    const d = isoDay(c.ini);
-    porDia[d] = (porDia[d] || 0) + 1;
-    rows.push([ new Date(c.ini).toLocaleDateString('es-CL'), porDia[d], destName(c.destino), clock(c.ini),
-      c.fin ? clock(c.fin) : 'en curso',
-      Math.round(((c.fin || Date.now()) - c.ini)/60000),
-      state.paladas.filter(p=>p.cargaId === c.id).length, shiftOf(c.ini), c.operador || '' ]);
-  });
-  if(rows.length === 1) rows.push(['—','','','','','','','','']);
-  return rows;
-}
-/* The same card the operator sees, but one row per day and in hours, so it
-   can be charted: how the day was split between activities. */
-function dayRows(){
-  const cabecera = ['Fecha','Paladas','Camiones cargados'];
-  STATES.forEach(s=>cabecera.push('H ' + s.name.toLowerCase()));
-  cabecera.push('Paladas por hora triturando', 'Paladas por hora carga camión');
-  DESTINOS.forEach(d=>cabecera.push('Camiones ' + d.name.toLowerCase()));
-  const rows = [cabecera];
-
-  const dias = new Set();
-  const dia = t => dayStart(t);
-  state.paladas.forEach(p=>dias.add(dia(p.t)));
-  state.tramos.forEach(t=>dias.add(dia(t.ini)));
-  state.cargas.forEach(c=>dias.add(dia(c.ini)));
-
-  /* How much of a stretch falls inside one particular day. */
-  const msEnDia = (tr, d)=>{
-    const a = Math.max(tr.ini, d), b = Math.min(tr.fin || Date.now(), d + 86400000);
-    return Math.max(0, b - a);
-  };
-  [...dias].sort().forEach(d=>{
-    const paladas = state.paladas.filter(p=>dia(p.t) === d);
-    const fila = [ new Date(d).toLocaleDateString('es-CL'), paladas.length,
-                   state.cargas.filter(c=>dia(c.ini) === d && c.fin).length ];
-    let hTrit = 0;
-    STATES.forEach(s=>{
-      const ms = state.tramos.filter(t=>t.estado === s.id).reduce((x, t)=>x + msEnDia(t, d), 0);
-      if(s.id === 'triturando') hTrit = ms / 3600000;
-      fila.push(Math.round(ms / 36000) / 100);      // horas con dos decimales
-    });
-    const pTrit = paladas.filter(p=>p.estado === 'triturando').length;
-    fila.push(hTrit > 0.02 ? Math.round(pTrit / hTrit * 10) / 10 : '');
-    const hCar = state.tramos.filter(t=>t.estado === 'piso').reduce((x, t)=>x + msEnDia(t, d), 0) / 3600000;
-    const pCar = paladas.filter(p=>p.estado === 'piso').length;
-    fila.push(hCar > 0.02 ? Math.round(pCar / hCar * 10) / 10 : '');
-    DESTINOS.forEach(x=>fila.push(state.cargas.filter(c=>dia(c.ini) === d && c.fin && c.destino === x.id).length));
-    rows.push(fila);
-  });
-  if(rows.length === 1) rows.push(new Array(cabecera.length).fill('').map((v,i)=>i ? v : '—'));
+  /* same second: the activity comes before its first scoop */
+  ev.sort((a,b)=>a[0] - b[0] || a[1] - b[1]).forEach(e=>rows.push(e[2]));
+  if(rows.length === 1) rows.push(['—','','','Todavía no hay registros','','','','','','','','','','']);
   return rows;
 }
 
@@ -1448,7 +1390,7 @@ function payload(){
   return {
     tipo:'giri-cdr', version:1, actualizado: state.actualizado || Date.now(),
     datos: { tramos:state.tramos, paladas:state.paladas, cargas:state.cargas, borrados:state.borrados||{} },
-    paladas: scoopRows(), estados: stateRows(), cargas: loadRows(), dia: dayRows(),
+    registro: registroRows(),
   };
 }
 
@@ -1591,7 +1533,7 @@ function selfCheck(){
   add(document.querySelectorAll('#states .state-btn').length === 6, 'Los 6 botones de estado');
   add(!!document.getElementById('btn-palada') && !!document.getElementById('history'), 'Botón de palada e historial');
   add(CSS.supports('color','color-mix(in srgb, red 50%, white)'), 'El navegador muestra los colores (color-mix)');
-  ['pickState','addScoop','deleteScoop','truckDone','pickOperator','pickDest','idleYes','idleNo','renderSummary','syncWithSheet','dayRows']
+  ['pickState','addScoop','deleteScoop','truckDone','pickOperator','pickDest','idleYes','idleNo','renderSummary','syncWithSheet','registroRows']
     .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
   add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
   add(operatorList().length > 0, `Operadores: ${operatorList().join(', ')}`);
