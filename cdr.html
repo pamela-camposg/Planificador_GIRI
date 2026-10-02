@@ -195,8 +195,9 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
 .rate i{ width:7px; height:7px; border-radius:50%; background:var(--c) }
 
 /* ---------- TRUCK ---------- */
-.truck-info{ font-size:11px; font-weight:600; color:var(--g500); text-align:center; margin-bottom:6px }
-.truck-info b{ color:var(--g800); font-family:'Roboto Mono',monospace; font-weight:500 }
+.truck{ margin-top:10px; background:var(--g50); border-radius:var(--radius-sm); padding:10px 12px 12px }
+.truck-info{ font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--g500); text-align:center }
+.truck-timer{ font-family:'Roboto Mono',monospace; font-size:40px; font-weight:500; color:#1565C0; text-align:center; line-height:1.1; margin:2px 0 8px }
 
 /* ---------- SUMMARY TAB ---------- */
 .seg{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px }
@@ -289,11 +290,14 @@ table.sum td.ok{ color:var(--green) }
     <p class="label" style="margin-top:10px">Actividad del cargador</p>
     <div class="banner none" id="banner"></div>
 
-    <div class="counter">
+    <div class="btn-row" id="states"></div>
+
+    <div class="truck" id="truck" style="display:none"></div>
+
+    <div class="counter section">
       <p class="label" style="margin-bottom:2px">Paladas totales hoy</p>
       <div class="counter-number" id="counter-number">0</div>
       <div class="counter-meta" id="counter-meta"></div>
-      <div class="rates" id="rates"></div>
     </div>
 
     <button class="btn-register" id="btn-palada" onclick="addScoop()">
@@ -301,13 +305,6 @@ table.sum td.ok{ color:var(--green) }
       <span class="btn-text" id="palada-txt">Registrar palada</span>
     </button>
     <p class="hint" id="palada-hint"></p>
-
-    <div class="truck" id="truck" style="display:none"></div>
-
-    <div class="section">
-      <p class="label">Cambiar actividad</p>
-      <div class="btn-row" id="states"></div>
-    </div>
 
     <div class="section">
       <p class="label">Últimos registros del día</p>
@@ -338,7 +335,7 @@ table.sum td.ok{ color:var(--green) }
       <p class="sub-title">Camiones cargados</p>
       <div id="loads-day"></div>
     </div>
-    <p class="note">Meta paladas trituradas: <span id="meta-note">120</span> por día.<br>
+    <p class="note">Meta paladas: <span id="meta-note">120</span> por día.<br>
       Paladas por hora = paladas de la actividad ÷ horas marcadas en esa actividad.</p>
   </section>
 </main>
@@ -437,7 +434,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v12 · 01-10-2026';
+const VERSION = 'cdr v13 · 02-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -450,7 +447,7 @@ const STORE_KEY = 'giri_cdr_v1';
    `camion` marks the state that means a truck is being loaded. */
 const STATES = [
   { id:'triturando', name:'Triturando',          col:'#1B7A44', produce:true  },
-  { id:'piso',       name:'Carga de camión',     col:'#1565C0', produce:true, camion:true },
+  { id:'piso',       name:'Carga de camión',     col:'#1565C0', produce:false, camion:true },   // only a timer
   { id:'movimiento', name:'Movimiento material', col:'#8A6A2F', produce:false },
   { id:'apoyo',      name:'Apoyo Clasificación', col:'#2E7D52', produce:false },
   { id:'mantencion', name:'Mantención',          col:'#6B4EA8', produce:false },
@@ -541,6 +538,11 @@ function clockS(t){
 function dateCL(t){
   const d = new Date(t);
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+/* A running stopwatch: 0:12:07. */
+function hms(ms){
+  const t = Math.max(0, Math.floor(ms/1000));
+  return `${Math.floor(t/3600)}:${String(Math.floor(t/60)%60).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
 }
 /* 4:48 for hours, 0:41 for a load. Always h:mm. */
 function hm(ms){
@@ -697,15 +699,10 @@ function openTruck(now, destino){
   if(openLoad()) return;
   state.cargas.push({ id:uid('c'), ini:now, fin:null, destino:destino||'', operador:currentOperator(), mod:now });
 }
-/* A load with no scoops never happened: it is dropped instead of closed. */
+/* Loading a truck is timed, not counted: the load keeps its start and end. */
 function closeTruck(now){
   const c = openLoad();
   if(!c) return;
-  if(!state.paladas.some(p=>p.cargaId === c.id)){
-    state.cargas = state.cargas.filter(x=>x.id !== c.id);
-    state.borrados[c.id] = now;
-    return;
-  }
   c.fin = now; c.mod = now;
 }
 /* "Camión listo": the truck is closed and so is the loading; the counter
@@ -713,13 +710,12 @@ function closeTruck(now){
 function truckDone(){
   const c = openLoad(), cur = currentTramo();
   const now = Date.now();
-  const n = c ? state.paladas.filter(p=>p.cargaId === c.id).length : 0;
-  const num = c ? truckNum(c) : 0;
+  const num = c ? truckNum(c) : 0, dur = c ? now - c.ini : 0;
   closeTruck(now);
   if(cur && stateOf(cur.estado).camion){ cur.fin = now; cur.cierre = 'camión listo'; cur.mod = now }
   save(); render();
-  toast(n ? `Camión ${num} listo: ${n} palada${n===1?'':'s'}.` : 'Carga terminada.');
-  openNext(n ? `Camión ${num} cerrado con ${n} palada${n===1?'':'s'} a las ${clock(now)}.` : '');
+  toast(c ? `Camión ${num} listo: ${hms(dur)} de carga.` : 'Carga terminada.');
+  openNext(c ? `Camión ${num} cargado en ${hms(dur)}, terminó a las ${clock(now)}.` : '');
 }
 function openNext(sub){
   document.getElementById('next-sub').textContent = sub || '';
@@ -807,7 +803,7 @@ function addScoop(){
     return;
   }
   const now = Date.now(), carga = openLoad();
-  state.paladas.push({ id:uid('p'), t:now, estado:st, cargaId: carga ? carga.id : null, operador:currentOperator(), mod:now });
+  state.paladas.push({ id:uid('p'), t:now, estado:st, cargaId:null, operador:currentOperator(), mod:now });
   save(); render();
   if(navigator.vibrate) navigator.vibrate(18);
   const b = document.getElementById('btn-palada');
@@ -958,6 +954,9 @@ function stats(a, b){
               carga: pal.filter(p=>p.estado==='piso').length, hTrit: hours('triturando'), hCarga: hours('piso') };
   o.phTrit = o.hTrit > 0.02 ? o.trit / o.hTrit : null;
   o.phCarga = o.hCarga > 0.02 ? o.carga / o.hCarga : null;
+  const loads = state.cargas.filter(c=>c.ini >= a && c.ini < b && c.fin);
+  o.camiones = loads.length;
+  o.msPorCamion = loads.length ? loads.reduce((x, c)=>x + c.fin - c.ini, 0) / loads.length : null;
   return o;
 }
 const ph = v => v == null ? '—' : fmtNum(v);
@@ -965,11 +964,7 @@ function renderNums(){
   const st = stats(today(), tomorrow());
   document.getElementById('counter-number').textContent = st.paladas;
   const m = target();
-  document.getElementById('counter-meta').textContent =
-    `Meta paladas trituradas: ${st.trit} de ${m}${st.trit >= m ? ' · cumplida' : ''}`;
-  document.getElementById('rates').innerHTML = `
-    <span class="rate" style="--c:${stateOf('triturando').col}"><i></i>Triturando <b>${ph(st.phTrit)}</b> p/h</span>
-    <span class="rate" style="--c:${stateOf('piso').col}"><i></i>Carga camión <b>${ph(st.phCarga)}</b> p/h</span>`;
+  document.getElementById('counter-meta').textContent = `Meta paladas: ${m}`;
 }
 
 /* The button always answers: if it cannot count now, the line below says why. */
@@ -980,12 +975,13 @@ function renderScoopButton(){
   const activo = !!s && s.produce;
   b.classList.toggle('off', !activo);
   b.style.setProperty('--c', activo ? s.col : 'var(--green)');
-  document.getElementById('palada-txt').textContent = activo && openLoad() ? 'Palada al camión' : 'Registrar palada';
+  document.getElementById('palada-txt').textContent = 'Registrar palada';
   const op = !!currentOperator();
   b.classList.toggle('off', !activo || !op);
   document.getElementById('palada-hint').textContent = !op ? 'Primero selecciona el operador.'
     : activo ? ''
     : (!s ? 'Primero marca qué está haciendo el cargador.'
+          : s.camion ? 'Cargando camión: el tiempo se registra solo.'
           : `En ${s.name} no se cuentan paladas.`);
 }
 
@@ -994,11 +990,14 @@ function renderLoad(){
   const c = openLoad();
   const box = document.getElementById('truck');
   box.style.display = c ? 'block' : 'none';
-  if(!c) return;
+  if(!c){ box.dataset.id = ''; return }
   const d = destOf(c.destino);
-  const n = state.paladas.filter(p=>p.cargaId === c.id).length;
+  const t = document.getElementById('truck-timer');
+  if(t && box.dataset.id === c.id + c.destino){ t.textContent = hms(Date.now() - c.ini); return }   // only the clock moves
+  box.dataset.id = c.id + c.destino;
   box.innerHTML = `
-    <p class="truck-info">Camión ${truckNum(c)} · ${esc(destName(c.destino))} · <b>${n}</b> palada${n===1?'':'s'} · <b>${hm(Date.now()-c.ini)}</b></p>
+    <p class="truck-info">Camión ${truckNum(c)} · ${esc(destName(c.destino))}</p>
+    <div class="truck-timer" id="truck-timer">${hms(Date.now() - c.ini)}</div>
     <div class="btn-row">
       <button class="btn-sec" style="--c:${d ? d.col : '#7A877A'}" onclick="openDestModal('change')">
         <span class="btn-icon-sm"></span><span class="btn-text-sm">Cambiar destino</span></button>
@@ -1099,7 +1098,7 @@ function renderSummary(){
   document.getElementById('kpis').innerHTML = `
     <div class="kpi"><b>${tot.paladas}</b><span>Paladas</span></div>
     <div class="kpi"><b>${ph(tot.phTrit)}</b><span>P/h triturando</span></div>
-    <div class="kpi"><b>${ph(tot.phCarga)}</b><span>P/h carga camión</span></div>`;
+    <div class="kpi"><b>${tot.camiones}</b><span>Camiones · ${tot.msPorCamion == null ? '—' : hm(tot.msPorCamion)} c/u</span></div>`;
 
   const m = target();
   document.getElementById('meta-note').textContent = m;
@@ -1109,7 +1108,7 @@ function renderSummary(){
   const now = Date.now();
   let pts = [], title;
   if(period === 'dia'){
-    title = `Paladas trituradas acumuladas - ${DOW[new Date(a).getDay()]} ${dateCL(a)}`;
+    title = `Paladas acumuladas - ${DOW[new Date(a).getDay()]} ${dateCL(a)}`;
     let acc = 0;
     for(let h = 8; h <= 21; h++){
       const t = a + h*3600000;
@@ -1118,7 +1117,7 @@ function renderSummary(){
       pts.push({ x:`${String(h).padStart(2,'0')}`, v:acc, tip:`Hasta las ${String(h).padStart(2,'0')}:00 · ${acc} paladas` });
     }
   } else {
-    title = `Paladas trituradas - ${lbl.textContent}`;
+    title = `Paladas - ${lbl.textContent}`;
     for(let t = a; t < b; ){
       const n = new Date(t); n.setDate(n.getDate() + 1);
       if(t <= now){
@@ -1143,12 +1142,12 @@ function renderSummary(){
   const body = rows.map(([name, x, y])=>{
     const s2 = stats(x, y);
     if(!s2.paladas && !s2.hTrit && !s2.hCarga) return '';
-    return `<tr><td>${name}</td><td>${s2.paladas}</td><td class="${s2.trit >= m ? 'ok' : 'low'}">${s2.trit}</td><td>${ph(s2.phTrit)}</td><td>${ph(s2.phCarga)}</td></tr>`;
+    return `<tr><td>${name}</td><td class="${s2.paladas >= m ? 'ok' : 'low'}">${s2.paladas}</td><td>${ph(s2.phTrit)}</td><td>${s2.camiones}</td><td>${hm(s2.hCarga*3600000)}</td></tr>`;
   }).join('');
   document.getElementById('sum-table').innerHTML = period === 'dia' ? ''
     : body
-    ? `<table class="sum"><thead><tr><th>Día</th><th>Paladas</th><th>Trit.</th><th>P/h trit.</th><th>P/h carga</th></tr></thead>
-       <tbody>${body}<tr class="total"><td>Total</td><td>${tot.paladas}</td><td>${tot.trit}</td><td>${ph(tot.phTrit)}</td><td>${ph(tot.phCarga)}</td></tr></tbody></table>`
+    ? `<table class="sum"><thead><tr><th>Día</th><th>Paladas</th><th>P/h trit.</th><th>Camiones</th><th>H carga</th></tr></thead>
+       <tbody>${body}<tr class="total"><td>Total</td><td>${tot.paladas}</td><td>${ph(tot.phTrit)}</td><td>${tot.camiones}</td><td>${hm(tot.hCarga*3600000)}</td></tr></tbody></table>`
     : '<p class="empty">No hay registros en este período.</p>';
 
   const dayBox = document.getElementById('sum-day');
@@ -1188,7 +1187,7 @@ function drawChart(box, title, pts, meta){
         <text x="${L-6}" y="${y(v)+3}" class="ax" text-anchor="end">${v}</text>`).join('')}
       <line x1="${L}" x2="${W-R}" y1="${y(meta)}" y2="${y(meta)}" class="meta-line"/>
       ${pts.map((p, i)=>bar(i, p.v)).join('')}
-      <text x="${W-R}" y="${y(meta)-5}" class="meta-lbl" text-anchor="end">Meta paladas trituradas: ${meta}</text>
+      <text x="${W-R}" y="${y(meta)-5}" class="meta-lbl" text-anchor="end">Meta paladas: ${meta}</text>
       ${pts.map((p, i)=> i % every && !(i === n - 1 && (n - 1) % every >= Math.ceil(every / 2)) ? '' :
         `<text x="${x(i)}" y="${H-7}" class="ax" text-anchor="middle">${esc(p.x)}</text>`).join('')}
       ${pts.map((p, i)=> (showAll || i === n - 1) && p.v > 0
@@ -1239,9 +1238,8 @@ function renderLoadsDay(a, b){
   const l = state.cargas.filter(c=>c.ini >= a && c.ini < b).sort((x,y)=>y.ini - x.ini);
   if(!l.length){ box.innerHTML = '<p class="empty">Ningún camión cargado.</p>'; return }
   box.innerHTML = l.map((c, i)=>{
-    const n = state.paladas.filter(p=>p.cargaId === c.id).length;
     return `<div class="row ${c.fin?'':'now'}">
-      <span class="lbl">Camión ${l.length - i} · ${esc(destName(c.destino))} · ${n} palada${n===1?'':'s'}</span>
+      <span class="lbl">Camión ${l.length - i} · ${esc(destName(c.destino))}</span>
       <span class="val">${c.fin ? `${hm(c.fin-c.ini)} · ${clock(c.fin)}` : 'en curso'}</span></div>`;
   }).join('');
 }
@@ -1537,7 +1535,7 @@ function selfCheck(){
     .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
   add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
   add(operatorList().length > 0, `Operadores: ${operatorList().join(', ')}`);
-  add(target() > 0, `Meta paladas trituradas por día: ${target()}`);
+  add(target() > 0, `Meta paladas por día: ${target()}`);
   const box = document.createElement('div');
   box.id = 'diag-box';
   box.style.cssText = 'position:fixed;inset:auto 8px 8px 8px;z-index:300;background:#031716;color:#CCFF00;'
