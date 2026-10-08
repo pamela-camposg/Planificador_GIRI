@@ -122,7 +122,7 @@ svg.topbar-logo{ width:120px }
 .hist-op{ font-size:9.5px; font-weight:700; color:color-mix(in srgb, var(--c) 80%, black); text-transform:uppercase; letter-spacing:.04em;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 .hist-causa{ font-size:9px; font-weight:600; color:var(--g500) }
-.btn-delete{ background:none; border:none; color:var(--g300); padding:6px; border-radius:6px; display:flex; align-items:center;
+.btn-delete{ background:none; border:none; color:var(--g500); padding:6px; border-radius:6px; display:flex; align-items:center;
   margin-left:6px; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; gap:4px }
 .btn-delete.armed{ color:var(--red); background:var(--red-light) }
 .empty{ text-align:center; color:var(--g500); font-size:11px; font-weight:600; padding:8px 0 }
@@ -434,7 +434,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v13 · 02-10-2026';
+const VERSION = 'cdr v16 · 08-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -830,6 +830,29 @@ function deleteScoop(id){
   save(); render();
   toast(`Palada de las ${clockS(p.t)} borrada.`);
 }
+/* An activity can be removed the same way (two taps). Its time simply
+   stops counting; a truck loaded during it goes with it. Scoops stay. */
+function deleteTramo(id){
+  if(armedId !== id){
+    armedId = id; renderHistory();
+    clearTimeout(armTimer); armTimer = setTimeout(()=>{ armedId = null; renderHistory() }, 4000);
+    return;
+  }
+  armedId = null; clearTimeout(armTimer);
+  const t = state.tramos.find(x=>x.id === id);
+  if(!t) return;
+  const now = Date.now(), fin = t.fin || now;
+  state.tramos = state.tramos.filter(x=>x.id !== id);
+  state.borrados[id] = now;
+  if(stateOf(t.estado).camion){
+    state.cargas.filter(c=>c.ini >= t.ini && c.ini <= fin).forEach(c=>{
+      state.cargas = state.cargas.filter(x=>x.id !== c.id);
+      state.borrados[c.id] = now;
+    });
+  }
+  save(); render();
+  toast(`${stateOf(t.estado).name} de las ${clockS(t.ini)} borrada.`);
+}
 function undoScoop(){
   const hoy = scoopsToday().sort((a,b)=>a.t-b.t);
   const last = hoy[hoy.length-1];
@@ -1044,7 +1067,9 @@ function renderHistory(){
     return `<div class="hist" style="--c:${s.col}">
       <div class="hist-info"><span class="hist-time">${dateCL(t.ini)} · ${clockS(t.ini)}</span>
         <span class="hist-op">▸ ${esc(s.name)}</span>
-        <span class="hist-causa">${t.motivo ? esc(t.motivo) + ' · ' : ''}${fin}${t.operador ? ' · ' + esc(t.operador) : ''}</span></div></div>`;
+        <span class="hist-causa">${t.motivo ? esc(t.motivo) + ' · ' : ''}${fin}${t.operador ? ' · ' + esc(t.operador) : ''}</span></div>
+      <button class="btn-delete${armedId === t.id ? ' armed' : ''}" onclick="deleteTramo('${t.id}')" aria-label="Borrar actividad">${armedId === t.id ? '¿Borrar?' : ''}
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg></button></div>`;
   }).join('');
   box.innerHTML = html + (items.length > HISTORY_MAX
     ? `<p class="more">y ${items.length - HISTORY_MAX} registros anteriores en la planilla</p>` : '');
@@ -1264,6 +1289,7 @@ setInterval(()=>{ if(today() !== renderedDay){ renderedDay = today(); render() }
    never replaced, and nothing is written before it has been read.
    ══════════════════════════════════════════════════════════════════════════ */
 let lastSaved = null, lastSync = null, syncing = false, syncAgain = false, syncTimer = null;
+let syncFails = 0, retryTimer = null;
 
 function allRecs(st){ return [...(st.tramos||[]), ...(st.paladas||[]), ...(st.cargas||[])] }
 function recKey(r, withMod){
@@ -1392,8 +1418,15 @@ function payload(){
   };
 }
 
+/* Google sometimes takes a while to answer. Wait up to 45 s instead of
+   giving up at the first slow reply. */
+function fetchT(url, opts, ms){
+  const ac = new AbortController();
+  const t = setTimeout(()=>ac.abort(), ms || 45000);
+  return fetch(url, Object.assign({ signal: ac.signal }, opts)).finally(()=>clearTimeout(t));
+}
 async function readSheet(url){
-  const r = await fetch(url + '?accion=leer', { redirect:'follow', cache:'no-store' });
+  const r = await fetchT(url + '?accion=leer', { redirect:'follow', cache:'no-store' });
   const j = await r.json();
   if(!j || !j.ok) throw new Error('sin datos');
   if(j.config) applyConfig(j.config);
@@ -1402,8 +1435,8 @@ async function readSheet(url){
 }
 async function writeSheet(url, body){
   try{
-    const r = await fetch(url, { method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'}, body });
+    const r = await fetchT(url, { method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body }, 60000);
     if((await r.text()).includes('"ok":true')) return true;
   }catch(e){}
   await fetch(url, { method:'POST', mode:'no-cors',
@@ -1425,14 +1458,18 @@ async function syncWithSheet(manual){
       save(true);
       await writeSheet(url, JSON.stringify(payload()));
     }
-    lastSync = new Date();
+    lastSync = new Date(); syncFails = 0;
     renderSyncState();
     if(manual) toast('Planilla al día.');
     ok = true;
   }catch(e){
-    renderSyncState(true);
-    if(manual) toast('No se pudo conectar con la planilla.', true);
-    setTimeout(syncWithSheet, 30000);
+    /* One slow answer is not "no connection": only after several misses in
+       a row. Everything stays on the phone and goes out on the next try. */
+    syncFails++;
+    renderSyncState(syncFails >= 3 ? true : 'reintento');
+    if(manual) toast('La planilla está lenta; se vuelve a intentar sola.', true);
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(syncWithSheet, Math.min(15000 * syncFails, 60000));
   }finally{
     syncing = false;
     if(syncAgain){ syncAgain = false; setTimeout(syncWithSheet, 300) }
@@ -1461,6 +1498,13 @@ function renderSyncState(mal){
     dot.style.background = '#71717A';
     pill.textContent = lastSaved ? hora(lastSaved) : 'Guardado';
     document.getElementById('sync-state').title = 'Se guarda solo en este teléfono';
+    return;
+  }
+  if(mal === 'reintento'){
+    dot.style.background = '#E8A33D';
+    const ref = lastSync || lastSaved;
+    pill.textContent = ref ? hora(ref) : 'Conectando';
+    document.getElementById('sync-state').title = 'La planilla está lenta; se reintenta solo. Todo queda guardado en este teléfono.';
     return;
   }
   if(mal){
@@ -1531,7 +1575,7 @@ function selfCheck(){
   add(document.querySelectorAll('#states .state-btn').length === 6, 'Los 6 botones de estado');
   add(!!document.getElementById('btn-palada') && !!document.getElementById('history'), 'Botón de palada e historial');
   add(CSS.supports('color','color-mix(in srgb, red 50%, white)'), 'El navegador muestra los colores (color-mix)');
-  ['pickState','addScoop','deleteScoop','truckDone','pickOperator','pickDest','idleYes','idleNo','renderSummary','syncWithSheet','registroRows']
+  ['pickState','addScoop','deleteScoop','truckDone','deleteTramo','pickOperator','pickDest','idleYes','idleNo','renderSummary','syncWithSheet','registroRows']
     .forEach(f=>add(typeof window[f] === 'function', `Existe ${f}()`));
   add(state.tramos.filter(t=>!t.fin).length <= 1, 'Como máximo un estado abierto');
   add(operatorList().length > 0, `Operadores: ${operatorList().join(', ')}`);
