@@ -221,20 +221,42 @@ table.sum tr.total td{ border-top:1.5px solid var(--g300); border-bottom:0; font
 table.sum td.low{ color:var(--amber-dark) }
 table.sum td.ok{ color:var(--green) }
 
+/* ---------- HISTÓRICO: cards ---------- */
+.block{ border-radius:var(--radius-sm); padding:10px 10px 12px; margin-bottom:10px; border:1.5px solid }
+.block.wk{ background:#EEF7F1; border-color:#CFE8D8 }
+.block.mo{ background:#EEF4FB; border-color:#D3E3F4 }
+.block-title{ font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin:0 0 8px 2px }
+.block.wk .block-title{ color:var(--green-dark) } .block.mo .block-title{ color:#1F5C80 }
+.cards{ display:grid; grid-template-columns:1fr 1fr; gap:6px }
+.cardk{ background:#fff; border-radius:var(--radius-sm); padding:10px 6px; text-align:center }
+.cardk .k-lbl{ font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--g500) }
+.cardk .k-val{ font-family:'Roboto Mono',monospace; font-size:24px; font-weight:500; line-height:1.15; margin-top:2px }
+.block.wk .k-val{ color:var(--green) } .block.mo .k-val{ color:#2980B9 }
+.cardk .k-sub{ font-size:10px; font-weight:600; color:var(--g500); margin-top:2px; line-height:1.3 }
+.seg4{ display:grid; grid-template-columns:repeat(4,1fr); gap:4px; background:var(--g50); border-radius:var(--radius-sm); padding:4px; margin:14px 0 6px }
+.seg4 button{ border:0; background:transparent; border-radius:6px; padding:9px 2px; font-size:10.5px; white-space:nowrap; font-weight:700; color:var(--g500) }
+.seg4 button[aria-pressed=true]{ background:#fff; color:var(--green); box-shadow:0 1px 4px rgba(0,87,40,.12) }
+.legend{ display:flex; flex-wrap:wrap; justify-content:center; gap:4px 12px; margin-top:6px }
+.legend span{ display:flex; align-items:center; gap:5px; font-size:9.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--g500) }
+.legend i{ width:10px; height:10px; display:block }
+
 /* ---------- CHART ---------- */
 .chart{ margin-bottom:12px }
-.chart-title{ font-size:11px; font-weight:700; color:var(--g800); margin-bottom:4px }
+.chart{ margin-top:14px }
+.chart-title{ font-size:13px; font-weight:800; color:var(--g800); margin-bottom:2px }
+.chart-sub{ font-size:10.5px; font-weight:500; color:var(--g500); margin-bottom:6px }
+.chart .val{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; fill:var(--g800) }
+.chart .xl{ font-family:'Montserrat',sans-serif; font-size:9.5px; font-weight:600; fill:var(--g500) }
 .chart-wrap{ position:relative }
 .chart svg{ width:100%; height:auto; display:block; overflow:visible }
 .chart .grid{ stroke:var(--g100); stroke-width:1 }
 .chart .ax{ font-family:'Roboto Mono',monospace; font-size:9px; fill:var(--g500) }
-.chart .meta-line{ stroke:var(--amber); stroke-width:1.5; stroke-dasharray:5 4 }
-.chart .meta-lbl{ font-size:9.5px; font-weight:700; fill:var(--amber-dark); font-family:'Montserrat',sans-serif }
+.chart .meta-line{ stroke:var(--green); stroke-width:1.5; stroke-dasharray:6 4 }
+.chart .meta-lbl{ font-size:9.5px; font-weight:700; fill:var(--green); font-family:'Montserrat',sans-serif }
 .chart .last{ font-family:'Roboto Mono',monospace; font-size:11px; font-weight:500; fill:var(--g800) }
 .chart .last.in{ fill:#fff; font-size:10.5px }
 .chart .hit{ cursor:pointer }
-.tip{ position:absolute; background:var(--g800); color:#fff; font-size:11px; font-weight:600; padding:6px 9px;
-  border-radius:6px; white-space:nowrap; pointer-events:none; box-shadow:var(--shadow) }
+.tip{ position:absolute; background:#fff; color:var(--g800); border:1.5px solid var(--green-mid); font-size:11px; font-weight:600; padding:7px 10px; border-radius:var(--radius-sm); white-space:nowrap; pointer-events:none; box-shadow:var(--shadow); line-height:1.4 }
 
 /* ---------- IDLE POPUP ---------- */
 #ov-idle{ background:rgba(0,0,0,.45) }
@@ -275,8 +297,8 @@ table.sum td.ok{ color:var(--green) }
 <main class="card">
 
   <nav class="tabs" role="tablist">
-    <button role="tab" id="tab-registro" aria-selected="true" onclick="showTab('registro')">Registro</button>
-    <button role="tab" id="tab-resumen" aria-selected="false" onclick="showTab('resumen')">Resumen</button>
+    <button role="tab" id="tab-registro" aria-selected="true" onclick="showTab('registro')">Hoy</button>
+    <button role="tab" id="tab-resumen" aria-selected="false" onclick="showTab('resumen')">Histórico</button>
   </nav>
 
   <!-- ================= REGISTRO ================= -->
@@ -316,27 +338,26 @@ table.sum td.ok{ color:var(--green) }
 
   <!-- ================= RESUMEN ================= -->
   <section id="view-resumen" hidden>
-    <div class="seg" role="group">
-      <button aria-pressed="false" onclick="setPeriod('dia')" id="per-dia">Día</button>
-      <button aria-pressed="true" onclick="setPeriod('semana')" id="per-semana">Semana</button>
-      <button aria-pressed="false" onclick="setPeriod('mes')" id="per-mes">Mes</button>
+    <div class="block wk">
+      <p class="block-title">Semana actual</p>
+      <div class="cards" id="cards-week"></div>
     </div>
-    <div class="period-nav">
-      <button class="btn-close" onclick="movePeriod(-1)" aria-label="Anterior">‹</button>
-      <span id="period-label"></span>
-      <button class="btn-close" onclick="movePeriod(1)" aria-label="Siguiente">›</button>
+    <div class="block mo">
+      <p class="block-title" id="month-title">Mes</p>
+      <div class="cards" id="cards-month"></div>
     </div>
-    <div class="kpis" id="kpis"></div>
-    <div class="chart" id="chart"></div>
-    <div id="sum-table"></div>
-    <div id="sum-day" hidden>
-      <p class="sub-title">Tiempo en cada actividad</p>
-      <div id="by-state"></div>
-      <p class="sub-title">Camiones cargados</p>
-      <div id="loads-day"></div>
+
+    <div class="seg4" role="group">
+      <button aria-pressed="true"  onclick="setPeriod('sem')"  id="per-sem">Sem. actual</button>
+      <button aria-pressed="false" onclick="setPeriod('d14')"  id="per-d14">14 días</button>
+      <button aria-pressed="false" onclick="setPeriod('semanal')" id="per-semanal">Semanal</button>
+      <button aria-pressed="false" onclick="setPeriod('mensual')" id="per-mensual">Mensual</button>
     </div>
-    <p class="note">Meta paladas: <span id="meta-note">120</span> por día.<br>
-      Paladas por hora = paladas de la actividad ÷ horas marcadas en esa actividad.</p>
+
+    <div class="chart" id="chart-pal"></div>
+    <div class="chart" id="chart-hrs"></div>
+
+    <p class="note" id="sum-note"></p>
   </section>
 </main>
 
@@ -434,7 +455,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v16 · 08-10-2026';
+const VERSION = 'cdr v17 · 08-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -970,18 +991,6 @@ function renderOperator(){
 /* Scoops of the shift against the target, and scoops per hour of each
    productive activity, each against its own hours. */
 function msIn(tr, a, b){ return Math.max(0, Math.min(tr.fin || Date.now(), b) - Math.max(tr.ini, a)) }
-function stats(a, b){
-  const pal = state.paladas.filter(p=>p.t >= a && p.t < b);
-  const hours = id => state.tramos.filter(t=>t.estado === id).reduce((x, t)=>x + msIn(t, a, b), 0) / 3600000;
-  const o = { paladas: pal.length, trit: pal.filter(p=>p.estado==='triturando').length,
-              carga: pal.filter(p=>p.estado==='piso').length, hTrit: hours('triturando'), hCarga: hours('piso') };
-  o.phTrit = o.hTrit > 0.02 ? o.trit / o.hTrit : null;
-  o.phCarga = o.hCarga > 0.02 ? o.carga / o.hCarga : null;
-  const loads = state.cargas.filter(c=>c.ini >= a && c.ini < b && c.fin);
-  o.camiones = loads.length;
-  o.msPorCamion = loads.length ? loads.reduce((x, c)=>x + c.fin - c.ini, 0) / loads.length : null;
-  return o;
-}
 const ph = v => v == null ? '—' : fmtNum(v);
 function renderNums(){
   const st = stats(today(), tomorrow());
@@ -1078,9 +1087,10 @@ function renderHistory(){
 /* ══════════════════════════════════════════════════════════════════════════
    SUMMARY TAB · day, week (Monday to Sunday) and month
    ══════════════════════════════════════════════════════════════════════════ */
-let tab = 'registro', period = 'semana', periodRef = Date.now();
-const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let tab = 'registro', period = 'sem';
+const DOW = ['Do','Lu','Ma','Mi','Ju','Vi','Sá'];
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MON3 = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 function showTab(t){
   tab = t;
   document.getElementById('view-registro').hidden = t !== 'registro';
@@ -1090,183 +1100,157 @@ function showTab(t){
   if(t === 'resumen') renderSummary();
   window.scrollTo(0, 0);
 }
-function setPeriod(p){ period = p; periodRef = Date.now(); renderSummary() }
-function periodRange(){
-  const d = new Date(dayStart(periodRef));
-  if(period === 'dia') return [d.getTime(), d.getTime() + 86400000];
-  if(period === 'semana'){
-    const back = (d.getDay() + 6) % 7;                 // Monday = 0
-    const a = new Date(d); a.setDate(d.getDate() - back);
-    const b = new Date(a); b.setDate(a.getDate() + 7);
-    return [a.getTime(), b.getTime()];
-  }
-  const a = new Date(d.getFullYear(), d.getMonth(), 1), b = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-  return [a.getTime(), b.getTime()];
-}
-function movePeriod(k){
-  const d = new Date(periodRef);
-  if(period === 'dia') d.setDate(d.getDate() + k);
-  else if(period === 'semana') d.setDate(d.getDate() + 7*k);
-  else d.setMonth(d.getMonth() + k, 1);
-  periodRef = d.getTime(); renderSummary();
-}
+function setPeriod(p){ period = p; renderSummary() }
 const dm = t => { const d = new Date(t); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` };
-function renderSummary(){
-  ['dia','semana','mes'].forEach(p=>document.getElementById('per-'+p).setAttribute('aria-pressed', p === period));
-  const [a, b] = periodRange();
-  const lbl = document.getElementById('period-label');
-  if(period === 'dia') lbl.textContent = `${DOW[new Date(a).getDay()]} ${dateCL(a)}`;
-  else if(period === 'semana') lbl.textContent = `Semana ${dm(a)} al ${dm(b - 86400000)}`;
-  else { const d = new Date(a); lbl.textContent = `${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
+function addDays(t, n){ const d = new Date(t); d.setDate(d.getDate() + n); return d.getTime() }
+function weekStart(t){ const d = new Date(dayStart(t)); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getTime() }
+function monthStart(t){ const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), 1).getTime() }
+/* "3 h 02 min", "45 min": readable by anyone. */
+function hrs(ms){
+  const m = Math.round((ms || 0) / 60000);
+  return m < 60 ? `${m} min` : `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')} min`;
+}
+function hShort(ms){ const m = Math.round((ms||0)/60000); return m < 60 ? `${m} min` : `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}` }
+const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
 
-  const tot = stats(a, b);
-  document.getElementById('kpis').innerHTML = `
-    <div class="kpi"><b>${tot.paladas}</b><span>Paladas</span></div>
-    <div class="kpi"><b>${ph(tot.phTrit)}</b><span>P/h triturando</span></div>
-    <div class="kpi"><b>${tot.camiones}</b><span>Camiones · ${tot.msPorCamion == null ? '—' : hm(tot.msPorCamion)} c/u</span></div>`;
-
+/* Everything for one stretch of days: scoops, hours per group of
+   activities, trucks, and the days that had any record at all. */
+const GROUPS = [
+  { id:'trit',  name:'Triturando',       col:'#B8DFC8', of:['triturando'] },
+  { id:'carga', name:'Carga de camión',  col:'#B8D6E8', of:['piso'] },
+  { id:'otras', name:'Otras actividades',col:'#F5DDB8', of:['movimiento','apoyo','mantencion'] },
+  { id:'det',   name:'Detenido',         col:'#F2B8AC', of:['detenido'] },
+];
+function stats(a, b){
+  const pal = state.paladas.filter(p=>p.t >= a && p.t < b);
+  const hours = id => state.tramos.filter(t=>t.estado === id).reduce((x, t)=>x + msIn(t, a, b), 0) / 3600000;
+  const o = { paladas: pal.length, trit: pal.filter(p=>p.estado==='triturando').length,
+              hTrit: hours('triturando'), hCarga: hours('piso') };
+  o.phTrit = o.hTrit > 0.02 ? o.trit / o.hTrit : null;
+  const loads = state.cargas.filter(c=>c.ini >= a && c.ini < b && c.fin);
+  o.camiones = loads.length;
+  o.msPorCamion = loads.length ? loads.reduce((x, c)=>x + c.fin - c.ini, 0) / loads.length : null;
+  o.ms = {};
+  GROUPS.forEach(g=>{ o.ms[g.id] = g.of.reduce((x, id)=>x + hours(id) * 3600000, 0) });
+  o.msTotal = GROUPS.reduce((x, g)=>x + o.ms[g.id], 0);
+  /* days worked and days that reached the target */
   const m = target();
-  document.getElementById('meta-note').textContent = m;
+  o.dias = 0; o.diasOk = 0;
+  for(let t = dayStart(a); t < b; t = addDays(t, 1)){
+    const e = Math.min(addDays(t, 1), b);
+    const n = state.paladas.filter(p=>p.t >= t && p.t < e).length;
+    const any = n || state.tramos.some(x=>msIn(x, t, e) > 0);
+    if(any){ o.dias++; if(n >= m) o.diasOk++ }
+  }
+  return o;
+}
 
-  /* Day: scoops of trituration accumulated hour by hour, against the target.
-     Week / month: scoops of trituration per day, against the target. */
-  const now = Date.now();
-  let pts = [], title;
-  if(period === 'dia'){
-    title = `Paladas acumuladas - ${DOW[new Date(a).getDay()]} ${dateCL(a)}`;
-    let acc = 0;
-    for(let h = 8; h <= 21; h++){
-      const t = a + h*3600000;
-      if(t > now + 3600000) break;
-      acc = state.paladas.filter(p=>p.estado === 'triturando' && p.t >= a && p.t < Math.min(t, b)).length;
-      pts.push({ x:`${String(h).padStart(2,'0')}`, v:acc, tip:`Hasta las ${String(h).padStart(2,'0')}:00 · ${acc} paladas` });
-    }
+function cardsHTML(st){
+  const m = target(), meta = m * st.dias;
+  return `
+    <div class="cardk"><div class="k-lbl">Total paladas</div><div class="k-val">${st.paladas}</div>
+      <div class="k-sub">${pct(st.paladas, meta)} de la meta · ${st.diasOk}/${st.dias} días ≥ ${m}</div></div>
+    <div class="cardk"><div class="k-lbl">Paladas por hora</div><div class="k-val">${ph(st.phTrit)}</div>
+      <div class="k-sub">triturando · ${hrs(st.hTrit*3600000)}</div></div>
+    <div class="cardk"><div class="k-lbl">Camiones cargados</div><div class="k-val">${st.camiones}</div>
+      <div class="k-sub">${st.msPorCamion == null ? 'sin camiones' : hrs(st.msPorCamion) + ' promedio por camión'}</div></div>
+    <div class="cardk"><div class="k-lbl">Tiempo detenido</div><div class="k-val">${hShort(st.ms.det)}</div>
+      <div class="k-sub">${pct(st.ms.det, st.msTotal)} del tiempo registrado</div></div>`;
+}
+
+/* The bars for the chosen view. Days for "Sem. actual" and "14 días";
+   weeks and months show the daily average, so they compare with the
+   same 120 line. */
+function buckets(){
+  const now = Date.now(), today0 = dayStart(now), out = [];
+  const day = t => ({ a:t, b:addDays(t,1), x:DOW[new Date(t).getDay()] + (period === 'd14' ? ' ' + new Date(t).getDate() : ''),
+                      tip:`${DOW[new Date(t).getDay()]} ${dm(t)}`, avg:false });
+  if(period === 'sem'){
+    for(let t = weekStart(now); t <= today0; t = addDays(t,1)) out.push(day(t));
+  } else if(period === 'd14'){
+    for(let t = addDays(today0,-13); t <= today0; t = addDays(t,1)) out.push(day(t));
+  } else if(period === 'semanal'){
+    for(let k = 7; k >= 0; k--){ const a = addDays(weekStart(now), -7*k); out.push({ a, b:addDays(a,7), x:dm(a), tip:`Semana del ${dm(a)}`, avg:true }) }
   } else {
-    title = `Paladas - ${lbl.textContent}`;
-    for(let t = a; t < b; ){
-      const n = new Date(t); n.setDate(n.getDate() + 1);
-      if(t <= now){
-        const v = state.paladas.filter(p=>p.estado === 'triturando' && p.t >= t && p.t < n.getTime()).length;
-        pts.push({ x: period === 'semana' ? DOW[new Date(t).getDay()] : String(new Date(t).getDate()),
-                   v, tip:`${DOW[new Date(t).getDay()]} ${dm(t)} · ${v} paladas${v >= m ? ' · meta cumplida' : ''}` });
-      }
-      t = n.getTime();
-    }
+    for(let k = 5; k >= 0; k--){ const d = new Date(now); const a = new Date(d.getFullYear(), d.getMonth() - k, 1).getTime();
+      const b = new Date(d.getFullYear(), d.getMonth() - k + 1, 1).getTime(); out.push({ a, b, x:MON3[new Date(a).getMonth()], tip:MONTHS[new Date(a).getMonth()], avg:true }) }
   }
-  drawChart(document.getElementById('chart'), title, pts, m);
-
-  /* Table: one row per day with data (week and month only). */
-  const rows = [];
-  if(period !== 'dia'){
-    for(let t = a; t < b; ){
-      const n = new Date(t); n.setDate(n.getDate() + 1);
-      rows.push([`${DOW[new Date(t).getDay()]} ${dm(t)}`, t, n.getTime()]);
-      t = n.getTime();
-    }
-  }
-  const body = rows.map(([name, x, y])=>{
-    const s2 = stats(x, y);
-    if(!s2.paladas && !s2.hTrit && !s2.hCarga) return '';
-    return `<tr><td>${name}</td><td class="${s2.paladas >= m ? 'ok' : 'low'}">${s2.paladas}</td><td>${ph(s2.phTrit)}</td><td>${s2.camiones}</td><td>${hm(s2.hCarga*3600000)}</td></tr>`;
-  }).join('');
-  document.getElementById('sum-table').innerHTML = period === 'dia' ? ''
-    : body
-    ? `<table class="sum"><thead><tr><th>Día</th><th>Paladas</th><th>P/h trit.</th><th>Camiones</th><th>H carga</th></tr></thead>
-       <tbody>${body}<tr class="total"><td>Total</td><td>${tot.paladas}</td><td>${ph(tot.phTrit)}</td><td>${tot.camiones}</td><td>${hm(tot.hCarga*3600000)}</td></tr></tbody></table>`
-    : '<p class="empty">No hay registros en este período.</p>';
-
-  const dayBox = document.getElementById('sum-day');
-  dayBox.hidden = period !== 'dia';
-  if(period === 'dia'){ renderByState(a, b); renderLoadsDay(a, b) }
+  return out;
 }
-/* One series of bars, the target as a dashed reference line. Every bar has
-   a tap/hover area as wide as its slot that shows its value. */
+
+function renderSummary(){
+  ['sem','d14','semanal','mensual'].forEach(p=>document.getElementById('per-'+p).setAttribute('aria-pressed', p === period));
+  const now = Date.now(), m = target();
+  document.getElementById('cards-week').innerHTML = cardsHTML(stats(weekStart(now), addDays(dayStart(now),1)));
+  document.getElementById('month-title').textContent = MONTHS[new Date(now).getMonth()];
+  document.getElementById('cards-month').innerHTML = cardsHTML(stats(monthStart(now), addDays(dayStart(now),1)));
+
+  let bs = buckets().map(k=>Object.assign(k, { st: stats(k.a, Math.min(k.b, addDays(dayStart(now),1))) }));
+  /* Days with nothing recorded (Sundays, holidays) are left out of the day views. */
+  if(!bs[0].avg) bs = bs.filter((k, i)=>k.st.dias || i === bs.length - 1);
+  const avg = bs[0] && bs[0].avg;
+  const per = k => avg ? (k.st.dias ? k.st.paladas / k.st.dias : 0) : k.st.paladas;
+
+  drawBars(document.getElementById('chart-pal'), {
+    title: avg ? 'Paladas por día (promedio)' : 'Paladas por día',
+    sub: `Verde: llegó a la meta de ${m} · Rojo: no llegó`,
+    meta: m,
+    bars: bs.map(k=>{ const v = per(k); return { x:k.x, total:v, label: avg ? fmtNum(v) : String(v),
+      parts:[{ v, col: v >= m ? '#B8DFC8' : '#E8826A' }],
+      tip:`${k.tip}: ${avg ? fmtNum(v) + ' paladas al día' : v + ' paladas'}${v >= m ? ' · meta cumplida' : ''}` } }),
+  });
+  drawBars(document.getElementById('chart-hrs'), {
+    title: avg ? 'Horas por actividad (promedio por día)' : 'Horas por actividad',
+    sub: 'Cuánto tiempo estuvo el cargador en cada cosa',
+    legend: GROUPS,
+    bars: bs.map(k=>{ const d = avg ? (k.st.dias || 1) : 1;
+      const parts = GROUPS.map(g=>({ v: k.st.ms[g.id] / 3600000 / d, col: g.col, name: g.name }));
+      const tot = parts.reduce((x, q)=>x + q.v, 0);
+      return { x:k.x, total:tot, label: tot ? fmtNum(tot) + ' h' : '', parts,
+        tip: `${k.tip}: ` + parts.filter(q=>q.v > 0.005).map(q=>`${q.name} ${hrs(q.v*3600000)}`).join(' · ') || 'sin registro' } }),
+  });
+  document.getElementById('sum-note').innerHTML =
+    `Meta: ${m} paladas por día · Paladas por hora = paladas ÷ horas triturando.<br>Toca una barra para ver el detalle.`;
+}
+
+/* Bars anchored to zero, value written on top of each one, optional
+   stacked parts and a dashed target line. Tap a bar for its detail. */
 function niceMax(v){
-  const steps = [8,20,40,60,80,100,120,140,160,200,240,280,320,400,480,600,800,1000,1200,1600,2000,4000];
-  return steps.find(x=>x >= v) || Math.ceil(v/4000)*4000;   // divisible by 4: round ticks
+  const steps = [2,4,8,12,16,20,40,60,80,100,120,140,160,200,240,280,320,400,480,600,800,1000,1200,1600,2000,4000];
+  return steps.find(x=>x >= v) || Math.ceil(v/4000)*4000;
 }
-function drawChart(box, title, pts, meta){
-  if(!pts.length){ box.innerHTML = `<p class="chart-title">${esc(title)}</p><p class="empty">Sin datos todavía.</p>`; return }
-  const W = 340, H = 190, L = 30, R = 12, T = 12, B = 24;
-  const max = niceMax(Math.max(meta * 1.1, ...pts.map(p=>p.v), 1));
-  const n = pts.length, slot = (W - L - R) / n;
-  const bw = Math.min(28, Math.max(4, slot - 2));          // 2px surface gap between bars
-  const x = i => L + (i + 0.5) * slot;                     // bar centre
-  const y = v => T + (H - T - B) * (1 - v / max);
-  const ticks = [0, max/4, max/2, max*3/4, max].map(v=>Math.round(v));
-  const every = n > 16 ? Math.ceil(n / 8) : (n > 8 ? 2 : 1);
-  const col = stateOf('triturando').col;
-  const base = y(0);
-  /* rounded top, square base anchored on the axis */
-  const bar = (i, v)=>{
-    const x0 = x(i) - bw/2, top = y(v), h = base - top;
-    if(h <= 0) return '';
-    const r = Math.min(3, h, bw/2);
-    return `<path d="M${x0},${base} V${top + r} Q${x0},${top} ${x0 + r},${top} H${x0 + bw - r} Q${x0 + bw},${top} ${x0 + bw},${top + r} V${base} Z" fill="${col}"/>`;
-  };
-  const showAll = n <= 8;
-  box.innerHTML = `<p class="chart-title">${esc(title)}</p>
-    <div class="chart-wrap">
-    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">
-      ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="grid"/>
-        <text x="${L-6}" y="${y(v)+3}" class="ax" text-anchor="end">${v}</text>`).join('')}
-      <line x1="${L}" x2="${W-R}" y1="${y(meta)}" y2="${y(meta)}" class="meta-line"/>
-      ${pts.map((p, i)=>bar(i, p.v)).join('')}
-      <text x="${W-R}" y="${y(meta)-5}" class="meta-lbl" text-anchor="end">Meta paladas: ${meta}</text>
-      ${pts.map((p, i)=> i % every && !(i === n - 1 && (n - 1) % every >= Math.ceil(every / 2)) ? '' :
-        `<text x="${x(i)}" y="${H-7}" class="ax" text-anchor="middle">${esc(p.x)}</text>`).join('')}
-      ${pts.map((p, i)=> (showAll || i === n - 1) && p.v > 0
-        ? (base - y(p.v) > 20 && bw >= 18
-            ? `<text x="${x(i)}" y="${y(p.v) + 13}" class="last in" text-anchor="middle">${p.v}</text>`
-            : `<text x="${x(i)}" y="${y(p.v) - 4}" class="last" text-anchor="middle">${p.v}</text>`) : '').join('')}
-      ${pts.map((p, i)=>`<rect x="${L + i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent"
-        data-i="${i}" class="hit"/>`).join('')}
-    </svg>
-    <div class="tip" hidden></div></div>`;
+function drawBars(box, o){
+  const bars = o.bars || [];
+  if(!bars.length || !bars.some(b=>b.total > 0)){
+    box.innerHTML = `<p class="chart-title">${esc(o.title)}</p><p class="empty">Sin datos en este período.</p>`; return }
+  const W = 340, H = 170, L = 6, R = 6, T = 18, B = 20;
+  const max = niceMax(Math.max(o.meta ? o.meta * 1.15 : 0, ...bars.map(b=>b.total), 0.1));
+  const n = bars.length, slot = (W - L - R) / n, bw = Math.max(6, slot - 3);
+  const x = i => L + slot * i + (slot - bw) / 2, y = v => T + (H - T - B) * (1 - v / max);
+  const cols = bars.map((b, i)=>{
+    let acc = 0;
+    const rects = b.parts.filter(p=>p.v > 0).map(p=>{ const y0 = y(acc), y1 = y(acc + p.v); acc += p.v;
+      return `<rect x="${x(i)}" y="${y1}" width="${bw}" height="${Math.max(0, y0 - y1 - (acc < b.total ? 1 : 0))}" fill="${p.col}"/>` }).join('');
+    return rects + (b.label ? `<text x="${x(i) + bw/2}" y="${y(b.total) - 5}" class="val" text-anchor="middle">${esc(b.label)}</text>` : '')
+      + `<text x="${x(i) + bw/2}" y="${H - 5}" class="xl" text-anchor="middle">${esc(b.x)}</text>`
+      + `<rect x="${L + slot*i}" y="0" width="${slot}" height="${H}" fill="transparent" class="hit" data-i="${i}"/>`;
+  }).join('');
+  const meta = o.meta ? `<line x1="${L}" x2="${W-R}" y1="${y(o.meta)}" y2="${y(o.meta)}" class="meta-line"/>
+      <text x="${W-R}" y="${y(o.meta) - 4}" class="meta-lbl" text-anchor="end">${o.meta}</text>` : '';
+  box.innerHTML = `<p class="chart-title">${esc(o.title)}</p>${o.sub ? `<p class="chart-sub">${esc(o.sub)}</p>` : ''}
+    <div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title)}">
+      <line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" class="grid"/>${cols}${meta}</svg>
+    <div class="tip" hidden></div></div>
+    ${o.legend ? `<div class="legend">${o.legend.map(g=>`<span><i style="background:${g.col}"></i>${esc(g.name)}</span>`).join('')}</div>` : ''}`;
   const tip = box.querySelector('.tip'), svg = box.querySelector('svg');
   const show = e=>{
-    const i = +e.target.dataset.i;
-    const r = svg.getBoundingClientRect(), k = r.width / W;
-    tip.textContent = pts[i].tip; tip.hidden = false;
-    const left = Math.min(Math.max(x(i) * k - tip.offsetWidth / 2, 0), r.width - tip.offsetWidth);
-    tip.style.left = left + 'px'; tip.style.top = Math.max(0, y(pts[i].v) * k - 42) + 'px';
+    const i = +e.target.dataset.i, r = svg.getBoundingClientRect(), k = r.width / W;
+    tip.textContent = bars[i].tip; tip.hidden = false; tip.style.whiteSpace = 'normal'; tip.style.maxWidth = '240px';
+    const left = Math.min(Math.max((x(i) + bw/2) * k - tip.offsetWidth / 2, 0), r.width - tip.offsetWidth);
+    tip.style.left = left + 'px'; tip.style.top = Math.max(0, y(bars[i].total) * k - tip.offsetHeight - 10) + 'px';
   };
-  box.querySelectorAll('.hit').forEach(h=>{
-    h.addEventListener('pointerenter', show); h.addEventListener('pointerdown', show);
-  });
+  box.querySelectorAll('.hit').forEach(h=>{ h.addEventListener('pointerenter', show); h.addEventListener('pointerdown', show) });
   svg.addEventListener('pointerleave', ()=>{ tip.hidden = true });
-}
-function renderByState(a, b){
-  const box = document.getElementById('by-state');
-  const cur = currentTramo();
-  const tot = {};
-  state.tramos.forEach(t=>{
-    const ms = msIn(t, a, b);
-    if(ms <= 0) return;
-    const k = t.estado + (t.estado === 'detenido' && t.motivo ? ' · ' + t.motivo : '');
-    tot[k] = (tot[k] || 0) + ms;
-  });
-  const filas = Object.entries(tot).sort((x,y)=>y[1]-x[1]);
-  if(!filas.length){ box.innerHTML = '<p class="empty">No se marcó ninguna actividad.</p>'; return }
-  box.innerHTML = filas.map(([k, ms])=>{
-    const id = k.split(' · ')[0], s = stateOf(id);
-    const nombre = s.name + (k.includes(' · ') ? ` (${k.split(' · ')[1].toLowerCase()})` : '');
-    const activo = cur && (cur.estado + (cur.estado==='detenido' && cur.motivo ? ' · ' + cur.motivo : '')) === k && cur.ini < b && Date.now() >= a;
-    return `<div class="row ${activo?'now':''}">
-      <span class="sw" style="background:${s.col}"></span>
-      <span class="lbl">${esc(nombre)}${activo?' · ahora':''}</span>
-      <span class="val">${hm(ms)}</span></div>`;
-  }).join('');
-}
-function renderLoadsDay(a, b){
-  const box = document.getElementById('loads-day');
-  const l = state.cargas.filter(c=>c.ini >= a && c.ini < b).sort((x,y)=>y.ini - x.ini);
-  if(!l.length){ box.innerHTML = '<p class="empty">Ningún camión cargado.</p>'; return }
-  box.innerHTML = l.map((c, i)=>{
-    return `<div class="row ${c.fin?'':'now'}">
-      <span class="lbl">Camión ${l.length - i} · ${esc(destName(c.destino))}</span>
-      <span class="val">${c.fin ? `${hm(c.fin-c.ini)} · ${clock(c.fin)}` : 'en curso'}</span></div>`;
-  }).join('');
 }
 
 /* The running clocks need to move on their own. */
@@ -1275,7 +1259,7 @@ setInterval(()=>{
   if(watchShift()) return;
   bannerClock(); renderNums(); watchIdle();
   if(openLoad()) renderLoad();
-  if(tab === 'resumen' && period === 'dia') renderSummary();
+
   const sel = document.getElementById('operador');
   if(sel && sel.value !== currentOperator()) render();
 }, 1000);
