@@ -366,11 +366,12 @@ aside{ position:sticky; top:6.5rem }
 .chip{ padding:.35rem .8rem; border:1px solid var(--z200); border-radius:4px; background:#fff; font-size:12px; font-family:inherit; color:var(--z600); transition:.15s }
 .chip:hover{ border-color:var(--neon) }
 .chip[aria-pressed=true]{ background:var(--neon); border-color:var(--neon); color:var(--tinta); font-weight:500 }
-.waste-row{ display:grid; grid-template-columns:1fr 112px 70px 46px 22px; gap:.4rem; margin-bottom:.35rem; align-items:center }
+.waste-row{ display:grid; grid-template-columns:1fr 126px 64px 44px 20px; gap:.4rem; margin-bottom:.35rem; align-items:center }
 .waste-row .it-unit{ font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--z400) }
 .waste-row.is-bale .it-unit{ color:#8A6A2F; font-weight:600 }
 .waste-row.is-bale .it-ton{ border-color:#C6A85C; background:#FCFAF3 }
 .waste-row .it-fmt{ font-size:11.5px; color:var(--z600) }
+.waste-row.falta-fmt .it-fmt{ border-color:var(--rojo); background:var(--rojoBg); color:var(--rojo) }
 .waste-row .row-remove{ border:0; background:none; color:var(--z400); font-size:15px; line-height:1; padding:0 }
 .waste-row .row-remove:hover{ color:var(--rojo) }
 .waste-total{ display:flex; align-items:baseline; gap:.5rem; margin-top:.5rem; font-size:12px; color:var(--z500) }
@@ -618,7 +619,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
       <datalist id="dl-customers"></datalist>
     </div>
     <div class="field">
-      <label id="lbl-waste">Residuos que trae <i>— uno o varios, con sus toneladas</i></label>
+      <label id="lbl-waste">Residuos que trae <i>— uno o varios, con su formato y sus toneladas</i></label>
       <input type="text" id="f-search" placeholder="Buscar en la lista…" autocomplete="off"
              oninput="filterWaste()" style="margin-bottom:.45rem">
       <div id="f-waste"></div>
@@ -839,7 +840,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v35 · 01-10-2026';
+const VERSION = 'v36 · 13-10-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -860,11 +861,11 @@ const DOCKS = [
 ];
 
 /* How the load comes in. Optional: it can be left blank. */
-const FORMATS = ['PALLET', 'GRANEL', 'MAXISACA', 'PISO CAMINANTE'];
+const FORMATS = ['PALLET', 'MAXISACO', 'GRANEL', 'PISO CAMINANTE'];
 
 /* Where each format is actually handled. Pallets and maxisacas are moved in the
    yard, so they never compete for the unloading front with bulk loads. */
-const PATIO_FORMATS = ['PALLET', 'MAXISACA'];
+const PATIO_FORMATS = ['PALLET', 'MAXISACO'];
 
 /* A booking is either material coming in or material being collected. */
 const MOVES = [
@@ -1059,6 +1060,18 @@ function baleCount(i){
 function totalBales(r){
   return itemsOf(r).reduce((s,i)=> s + (isBale(i.r) ? baleCount(i) : 0), 0);
 }
+/* MAXISACA was renamed MAXISACO; older records are fixed on the way in so
+   the patio rule and the reports keep matching. */
+function renameOldFormats(){
+  let n = 0;
+  state.reservas.forEach(r=>{
+    (Array.isArray(r.items) ? r.items : []).forEach(i=>{
+      if(String(i.fmt || '').toUpperCase() === 'MAXISACA'){ i.fmt = 'MAXISACO'; n++ }
+    });
+  });
+  return n;
+}
+
 /* Keeps stored tonnages in step with the fixed weight, including records
    created while it was still adjustable. Returns how many it corrected. */
 function normalizeBaleTons(){
@@ -2019,8 +2032,8 @@ function renderMovePicker(v){
   const lblW = document.querySelector('label[for=""], #f-waste');
   const lblRes = document.getElementById('lbl-waste');
   if(lblRes) lblRes.innerHTML = out
-    ? 'Material que se lleva <i>— uno o varios, con sus toneladas</i>'
-    : 'Residuos que trae <i>— uno o varios, con sus toneladas</i>';
+    ? 'Material que se lleva <i>— uno o varios, con su formato y sus toneladas</i>'
+    : 'Residuos que trae <i>— uno o varios, con su formato y sus toneladas</i>';
   fillDatalists();
 }
 function pickMove(v){ renderMovePicker(v); checkClash() }
@@ -2070,10 +2083,10 @@ function wasteRow(valor, amount, escrito, fmt){
   row.innerHTML = escrito
     ? `<input type="text" class="it-txt" value="${esc(valor||'')}" placeholder="ESCRIBE EL RESIDUO" style="text-transform:uppercase">`
     : `<select class="it-sel">${wasteOptions(valor||'')}</select>`;
-  const fmtOpts = ['<option value="">— formato —</option>']
+  const fmtOpts = ['<option value="">cómo llega</option>']
     .concat(FORMATS.map(f=>`<option value="${f}"${f===fmt?' selected':''}>${f.toLowerCase()}</option>`)).join('');
   row.insertAdjacentHTML('beforeend',
-    `<select class="it-fmt" title="Cómo viene la carga (opcional). Pallet y maxisaca se descargan en patio; granel y piso caminante ocupan el frente de descarga.">${fmtOpts}</select>
+    `<select class="it-fmt" title="Cómo llega la carga. Pallet y maxisaco se descargan en patio; granel y piso caminante ocupan el frente de descarga.">${fmtOpts}</select>
      <input type="number" class="it-ton" min="0" step="0.1" value="${amount!==''&&amount!=null?amount:''}">
      <span class="it-unit"></span>
      <button type="button" class="row-remove" title="Quitar este residuo">×</button>`);
@@ -2093,7 +2106,10 @@ function wasteRow(valor, amount, escrito, fmt){
   });
   const txt = row.querySelector('.it-txt');
   if(txt) txt.addEventListener('input', ()=>{ syncUnit(); updateWasteTotal() });
-  row.querySelector('.it-fmt').addEventListener('change', checkClash);
+  row.querySelector('.it-fmt').addEventListener('change', ()=>{
+    row.classList.remove('falta-fmt');
+    checkClash();
+  });
   row.querySelector('.it-ton').addEventListener('input', updateWasteTotal);
   row.querySelector('.row-remove').addEventListener('click', ()=>{
     row.remove();
@@ -2108,6 +2124,16 @@ function wasteRow(valor, amount, escrito, fmt){
 function rowName(row){
   const sel = row.querySelector('.it-sel'), txt = row.querySelector('.it-txt');
   return ((sel ? (sel.value==='__otro' ? '' : sel.value) : (txt ? txt.value : '')) || '').trim().toUpperCase();
+}
+/* Paints the rows whose format is still empty, so the person sees where. */
+function markMissingFormats(){
+  let primero = null;
+  document.querySelectorAll('#f-waste .waste-row').forEach(f=>{
+    const falta = rowName(f) && !f.querySelector('.it-fmt').value;
+    f.classList.toggle('falta-fmt', !!falta);
+    if(falta && !primero) primero = f.querySelector('.it-fmt');
+  });
+  if(primero) primero.focus();
 }
 function rowSetUnit(row){
   const bale = isBale(rowName(row));
@@ -2253,6 +2279,16 @@ function saveBooking(){
   };
   if(obj.ini + obj.dur > CLOSE_MIN){ toast(`La descarga terminaría después de las ${hhmm(CLOSE_MIN)}.`, true); return }
   if(!obj.items.length){ toast('Falta indicar al menos un tipo de residuo.', true); return }
+  /* Every load has to say how it arrives: it is what decides whether two
+     movements compete for the same place at the same time. */
+  const sinFmt = obj.items.filter(i=>!i.fmt);
+  if(sinFmt.length){
+    toast(sinFmt.length > 1
+      ? 'Falta indicar cómo llega cada carga: pallet, maxisaco, granel o piso caminante.'
+      : `Falta indicar cómo llega ${sinFmt[0].r.toLowerCase()}: pallet, maxisaco, granel o piso caminante.`, true);
+    markMissingFormats();
+    return;
+  }
   /* Who booked it is required: it is how the plant knows whom to call. */
   if(!obj.quien){
     const by = document.getElementById('f-by');
@@ -2731,6 +2767,7 @@ function applyMerged(m){
   state.listas   = m.listas;
   state.borrados = m.borrados;
   normalizeBaleTons();
+  renameOldFormats();
   save(true);                 /* local only; also refreshes the snapshot */
   render();
 }
@@ -3101,8 +3138,9 @@ if(!load()){
 }
 if(state.config && Array.isArray(state.config.catalogo)) applyCatalog(state.config.catalogo);
 takeSnapshot();
-/* Old records may carry a tonnage from a different bale weight. */
-if(normalizeBaleTons()) save(true);
+/* Old records may carry a tonnage from a different bale weight, or the
+   previous spelling of MAXISACO. */
+if(normalizeBaleTons() + renameOldFormats()) save(true);
 if(new Date().getDay()===0) day = addDays(todayISO(),1);
 render();
 renderSyncState();
