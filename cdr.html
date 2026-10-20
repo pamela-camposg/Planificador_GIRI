@@ -368,9 +368,9 @@ table.sum td.ok{ color:var(--green) }
   <div class="panel">
     <div id="idle-ask">
       <div class="idle-badge"><span class="banner-dot"></span><span id="idle-min-txt">Hace 20 minutos que no hay paladas</span></div>
-      <p class="panel-title" style="margin:10px 0 4px">¿Sigue tirando paladas?</p>
+      <p class="panel-title" id="idle-title" style="margin:10px 0 4px">¿Sigue tirando paladas?</p>
       <p class="panel-sub" id="idle-text"></p>
-      <button class="btn-confirm" style="--c:var(--green);margin-top:4px" onclick="idleYes()">Sí, sigo tirando paladas</button>
+      <button class="btn-confirm" style="--c:var(--green);margin-top:4px" onclick="idleYes()" id="idle-yes">Sí, sigo tirando paladas</button>
       <button class="btn-plain" onclick="idleNo()">No, cambiar actividad</button>
     </div>
     <div id="idle-change" style="display:none">
@@ -455,7 +455,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v17 · 08-10-2026';
+const VERSION = 'cdr v18 · 20-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -500,10 +500,20 @@ const DEFAULT_META = 120;
 function target(){ const m = Number(state.config && state.config.meta); return m > 0 ? m : DEFAULT_META }
 
 /* ── Shifts ────────────────────────────────────────────────────────────
-   Día until 18:30, noche from 18:30 to 21:00. At each boundary whatever is
+   Día until 18:30, noche from 18:30 to the end of the shift. At each boundary whatever is
    running is closed and the operator is asked again. */
 const SHIFT_CHANGE = 18*60 + 30;   // 18:30
-const SHIFT_END    = 21*60;        // 21:00
+/* End of the shift: the clock-out time plus 30 minutes to close the nave
+   (checklist, keys, radios). Monday to Thursday they clock out at 22:00, so
+   the shift ends at 22:30; Friday at 21:30, so 22:00. Weekends use Friday's. */
+function shiftEndMin(t){ const w = new Date(t).getDay(); return (w >= 1 && w <= 4) ? 22*60 + 30 : 22*60 }
+function shiftEndLabel(t){ const m = shiftEndMin(t); return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}` }
+/* Overtime: whatever is opened after the end of the shift is not closed by the
+   hour. At 20 minutes without scoops or touches the phone asks "¿sigue en…?";
+   with no answer it closes 30 minutes after the last sign of life, so a stretch
+   left running never counts the night or the next morning. */
+const LATE_CUT     = 30*60000;
+function lateTramo(tr){ return minOfDay(tr.ini) >= shiftEndMin(tr.ini) }
 function minOfDay(t){ const d = new Date(t); return d.getHours()*60 + d.getMinutes() }
 function shiftOf(t){ return minOfDay(t) < SHIFT_CHANGE ? 'día' : 'noche' }
 function shiftKey(t){ return isoDay(t) + ' ' + shiftOf(t) }
@@ -608,6 +618,24 @@ function cutIdle(tr){
   save(); render();
   toast(`El reloj de ${stateOf(tr.estado).name} se detuvo a las ${clock(corte)}: pasó una hora sin paladas. Toca lo que está haciendo ahora.`, true);
 }
+/* Overtime: closed 30 minutes after the last scoop, touch or "sí, sigo". */
+function cutLate(tr){
+  const corte = lastSign(tr) + LATE_CUT;
+  tr.fin = corte; tr.cierre = 'por inactividad'; tr.mod = Date.now();
+  closeTruck(corte);
+  save(); render();
+  toast(`${stateOf(tr.estado).name} se cerró a las ${clock(corte)}: pasaron 30 minutos sin paladas ni respuesta, fuera del horario del turno.`, true);
+}
+/* In overtime any touch on the screen counts as "sigo aquí" (at most once
+   every 5 minutes, so the sheet is not flooded). */
+document.addEventListener('pointerdown', ()=>{
+  const tr = currentTramo();
+  if(!tr || !lateTramo(tr)) return;
+  const now = Date.now();
+  if(now - (tr.visto || 0) < 5*60000) return;
+  tr.visto = now; tr.mod = now;
+  save();
+}, true);
 /* Nothing stays open across days: at midnight the stretch is closed. */
 function closeAtMidnight(tr){
   const fin = dayStart(tr.ini) + 86400000 - 1000;
@@ -626,16 +654,29 @@ function otherOverlayOpen(){ return !!document.querySelector('.overlay.is-open:n
 function watchIdle(){
   const tr = currentTramo();
   const ov = document.getElementById('ov-idle');
-  if(!tr || !stateOf(tr.estado).produce){ if(idleOpen()) ov.classList.remove('is-open'); return }
+  if(tr && lateTramo(tr) && idleMs(tr) >= LATE_CUT){ if(idleOpen()) ov.classList.remove('is-open'); cutLate(tr); return }
+  const late = tr && lateTramo(tr), produce = tr && stateOf(tr.estado).produce;
+  if(!tr || (!produce && !late)){ if(idleOpen()) ov.classList.remove('is-open'); return }
   if(dayStart(tr.ini) !== today()){ closeAtMidnight(tr); return }
   const ms = idleMs(tr);
-  if(ms >= IDLE_CUT){ ov.classList.remove('is-open'); cutIdle(tr); return }
+  if(produce && ms >= IDLE_CUT){ ov.classList.remove('is-open'); cutIdle(tr); return }
   if(ms < IDLE_ASK){ if(idleOpen()) ov.classList.remove('is-open'); return }
-  document.getElementById('idle-min-txt').textContent = `Hace ${Math.floor(ms / 60000)} minutos que no hay paladas`;
-  document.getElementById('idle-text').innerHTML =
-    `La última palada fue a las <b>${clock(lastSign(tr))}</b> y el cargador sigue marcado en
-     <b>${esc(stateOf(tr.estado).name)}</b>. Si nadie contesta, el reloj se detiene solo a las
-     ${clock(lastSign(tr) + IDLE_CUT)}.`;
+  const name = esc(stateOf(tr.estado).name), corte = clock(lastSign(tr) + (late ? LATE_CUT : IDLE_CUT));
+  if(produce){
+    document.getElementById('idle-min-txt').textContent = `Hace ${Math.floor(ms / 60000)} minutos que no hay paladas`;
+    document.getElementById('idle-title').textContent = '¿Sigue tirando paladas?';
+    document.getElementById('idle-yes').textContent = 'Sí, sigo tirando paladas';
+    document.getElementById('idle-text').innerHTML =
+      `La última palada fue a las <b>${clock(lastSign(tr))}</b> y el cargador sigue marcado en
+       <b>${name}</b>. Si nadie contesta, el reloj se detiene solo a las ${corte}.`;
+  } else {
+    document.getElementById('idle-min-txt').textContent = `Hace ${Math.floor(ms / 60000)} minutos sin confirmar`;
+    document.getElementById('idle-title').innerHTML = `¿Sigue en ${name}?`;
+    document.getElementById('idle-yes').textContent = 'Sí, sigo en esto';
+    document.getElementById('idle-text').innerHTML =
+      `Ya terminó el horario del turno y el cargador sigue marcado en <b>${name}</b>.
+       Si nadie contesta, el reloj se detiene solo a las ${corte}.`;
+  }
   if(!idleOpen() && !otherOverlayOpen()){
     idleBack();
     ov.classList.add('is-open');
@@ -651,8 +692,9 @@ function idleNo(){
   if(!tr) return;
   document.getElementById('idle-ask').style.display = 'none';
   document.getElementById('idle-change').style.display = 'block';
-  document.getElementById('idle-change-sub').textContent =
-    `Se va a registrar desde las ${clock(lastSign(tr))}, la hora de la última palada.`;
+  document.getElementById('idle-change-sub').textContent = stateOf(tr.estado).produce
+    ? `Se va a registrar desde las ${clock(lastSign(tr))}, la hora de la última palada.`
+    : 'Se va a registrar desde ahora.';
   document.getElementById('idle-states').innerHTML = STATES.filter(s=>s.id !== tr.estado).map(s=>
     `<button class="btn-sec" style="--c:${s.col}" onclick="idlePick('${s.id}')">
       <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span></button>`).join('');
@@ -663,7 +705,7 @@ function idleBack(){
 }
 function idlePick(id){
   const tr = currentTramo();
-  if(tr) changeAt = { tramo: tr.id, t: lastSign(tr), until: Date.now() + 5*60000 };
+  if(tr && stateOf(tr.estado).produce) changeAt = { tramo: tr.id, t: lastSign(tr), until: Date.now() + 5*60000 };
   document.getElementById('ov-idle').classList.remove('is-open');
   pickState(id);
 }
@@ -676,13 +718,13 @@ function changeTime(cur){
   if(c && cur && c.tramo === cur.id && Date.now() < c.until && c.t >= cur.ini) return c.t;
   return Date.now();
 }
-/* Whatever is running when the shift changes (18:30) or ends (21:00) is
+/* Whatever is running when the shift changes (18:30) or ends (22:30 / 22:00) is
    closed right at that minute; the next operator starts fresh. */
 function watchShift(){
   const tr = currentTramo();
   if(!tr) return false;
   const d = dayStart(tr.ini);
-  for(const [min, why] of [[SHIFT_CHANGE, 'cambio de turno'], [SHIFT_END, 'fin de turno']]){
+  for(const [min, why] of [[SHIFT_CHANGE, 'cambio de turno'], [shiftEndMin(tr.ini), 'fin de turno']]){
     const b = d + min*60000;
     if(tr.ini < b && Date.now() >= b){
       tr.fin = b; tr.cierre = why; tr.mod = Date.now();
@@ -690,7 +732,7 @@ function watchShift(){
       save(); render();
       toast(why === 'cambio de turno'
         ? 'Cambio de turno 18:30: se cerró la actividad. El siguiente operador elige su nombre.'
-        : 'Fin del turno noche 21:00: se cerró la actividad.', true);
+        : `Fin del turno ${shiftEndLabel(tr.ini)}: se cerró la actividad.`, true);
       return true;
     }
   }
@@ -1325,17 +1367,60 @@ function mergeStates(local, remote){
       if(!r || !r.id) return;
       if(tomb[r.id] && tomb[r.id] >= (r.mod || 0)) return;
       const cur = out.get(r.id);
-      if(!cur || (r.mod || 0) > (cur.mod || 0)) out.set(r.id, r);
+      if(!cur){ out.set(r.id, r); return }
+      let win = (r.mod || 0) > (cur.mod || 0) ? r : cur;
+      const lose = win === r ? cur : r;
+      /* A phone that was asleep closes its stale copy at 18:30 or at the end of the shift and
+         that copy is newer, but the operator had already closed it earlier on
+         another phone: the real, earlier end wins over an automatic one. */
+      if(win.fin && lose.fin && lose.fin < win.fin && autoClosed(win))
+        win = Object.assign({}, win, { fin: lose.fin, cierre: lose.cierre });
+      out.set(r.id, win);
     };
     (R || []).forEach(put); (L || []).forEach(put);
     return [...out.values()];
   };
+  const paladas = pick(local.paladas, remote.paladas);
   return {
-    tramos:  pick(local.tramos,  remote.tramos),
-    paladas: pick(local.paladas, remote.paladas),
+    tramos:  normalizeTramos(pick(local.tramos, remote.tramos), paladas),
+    paladas,
     cargas:  pick(local.cargas,  remote.cargas),
     borrados: tomb,
   };
+}
+/* Closures the app made by itself, not the operator. */
+function autoClosed(t){ return !!t.cierre && t.cierre !== 'manual' && t.cierre !== 'camión listo' }
+/* There is one loader, so it is in one state at a time. Three rules keep the
+   hours honest even when two phones disagree or a stretch was left running:
+   1. a stretch ends, at the latest, where the next one starts;
+   2. a stretch ends, at the latest, at the end of the shift (22:30 Mon-Thu,
+      22:00 Fri-Sun); one opened in overtime ends 30 min after its last sign
+      of life (scoop, touch or "sí, sigo");
+   3. Triturando closed by the app (not the operator) ends 20 min after its
+      last scoop, the same rule as the "¿sigue tirando paladas?" window.
+   A stretch that changes gets a new `mod`, so every phone takes the fix. */
+function normalizeTramos(tramos, paladas){
+  const ts = (paladas || []).map(p=>p.t).sort((a,b)=>a - b);
+  const lastScoop = (a, b)=>{ let m = 0; for(const t of ts){ if(t >= a && t <= b) m = t; else if(t > b) break } return m };
+  const list = [...tramos].sort((a,b)=>a.ini - b.ini || String(a.id).localeCompare(String(b.id)));
+  const now = Date.now();
+  return list.map((t, i)=>{
+    if(t.fin == null) return t;
+    let fin = t.fin, cierre = t.cierre;
+    const next = list[i+1];
+    if(next && next.ini < fin){ fin = Math.max(t.ini, next.ini); if(autoClosed(t)) cierre = 'siguiente actividad' }
+    const finTurno = dayStart(t.ini) + shiftEndMin(t.ini)*60000;
+    if(lateTramo(t)){
+      const corte = Math.max(t.ini, t.visto || 0, lastScoop(t.ini, fin)) + LATE_CUT;
+      if(corte < fin){ fin = corte; cierre = 'por inactividad' }
+    } else if(fin > finTurno){ fin = finTurno; cierre = 'fin de turno' }
+    if(stateOf(t.estado).produce && autoClosed(t)){
+      const corte = Math.max(t.ini, lastScoop(t.ini, fin)) + IDLE_ASK;
+      if(corte < fin){ fin = corte; cierre = 'por inactividad' }
+    }
+    if(fin === t.fin && cierre === t.cierre) return t;
+    return Object.assign({}, t, { fin, cierre, mod: now });
+  });
 }
 function contentKey(st){
   const recs = l => (l || []).map(r=>recKey(r, true)).sort().join('\n');
@@ -1531,10 +1616,11 @@ load();
 takeSnapshot();
 /* The app may have been closed on Friday with a stretch still running. */
 (function cerrarColgados(){
-  if(watchShift()) return;         // closed at 18:30 or 21:00 of its own day
+  if(watchShift()) return;         // closed at 18:30 or at the end of the shift of its own day
   const tr = currentTramo();
   if(!tr) return;
-  if(dayStart(tr.ini) !== today()) closeAtMidnight(tr);
+  if(lateTramo(tr) && idleMs(tr) >= LATE_CUT) cutLate(tr);
+  else if(dayStart(tr.ini) !== today()) closeAtMidnight(tr);
   else if(stateOf(tr.estado).produce && idleMs(tr) >= IDLE_CUT) cutIdle(tr);
 })();
 render();
