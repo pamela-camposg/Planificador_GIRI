@@ -107,6 +107,12 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .date-nav button{ background:none; border:0; color:var(--tinta); width:28px; height:28px; font-size:15px; border-radius:4px; transition:.15s }
 .date-nav button:hover{ background:var(--neon) }
 #date-label{ font-size:12.5px; font-weight:500; min-width:210px; text-align:center }
+.rs-opt{ display:block; width:100%; text-align:left; border:1px solid var(--z200); border-radius:6px;
+  background:#fff; padding:.8rem .9rem; font-size:14px; font-family:inherit; color:var(--tinta) }
+.rs-opt[aria-pressed=true]{ background:var(--tinta); border-color:var(--tinta); color:#fff; font-weight:600 }
+.dock-filter{ border:1px solid var(--z200); border-radius:6px; background:#fff; padding:.45rem .6rem;
+  font-family:inherit; font-size:12.5px; color:var(--tinta); max-width:230px }
+.dock-filter.on{ border-color:var(--neon); background:var(--neon-suave); font-weight:600 }
 .switch{ display:inline-flex; border:1px solid var(--z200); border-radius:6px; padding:2px; background:#fff }
 .switch button{ border:0; background:none; padding:.4rem .95rem; font-size:12.5px; font-family:inherit; color:var(--z500); border-radius:4px; transition:.15s }
 .switch button:hover{ background:var(--z50); color:var(--tinta) }
@@ -185,15 +191,14 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
   background:#fff; padding:1px 6px; border:1px solid var(--z300) }
 
 /* A pickup is material leaving: hollow block with a thicker dashed edge */
-.block.is-pickup{ background:repeating-linear-gradient(90deg,#fff 0 9px,rgba(0,0,0,.03) 9px 18px)!important;
+.block.is-pickup{ background:repeating-linear-gradient(90deg,#fff 0 7px,rgba(0,0,0,.025) 7px 14px)!important;
   border-style:dashed; border-left-width:6px }
 .list-row.is-pickup{ background:repeating-linear-gradient(90deg,#fff 0 9px,rgba(0,0,0,.03) 9px 18px) }
 
 /* Arrival state: an arrived truck turns green, not just a small marker */
-.block.is-arrived{ background:#E7F4EC!important; border-color:#1E8E4E!important; border-left-width:6px }
+.block.is-arrived{ background:#F2F9F4!important; border-left-color:#1E8E4E!important }
 .block.is-arrived .b-customer{ color:#14663A }
-.block.is-arrived .b-waste{ color:#2F7A52 }
-.block.is-noshow{ background:var(--z100)!important; border-color:var(--z400)!important; border-style:dotted; color:var(--z500)!important }
+.block.is-noshow{ background:var(--z50)!important; border-left-color:var(--z400)!important; color:var(--z500)!important }
 .block.is-noshow .b-customer{ text-decoration:line-through; color:var(--z500) }
 .b-real{ display:block; font-size:9.5px; font-weight:700; letter-spacing:.08em }
 .b-ok{ position:absolute; right:3px; top:3px; width:15px; height:15px; border-radius:50%;
@@ -207,13 +212,13 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .b-tic:hover{ opacity:1!important; background:#1E8E4E; color:#fff; border-color:#1E8E4E }
 
 .now-line{ position:absolute; left:0; right:0; height:1px; background:var(--rojo); z-index:6; pointer-events:none }
-.now-line::before{ content:''; position:absolute; left:0; top:-2px; width:5px; height:5px; background:var(--rojo) }
+.now-line.is-first::before{ content:''; position:absolute; left:0; top:-2px; width:5px; height:5px; background:var(--rojo) }
 .ghost{ position:absolute; left:2px; right:2px; border:1px dashed var(--tinta); background:rgba(204,255,0,.35); z-index:7; pointer-events:none; display:none }
 
 /* ---------- BOOKING BLOCKS ---------- */
 .block{
   position:absolute; left:2px; right:16px; z-index:8; overflow:hidden;   /* 16px libres a la derecha: sirven para agendar otro movimiento a la misma hora */
-  border-radius:0; border:1px solid; border-left-width:4px; background:#fff;
+  border-radius:0; border:1px solid var(--z200); border-left:4px solid; background:#fff;
   padding:3px 5px; font-size:10.5px; line-height:1.25; user-select:none;
   cursor:grab; transition:box-shadow .15s;
 }
@@ -221,21 +226,19 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .block.is-dragging{ opacity:.4; cursor:grabbing }
 .block.is-tentative{ border-style:dashed; background:repeating-linear-gradient(135deg,#fff 0 6px,rgba(0,0,0,.035) 6px 12px) }
 .block.is-clash{ border-color:var(--rojo)!important; background:var(--rojoBg)!important; color:var(--rojo)!important }
-.block.is-clash .b-waste,.block.is-clash .b-meta{ color:var(--rojo) }
+.block.is-clash .b-customer{ color:var(--rojo) }
 .b-customer{ font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block }
 .b-waste{ display:block; color:var(--z600); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .b-meta{ display:block; color:var(--z400); font-size:9.5px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .b-short{ display:flex; gap:5px; align-items:baseline }
 .b-short .b-meta{ margin-left:auto }
 .b-warn{ position:absolute; right:3px; top:2px; font-size:11px; font-weight:700; color:var(--rojo) }
-/* Agendado con poca anticipación: franja lateral, sin robar espacio al texto. */
-.block.is-rush{ box-shadow:inset 3px 0 0 -1px #B26A00 }
-.b-rush{ position:absolute; right:3px; bottom:2px; font-size:9.5px; font-weight:700; color:#B26A00; letter-spacing:.04em }
+/* Agendado a última hora o cliente fuera de su punto: no se marcan en el
+   bloque. Están en el aviso de arriba, en la ficha y en el globito; poner
+   un ícono por cada cosa convertía la agenda en un tablero de símbolos. */
 .list-row.is-rush{ box-shadow:inset 0 0 0 1px #F0DCB4 }
-.block.is-offdock{ border-style:dashed }
-.b-flag{ position:absolute; left:3px; bottom:2px; font-size:9.5px; color:#B26A00 }
-.b-first{ position:absolute; right:14px; top:2px; font-size:9px; font-weight:700; color:#1E8E4E; letter-spacing:.02em }
-.block.is-clash .b-customer{ padding-right:26px }
+.b-first{ position:absolute; right:3px; top:2px; font-size:9px; font-weight:700; color:#1E8E4E; letter-spacing:.02em }
+.block.is-clash .b-customer{ padding-right:16px }
 .b-resize{ position:absolute; left:0; right:0; bottom:0; height:7px; cursor:ns-resize }
 .b-resize::after{ content:''; position:absolute; left:50%; bottom:2px; width:16px; height:2px; margin-left:-8px; background:currentColor; opacity:0; transition:.15s }
 .block:hover .b-resize::after{ opacity:.35 }
@@ -500,6 +503,9 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
             <button onclick="setView('semana')" aria-pressed="false">Semana</button>
           </div>
 
+          <select id="dock-filter" class="dock-filter" onchange="setDockFilter(this.value)"
+                  title="Ver un solo punto de descarga"></select>
+
           <div class="switch" id="move-switch" title="Muestra todo, solo lo que entra o solo lo que sale">
             <button onclick="setMoveFilter('todo')"    aria-pressed="true">Todo</button>
             <button onclick="setMoveFilter('ingreso')" aria-pressed="false">↓ Ingresos</button>
@@ -759,12 +765,38 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
   </div>
 </div>
 
+<!-- ══════════════ MODAL: MOTIVO (NO LLEGÓ / REPROGRAMACIÓN) ══════════════ -->
+<div class="overlay" id="ov-reason">
+  <div class="modal" style="width:440px">
+    <h3 id="rs-title">¿Por qué no llegó?</h3>
+    <div class="sub" id="rs-sub"></div>
+    <div class="sub" id="rs-note" style="margin-top:.5rem; color:var(--z600)"></div>
+    <div class="chips" id="rs-options" style="margin-top:1rem; flex-direction:column"></div>
+    <div class="field" id="rs-other" style="display:none">
+      <label>Escribe el motivo</label>
+      <input type="text" id="rs-text" placeholder="Ej: camión con falla mecánica">
+    </div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn secondary" id="rs-skip" onclick="cancelWhy()">Cancelar</button>
+      <button class="btn" onclick="confirmWhy()">Guardar motivo</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ MODAL: CLIENTES POR PUNTO ══════════════ -->
 <div class="overlay" id="ov-clients">
   <div class="modal" style="width:560px">
     <h3>Clientes por punto de descarga</h3>
     <div class="sub">Un cliente por línea. Si dejas un punto en blanco, acepta a cualquiera.
       Agendar un cliente fuera de su punto no queda prohibido: queda avisado y marcado.</div>
+    <div class="field">
+      <label style="color:#B26A00">Clientes con hora crítica
+        <i>— mandan cuando hay cruce, si las dos reservas se hicieron a tiempo</i></label>
+      <textarea id="cl-criticos" rows="3"
+        placeholder="Un cliente por línea. Solo los que de verdad no pueden cambiar de hora."></textarea>
+    </div>
+    <div class="form-section">Qué cliente va a qué punto</div>
     <div id="cl-list"></div>
     <div class="modal-actions">
       <button class="link-btn" onclick="fillFromHistory()"
@@ -840,7 +872,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v36 · 13-10-2026';
+const VERSION = 'v42 · 22-10-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -1001,6 +1033,8 @@ const BLOCK_REASONS = ['Colación','Mantención','Nave cerrada','Otro'];
 let view = 'day';
 /* Movement filter for the whole board: 'todo' | 'ingreso' | 'retiro' */
 let moveFilter = 'todo';
+/* 'todos' or the id of a single unloading point. */
+let dockFilter = 'todos';
 let day   = todayISO();                 // día visible en view Día
 let monday = mondayOf(new Date());      // monday of the visible week
 let editingId = null;                  // id of the booking being edited
@@ -1106,7 +1140,18 @@ function dockAllows(id, cliente){
 }
 function isOffDock(r){ return !dockAllows(r.nave, r.cliente) }
 
+/* ── Clients whose hour cannot move ───────────────────────────────────────
+   Some clients only have one window in the day. They are written down once,
+   in a list the plant keeps, so nobody can hand themselves priority from
+   the booking form. */
+function criticalClients(){ return (state.listas && state.listas.criticos) || [] }
+function isCritical(r){
+  const c = normName(r.cliente);
+  return !!c && criticalClients().some(x=>normName(x) === c);
+}
+
 function openClientsModal(){
+  document.getElementById('cl-criticos').value = criticalClients().join('\n');
   document.getElementById('cl-list').innerHTML = DOCKS.map(n=>{
     const l = dockClients(n.id);
     return `<div class="field">
@@ -1120,6 +1165,9 @@ function openClientsModal(){
   document.getElementById('ov-clients').classList.add('is-open');
 }
 function saveDockClients(){
+  const crit = document.getElementById('cl-criticos').value
+    .split('\n').map(normName).filter(Boolean);
+  state.listas.criticos = [...new Set(crit)];
   state.listas.porNave = state.listas.porNave || {};
   document.querySelectorAll('#cl-list .cl-box').forEach(t=>{
     const l = t.value.split('\n').map(normName).filter(Boolean);
@@ -1321,12 +1369,29 @@ function clashPossible(a, b){
   return !!dock(a.nave || b.nave).sharedFront;
 }
 
-/* Who gets to keep the slot: whoever booked it first. A booking created
-   before this feature existed has no `creado`, so it counts as the oldest. */
+/* ── Who keeps the slot when two movements cross ──────────────────────────
+   Three tests, in this order:
+     1. A booking made in time beats one made at the last minute. Planning
+        has to be worth something: whoever warns 30 minutes before does not
+        get to displace someone who warned three days before.
+     2. Between two bookings made in time, a client with a critical hour
+        beats one that can move.
+     3. Otherwise, whoever booked first.
+   `creado` is missing in records from before this existed, so they count as
+   the oldest and as booked in time. */
 function bookedOrder(r){ return r.creado || 0 }
+function onTime(r){ return !isRush(r) }
 function firstBooked(a, b){
+  if(onTime(a) !== onTime(b))           return onTime(a) ? a : b;
+  if(isCritical(a) !== isCritical(b))   return isCritical(a) ? a : b;
   if(bookedOrder(a) !== bookedOrder(b)) return bookedOrder(a) < bookedOrder(b) ? a : b;
   return a.id < b.id ? a : b;                 /* tie: stable, never arbitrary */
+}
+/* Says in words why one of them has to move, for the notice and the Excel. */
+function yieldReason(gana, cede){
+  if(onTime(gana) !== onTime(cede)) return `${gana.cliente} agendó a tiempo`;
+  if(isCritical(gana) !== isCritical(cede)) return `${gana.cliente} tiene hora crítica`;
+  return `${gana.cliente} agendó primero`;
 }
 
 function findClashes(){
@@ -1369,21 +1434,26 @@ function overlaps(fecha, naveId, ini, dur, ignorarId, probe){
 /* ══════════════════════════════════════════════════════════════════════════
    7 · RENDERING THE GRID
    ══════════════════════════════════════════════════════════════════════════ */
+function visibleDocks(){
+  return dockFilter==='todos' ? DOCKS : DOCKS.filter(n=>n.id===dockFilter);
+}
 function columns(){
   return view==='day'
-    ? DOCKS.map(n=>({ k:n.id, name:n.name, sub:'', hoy:false }))
+    ? visibleDocks().map(n=>({ k:n.id, name:n.name, sub:'', hoy:false }))
     : weekDays().map((f,i)=>({ k:f, name:DAY_ABBR[i], sub:shortDate(f), hoy:f===todayISO() }));
 }
 /* True when the booking passes the Todo / Ingresos / Retiros filter. */
 function passesMoveFilter(r){
   return moveFilter==='todo' || (r.tipo || 'ingreso') === moveFilter;
 }
+function passesDockFilter(r){ return dockFilter==='todos' || r.nave===dockFilter }
 function visibleBookings(){
   const inRange = view==='day'
     ? state.reservas.filter(r=>r.fecha===day)
     : state.reservas.filter(r=>weekDays().includes(r.fecha));
-  return inRange.filter(passesMoveFilter);
+  return inRange.filter(r=>passesMoveFilter(r) && passesDockFilter(r));
 }
+function setDockFilter(v){ dockFilter = v || 'todos'; render() }
 function columnKey(r){ return view==='day' ? r.nave : r.fecha }
 
 function render(){
@@ -1421,7 +1491,7 @@ function render(){
 
   const visible = visibleBookings();
 
-  cols.forEach(c=>{
+  cols.forEach((c, ci)=>{
     const col = document.createElement('div');
     col.className = 'col' + (c.hoy?' hoy-col':'');
     col.style.height = (SLOTS*ROW_H)+'px';
@@ -1433,7 +1503,10 @@ function render(){
       const ahora = new Date().getHours()*60 + new Date().getMinutes();
       if(ahora>=OPEN_MIN && ahora<=CLOSE_MIN){
         const l = document.createElement('div');
-        l.className='now-line'; l.style.top = ((ahora-OPEN_MIN)/STEP_MIN*ROW_H)+'px';
+        /* The line crosses the whole grid, but only the first column gets
+           the dot: one mark, not one per unloading point. */
+        l.className = 'now-line' + (ci===0 ? ' is-first' : '');
+        l.style.top = ((ahora-OPEN_MIN)/STEP_MIN*ROW_H)+'px';
         col.appendChild(l);
       }
     }
@@ -1589,9 +1662,8 @@ function makeBlock(r, lane, total){
     b.style.left  = `calc(${lane*width}% + 2px)`;
     b.style.right = `calc(${100-(lane+1)*width}% + ${lane===total-1?16:2}px)`;
   }
-  b.style.borderColor = n.col;
-  b.style.color = n.col;
-  if(!isClash && r.estado!=='tentativo' && !isPickup(r)) b.style.background = n.bg;
+  /* Only the 4px bar carries the colour of the unloading point. */
+  b.style.borderLeftColor = n.col;
   b.dataset.id = r.id;
   b.style.touchAction = 'none';
   const tt = totalTons(r);
@@ -1601,8 +1673,11 @@ function makeBlock(r, lane, total){
           + `${nTrucks>1?` · ${nTrucks} camiones`:''}${tt?` · ${fmtNum(tt)} t en total`:''}`
           + `${changeCount(r,'reprogramacion')?`\nReprogramado ${changeCount(r,'reprogramacion')} vez(ces)`:''}`
           + `\n${bookedText(r)}`
-          + `${clashYields.has(r.id) ? `\nSe cruza con ${clashWinner.get(r.id).cliente}, que agendó primero: este es el que debería moverse.` : ''}`
-          + `${clashes.has(r.id) && !clashYields.has(r.id) && !clashReason.has(r.id) ? '\nAgendó primero: tiene prioridad sobre el otro.' : ''}`
+          + `${clashYields.has(r.id) ? `\nEste es el que debería moverse: ${yieldReason(clashWinner.get(r.id), r)}.` : ''}`
+          + `${clashes.has(r.id) && !clashYields.has(r.id) && !clashReason.has(r.id) ? '\nTiene prioridad sobre el otro.' : ''}`
+          + `${isCritical(r) ? '\n★ Cliente con hora crítica.' : ''}`
+          + `${r.motivoNo ? `\nNo llegó: ${r.motivoNo}` : ''}`
+          + `${r.motivoReprog ? `\nSe reprogramó: ${r.motivoReprog}` : ''}`
           + `${isOffDock(r) ? `\n⚑ ${r.cliente} no está en la lista de ${n.name}.` : ''}`;
 
   const range = `${hhmm(r.ini)}–${hhmm(r.ini+r.dur)}`;
@@ -1624,16 +1699,14 @@ function makeBlock(r, lane, total){
       <span class="b-meta">${range}${extra?' · '+esc(extra):''}${naveTxt?' · '+esc(naveTxt):''}</span>
       ${txtReal?`<span class="b-real" style="color:${real==='nollego'?'var(--rojo)':'#1E8E4E'}">${txtReal}</span>`:''}`;
   }
-  if(isClash) b.insertAdjacentHTML('beforeend',
-    `<span class="b-warn" title="${esc(clashReason.get(r.id)||'Cruce de horario')}">!</span>`);
+  if(isClash && !(clashes.has(r.id) && !clashYields.has(r.id) && !clashReason.has(r.id)))
+    b.insertAdjacentHTML('beforeend',
+      `<span class="b-warn" title="${esc(clashReason.get(r.id)||'Cruce de horario')}">!</span>`);
   else if(real==='llego') b.insertAdjacentHTML('beforeend','<span class="b-ok" title="Llegó">✓</span>');
-  if(isRush(r) && r.dur>30) b.insertAdjacentHTML('beforeend',
-    `<span class="b-rush" title="${esc(bookedText(r))}">⏱</span>`);
-  if(isOffDock(r) && r.dur>30) b.insertAdjacentHTML('beforeend',
-    `<span class="b-flag" title="${esc(r.cliente)} no está en la lista de ${esc(n.name)}">⚑</span>`);
+  /* In a crossing, one mark on each: who keeps the slot and who moves. */
   if(clashes.has(r.id) && !clashYields.has(r.id) && !clashReason.has(r.id))
     b.insertAdjacentHTML('beforeend',
-      '<span class="b-first" title="Agendó primero: tiene prioridad">1º</span>');
+      '<span class="b-first" title="Tiene prioridad sobre el otro">1º</span>');
   b.insertAdjacentHTML('beforeend','<span class="b-resize" title="Estirar para cambiar la duración"></span>');
   if(real!=='llego' && !isClash){
     const tic = document.createElement('button');
@@ -1691,7 +1764,8 @@ function dropBooking(id, colK, slot){
   const before = {fecha:r.fecha, nave:r.nave, ini:r.ini};
   if(view==='day') r.nave = colK; else r.fecha = colK;
   r.ini = nuevoIni;
-  if(before.fecha!==r.fecha || before.nave!==r.nave || before.ini!==r.ini)
+  const movido = before.fecha!==r.fecha || before.nave!==r.nave || before.ini!==r.ini;
+  if(movido)
     logChange(r, 'reprogramacion',
               `${shortDate(before.fecha)} ${hhmm(before.ini)} ${dock(before.nave).name}`,
               `${shortDate(r.fecha)} ${hhmm(r.ini)} ${dock(r.nave).name}`);
@@ -1705,6 +1779,30 @@ function dropBooking(id, colK, slot){
   } else if(before.fecha!==r.fecha || before.nave!==r.nave || before.ini!==r.ini){
     toast(`${r.cliente} movido a ${dock(r.nave).name}, ${shortDate(r.fecha)} ${hhmm(r.ini)}.`);
   }
+  if(movido && needsReason(r)) pedirMotivoReprogramacion(r, before);
+}
+/* The reason belongs to the reschedule that just happened, so it is written
+   on its entry in the history. It cannot be skipped: either the reason is
+   given, or the change goes back to where it was. Nobody is trapped in the
+   window, and no reschedule is left without an explanation. */
+function pedirMotivoReprogramacion(r, antes){
+  setTimeout(()=>askWhy('reprogramacion', r,
+    motivo=>{
+      const h = (r.hist || []).filter(x=>x.tipo === 'reprogramacion').slice(-1)[0];
+      if(h) h.motivo = motivo;
+      r.motivoReprog = motivo;
+      save(); render();
+      toast(`Reprogramación registrada · ${motivo}.`);
+    },
+    ()=>{
+      if(!antes) return;
+      r.fecha = antes.fecha; r.nave = antes.nave; r.ini = antes.ini;
+      if(antes.dur != null) r.dur = antes.dur;
+      const i = (r.hist || []).map(x=>x.tipo).lastIndexOf('reprogramacion');
+      if(i >= 0) r.hist.splice(i, 1);
+      save(); render();
+      toast(`${r.cliente} volvió a ${shortDate(r.fecha)} ${hhmm(r.ini)}: la reprogramación se deshizo.`, true);
+    }), 300);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1718,7 +1816,7 @@ function renderMobileList(){
   let html = '';
 
   days.forEach(f=>{
-    const list = state.reservas.filter(r=>r.fecha===f && passesMoveFilter(r))
+    const list = state.reservas.filter(r=>r.fecha===f && passesMoveFilter(r) && passesDockFilter(r))
                      .sort((a,b)=> a.ini-b.ini || bookedOrder(a)-bookedOrder(b));
     if(view!=='day') html += `<div class="m-day">${DAY_NAMES[(fromISO(f).getDay()+6)%7]} ${shortDate(f)} · ${list.length} camion${list.length===1?'':'es'}</div>`;
     if(!list.length){
@@ -1729,7 +1827,7 @@ function renderMobileList(){
     list.forEach(r=>{
       const n = dock(r.nave), real = arrivalOf(r), tt = totalTons(r);
       const tag = real==='llego' ? '<span class="list-tag" style="color:#1E8E4E">LLEGÓ</span>'
-                : real==='nollego' ? '<span class="list-tag" style="color:var(--rojo)">NO LLEGÓ</span>'
+                : real==='nollego' ? `<span class="list-tag" style="color:var(--rojo)">NO LLEGÓ${r.motivoNo?` · ${esc(r.motivoNo.toUpperCase())}`:''}</span>`
                 : r.estado==='tentativo' ? '<span class="list-tag" style="color:var(--ambar)">POR CONFIRMAR</span>' : '';
       html += `<div class="list-row ${real==='llego'?'is-arrived':''} ${real==='nollego'?'is-noshow':''} ${clashes.has(r.id)?'is-clash':''} ${isPickup(r)?'is-pickup':''} ${isRush(r)?'is-rush':''}"
                     style="border-left-color:${real?'':n.col}">
@@ -1759,11 +1857,77 @@ function renderMobileList(){
 function markArrival(id, v){
   const r = state.reservas.find(x=>x.id===id);
   if(!r) return;
-  r.real = (arrivalOf(r)===v) ? null : v;
+  const nuevo = (arrivalOf(r)===v) ? null : v;
+  /* A walking floor of CDR that does not turn up is never just "no llegó":
+     somebody downstream stopped, and that is what has to be measured. */
+  if(nuevo === 'nollego' && needsReason(r)){
+    askWhy('nollego', r, motivo=>{
+      r.real = 'nollego'; r.motivoNo = motivo; save(); render();
+      toast(`${r.cliente}: no llegó · ${motivo}.`, true);
+    });
+    return;
+  }
+  r.real = nuevo;
+  if(nuevo !== 'nollego') delete r.motivoNo;
   save(); render();
   toast(r.real==='llego' ? `${r.cliente}: llegó.`
       : r.real==='nollego' ? `${r.cliente}: no llegó.`
       : `${r.cliente}: sin registrar.`);
+}
+
+/* ── Why it failed ────────────────────────────────────────────────────────
+   Only asked where the answer is actionable: a walking floor of CDR. The
+   reasons point at three different people, which is the whole point of
+   asking: the cement plant, the plant itself, or the carrier. */
+const REASONS = ['Cementera no puede recibir', 'Material CDR no disponible',
+                 'Transporte no disponible', 'Otros'];
+function needsReason(r){
+  if(!r) return false;
+  const items = itemsOf(r);
+  const piso = items.some(i=>String(i.fmt || '').toUpperCase() === 'PISO CAMINANTE');
+  const cdr  = r.nave === 'cdr' || items.some(i=>/^CDR/.test(String(i.r || '').toUpperCase()));
+  return piso && cdr;
+}
+let whySel = null, whyDone = null, whyCancel = null;
+function askWhy(kind, r, done, onCancel){
+  whySel = null; whyDone = done; whyCancel = onCancel || null;
+  document.getElementById('rs-title').textContent =
+    kind === 'nollego' ? '¿Por qué no llegó?' : '¿Por qué se reprogramó?';
+  document.getElementById('rs-sub').textContent =
+    `${r.cliente} · ${dock(r.nave).name} · ${shortDate(r.fecha)} ${hhmm(r.ini)}`;
+  document.getElementById('rs-text').value = '';
+  /* Both ways out are explicit about the cost of not giving a reason. */
+  document.getElementById('rs-skip').textContent =
+    kind === 'nollego' ? 'No marcar' : 'Deshacer el cambio';
+  document.getElementById('rs-note').textContent = 'El motivo es obligatorio: ' + (kind === 'nollego'
+    ? 'si no lo indicas, el camión queda sin marcar y sigue pendiente.'
+    : 'si no lo indicas, el movimiento vuelve a su hora anterior.');
+  renderWhyOptions();
+  document.getElementById('ov-reason').classList.add('is-open');
+}
+function renderWhyOptions(){
+  document.getElementById('rs-options').innerHTML = REASONS.map(m=>
+    `<button type="button" class="rs-opt" aria-pressed="${m===whySel}"
+       onclick="pickWhy('${m}')">${esc(m)}</button>`).join('');
+  document.getElementById('rs-other').style.display = whySel === 'Otros' ? 'block' : 'none';
+}
+function pickWhy(m){
+  whySel = m; renderWhyOptions();
+  if(m === 'Otros') setTimeout(()=>document.getElementById('rs-text').focus(), 40);
+}
+function confirmWhy(){
+  if(!whySel){ toast('Elige un motivo.', true); return }
+  const motivo = whySel === 'Otros'
+    ? (document.getElementById('rs-text').value.trim() || 'Otros')
+    : whySel;
+  const done = whyDone;
+  closeOverlay('ov-reason'); whyDone = whyCancel = null;
+  if(done) done(motivo);
+}
+function cancelWhy(){
+  const c = whyCancel;
+  closeOverlay('ov-reason'); whyDone = whyCancel = null;
+  if(c) c();
 }
 
 function hideHelp(){
@@ -1775,8 +1939,9 @@ function hideHelp(){
 
 function renderHeaderText(){
   const ds = weekDays();
-  const soloTxt = moveFilter==='ingreso' ? ' · solo ingresos'
-                : moveFilter==='retiro'  ? ' · solo retiros' : '';
+  const soloTxt = (dockFilter==='todos' ? '' : ' · ' + dock(dockFilter).name)
+    + (moveFilter==='ingreso' ? ' · solo ingresos'
+     : moveFilter==='retiro'  ? ' · solo retiros' : '');
   document.getElementById('view-title').textContent =
     (view==='day' ? 'Agenda del día' : 'Agenda de la semana') + soloTxt;
   document.getElementById('date-label').textContent = view==='day'
@@ -1809,7 +1974,8 @@ function renderClashNotice(){
     const mueve = list.filter(r=>clashYields.has(r.id));
     const quienes = list.map(r=>`${r.cliente} (${hhmm(r.ini)})`).join(' y ');
     const quien = mueve.length
-      ? ` — le toca moverse a <b>${esc(mueve.map(r=>r.cliente).join(', '))}</b>, agendó después`
+      ? ` — le toca moverse a <b>${esc(mueve.map(r=>r.cliente).join(', '))}</b>: `
+        + esc(yieldReason(clashWinner.get(mueve[0].id), mueve[0]))
       : '';
     return `<li>· <button onclick="goToBooking('${f}','${(mueve[0]||list[0]).id}')">${DAY_ABBR[(fromISO(f).getDay()+6)%7]} ${shortDate(f)} · ${dock(n).name}: ${esc(quienes)}</button>${quien}</li>`;
   }).join('');
@@ -1817,8 +1983,9 @@ function renderClashNotice(){
   box.className='on';
   box.innerHTML = `<b>Hay ${n} problema${n>1?'s':''} de horario.</b>
     Camiones que ocupan el mismo lugar a la misma hora, o que caen en un horario bloqueado.
-    (Los pallets y maxisacas van a patio, así que no compiten con granel ni piso caminante.)
-    Manda la hora el que agendó primero: arrastra el otro bloque.
+    (Los pallets y maxisacos van a patio, así que no compiten con granel ni piso caminante.)
+    Se queda con la hora quien agendó a tiempo; entre esos, el cliente con hora
+    crítica; y si están iguales, el que agendó primero. Arrastra el otro bloque.
     <ul>${items}${itemsBloq}</ul>`;
 }
 
@@ -1873,7 +2040,16 @@ function renderLoadByDock(){
     </div>`).join('');
 }
 
+function renderDockFilter(){
+  const sel = document.getElementById('dock-filter');
+  if(!sel) return;
+  sel.innerHTML = '<option value="todos">Todos los puntos</option>'
+    + DOCKS.map(n=>`<option value="${n.id}">${esc(n.name)}</option>`).join('');
+  sel.value = dockFilter;
+  sel.classList.toggle('on', dockFilter!=='todos');
+}
 function renderLegend(){
+  renderDockFilter();
   document.getElementById('dock-legend').innerHTML = DOCKS.map(n=>
     `<div class="legend-item"><span class="legend-swatch" style="background:${n.bg};border-color:${n.col}"></span>${n.name}</div>`).join('');
 }
@@ -1953,6 +2129,8 @@ function openBooking(id, pre){
   cre.className = 'm-created' + (r ? ' on' : '') + (r && isRush(r) ? ' is-rush' : '');
   cre.textContent = r
     ? bookedText(r) + (isRush(r) ? ' Es una recepción avisada con poca anticipación.' : '')
+      + (r.motivoNo ? ` No llegó: ${r.motivoNo}.` : '')
+      + (r.motivoReprog ? ` Última reprogramación: ${r.motivoReprog}.` : '')
     : '';
   document.getElementById('btn-save').textContent = r ? 'Guardar cambios' : 'Agendar';
   document.getElementById('btn-delete').style.display = r ? 'inline-flex' : 'none';
@@ -2227,13 +2405,14 @@ function checkClash(){
   } else if(ch.length){
     /* Whoever booked first keeps the slot, so say who would have to move. */
     const otro = ch[0];
-    const yoPrimero = editingId
-      && firstBooked(state.reservas.find(r=>r.id===editingId) || {id:editingId}, otro).id === editingId;
+    const esto = { id: editingId || 'nuevo', cliente: document.getElementById('f-customer').value.trim(),
+      fecha: f, ini, creado: (editingId && (state.reservas.find(r=>r.id===editingId)||{}).creado) || Date.now() };
+    const gana = firstBooked(esto, otro);
     box.className='modal-clash on';
     box.innerHTML = `<b>Cruce de horario.</b> ${esc(otro.cliente)} ya está en ${dock(dockSel).name}
       de ${hhmm(otro.ini)} a ${hhmm(otro.ini+otro.dur)}.
-      ${yoPrimero ? 'Este movimiento se agendó primero, así que tiene prioridad.'
-                  : `${esc(otro.cliente)} agendó primero: si lo dejas así, el que debería moverse es este.`}
+      ${gana.id === esto.id ? `Este movimiento tiene prioridad: ${esc(yieldReason(esto, otro))}.`
+                            : `El que debería moverse es este: ${esc(yieldReason(otro, esto))}.`}
       Puedes agendarlo igual: quedará marcado en rojo.`;
   } else if(overlaps(f, dockSel, ini, dur, editingId).length){
     /* Same hour and same dock, but they do not compete: say why. */
@@ -2299,10 +2478,14 @@ function saveBooking(){
   obj.residuo = obj.items.length ? obj.items[0].r : '';   /* kept for backwards compatibility */
   obj.ton = obj.items.reduce((s,i)=>s+i.t,0);
 
+  let seReprogramo = false, pasoANoLlego = false, antesDe = null;
   if(editingId){
     const prev = state.reservas.find(r=>r.id===editingId);
+    seReprogramo = prev.fecha!==obj.fecha || prev.ini!==obj.ini || prev.nave!==obj.nave;
+    if(seReprogramo) antesDe = { fecha:prev.fecha, nave:prev.nave, ini:prev.ini, dur:prev.dur };
+    pasoANoLlego = arrivalOf(prev) !== 'nollego' && obj.real === 'nollego';
     /* what changed, for the reschedule report */
-    if(prev.fecha!==obj.fecha || prev.ini!==obj.ini || prev.nave!==obj.nave)
+    if(seReprogramo)
       logChange(prev, 'reprogramacion',
                 `${shortDate(prev.fecha)} ${hhmm(prev.ini)} ${dock(prev.nave).name}`,
                 `${shortDate(obj.fecha)} ${hhmm(obj.ini)} ${dock(obj.nave).name}`);
@@ -2321,7 +2504,26 @@ function saveBooking(){
   obj.items.forEach(i=>remember('residuos', i.r));
   remember('quien',    obj.quien);
 
+  /* closeBooking() clears editingId, so the id is kept before closing. */
+  const idGuardado = editingId;
   save(); closeBooking(); render();
+  const guardada = (idGuardado && state.reservas.find(r=>r.id === idGuardado))
+                   || state.reservas[state.reservas.length-1];
+  /* Ask for the reason once the card is closed, so the question is the only
+     thing on screen. */
+  if(guardada && needsReason(guardada)){
+    if(pasoANoLlego) setTimeout(()=>askWhy('nollego', guardada, motivo=>{
+      guardada.motivoNo = motivo; save(); render();
+      toast(`${guardada.cliente}: no llegó · ${motivo}.`, true);
+    }), 300);
+    else if(seReprogramo) pedirMotivoReprogramacion(guardada, antesDe);
+  }
+  if(guardada && isRush(guardada)){
+    const h = leadHours(guardada);
+    setTimeout(()=>toast(h < 1
+      ? 'Queda como excepción: se agendó con menos de una hora de anticipación.'
+      : `Queda como excepción: se agendó con ${Math.round(h)} h de anticipación, menos de las 24 h.`, true), 2600);
+  }
   const ch = overlaps(obj.fecha, obj.nave, obj.ini, obj.dur, editingId, obj);
   const bq = blockingPeriod(obj.fecha, obj.nave, obj.ini, obj.dur);
   toast(bq ? `${obj.cliente} quedó dentro del horario de ${bq.motivo.toLowerCase()} (${hhmm(bq.ini)}–${hhmm(bq.ini+bq.dur)}).`
@@ -2362,10 +2564,15 @@ function closeOverlay(id){
   if(el) el.classList.remove('is-open');
   if(id==='ov') editingId = null;
 }
+/* The reason window is the one overlay that does not close by itself: it has
+   two ways out and both of them leave the data consistent. */
 document.querySelectorAll('.overlay').forEach(o=>
-  o.addEventListener('click', function(e){ if(e.target===this) closeOverlay(this.id) }));
+  o.addEventListener('click', function(e){
+    if(e.target===this && this.id!=='ov-reason') closeOverlay(this.id);
+  }));
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape') document.querySelectorAll('.overlay.is-open').forEach(o=>o.classList.remove('is-open'));
+  if(e.key==='Escape') document.querySelectorAll('.overlay.is-open')
+    .forEach(o=>{ if(o.id!=='ov-reason') o.classList.remove('is-open') });
   if(e.key==='Enter' && document.getElementById('ov').classList.contains('is-open')
      && e.target.tagName==='INPUT'){ e.preventDefault(); saveBooking() }
 });
@@ -2543,7 +2750,9 @@ const COLS_DETALLE = ['N° movimiento','Movimiento','Fecha','Día','Punto de des
   'Cantidad de fardos','Toneladas del residuo','Total del movimiento (t)','Cantidad de camiones',
   'Vehículo','Estado',
   'Agendado por','Fecha de agendamiento','Hora de agendamiento',
-  'Llegada','Reprogramaciones','Cambios de cantidad','Problema','Notas'];
+  'Excepción (menos de 24 h)','Hora crítica',
+  'Llegada','Motivo no llegó','Reprogramaciones','Motivo reprogramación',
+  'Cambios de cantidad','Problema','Notas'];
 
 function detailRows(list){
   const rows = [COLS_DETALLE.slice()];
@@ -2563,10 +2772,14 @@ function detailRows(list){
         parseFloat(it.t)||0, total, truckCount(r), r.veh||'',
         r.estado==='tentativo'?'Por confirmar':'Confirmado',
         r.quien||'', bookedDate(r), bookedClock(r),
+        r.creado ? (isRush(r) ? 'Sí' : 'No') : '',
+        isCritical(r) ? 'Sí' : '',
         arrivalOf(r)==='nollego' ? 'No llegó' : arrivalOf(r)==='llego' ? 'Llegó' : 'Sin registrar',
-        changeCount(r,'reprogramacion'), changeCount(r,'camiones'),
+        r.motivoNo || '',
+        changeCount(r,'reprogramacion'), r.motivoReprog || '',
+        changeCount(r,'camiones'),
         clashReason.get(r.id)
-          || (clashYields.has(r.id) ? `Cruce — debe moverse (${clashWinner.get(r.id).cliente} agendó primero)`
+          || (clashYields.has(r.id) ? `Cruce — debe moverse (${yieldReason(clashWinner.get(r.id), r)})`
           :  clashes.has(r.id)      ? 'Cruce — tiene prioridad, agendó primero' : ''),
         r.notas||''
       ]));
@@ -2578,7 +2791,8 @@ function detailRows(list){
 function summaryRows(list){
   const rows = [['Fecha','Día','Movimientos','Ingresos','Retiros','Camiones planificados',
                  'Llegaron','No llegaron','Sin registrar','Cumplimiento',
-                 'Toneladas planificadas','Reprogramaciones','Cambios de cantidad']];
+                 'Toneladas planificadas','Agendados con menos de 24 h',
+                 'Reprogramaciones','Cambios de cantidad']];
   const linea = (etiqueta, dia, l) => {
     const si  = l.filter(r=>arrivalOf(r)==='llego').length;
     const no  = l.filter(r=>arrivalOf(r)==='nollego').length;
@@ -2591,6 +2805,7 @@ function summaryRows(list){
       si, no, l.length-si-no,
       (si+no) ? Math.round(si/(si+no)*100)/100 : '',
       Math.round(l.reduce((s,r)=>s+totalTons(r),0)*10)/10,
+      l.filter(r=>isRush(r)).length,
       l.reduce((s,r)=>s+changeCount(r,'reprogramacion'),0),
       l.reduce((s,r)=>s+changeCount(r,'camiones'),0),
     ];
