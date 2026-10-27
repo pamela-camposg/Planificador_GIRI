@@ -408,11 +408,6 @@ table.sum td.ok{ color:var(--green) }
     </div>
     <p class="panel-sub">Toca el motivo y listo.</p>
     <div class="options grid2" id="stop-reasons"></div>
-    <div class="field" id="stop-other" style="display:none">
-      <label>Escribe el motivo</label>
-      <input type="text" id="stop-text" placeholder="Ej: espera de camión" onkeydown="if(event.key==='Enter') confirmStop()">
-    </div>
-    <button class="btn-confirm" id="stop-ok" onclick="confirmStop()" style="display:none;--c:var(--red)">Marcar detenido</button>
   </div>
 </div>
 
@@ -458,7 +453,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v28 · 27-10-2026';
+const VERSION = 'cdr v29 · 27-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -956,37 +951,22 @@ function undoScoop(){
 
 
 /* ── Stop reason ──────────────────────────────────────────────────────── */
-/* One tap on a reason marks the loader stopped. Only "Otro" asks for words. */
-let stopSel = null;
+/* One tap on a reason marks the loader stopped. "Otro" too: nothing is
+   typed by hand, so the sheet only ever holds the reasons in the list. */
 function openStopModal(){
-  stopSel = null;
-  document.getElementById('stop-text').value = '';
   renderStopReasons();
   document.getElementById('ov-stop').classList.add('is-open');
 }
 function renderStopReasons(){
   document.getElementById('stop-reasons').innerHTML = STOP_REASONS.map((r, i)=>
-    `<button type="button" class="opt" style="--c:${r === 'Checklist' ? stateOf('checklist').col : 'var(--red)'}" aria-pressed="${r===stopSel}" onclick="pickStopReason(${i})"><span class="dot"></span>${esc(r)}</button>`).join('');
-  const otro = stopSel === 'Otro';
-  document.getElementById('stop-other').style.display = otro ? 'block' : 'none';
-  document.getElementById('stop-ok').style.display = otro ? 'block' : 'none';
+    `<button type="button" class="opt" style="--c:${r === 'Checklist' ? stateOf('checklist').col : 'var(--red)'}" onclick="pickStopReason(${i})"><span class="dot"></span>${esc(r)}</button>`).join('');
 }
 function pickStopReason(i){
   const r = STOP_REASONS[i];
   /* Shown under Detenido because that is where the operator looks for a
      pause, but kept apart so it does not count as stopped time. */
   if(r === 'Checklist'){ closeOverlay('ov-stop'); setState('checklist'); return }
-  if(r !== 'Otro'){ closeOverlay('ov-stop'); setState('detenido', r); return }
-  stopSel = r; renderStopReasons();
-  document.getElementById('stop-text').focus();
-}
-function confirmStop(){
-  /* Kept as "Otro: …" so the sheet can be filtered by Otro and the new
-     causes reviewed to add them to the list. */
-  const txt = document.getElementById('stop-text').value.trim();
-  const motivo = txt ? `Otro: ${txt}` : 'Otro';
-  closeOverlay('ov-stop');
-  setState('detenido', motivo);
+  closeOverlay('ov-stop'); setState('detenido', r);
 }
 
 function closeOverlay(id){ const el = document.getElementById(id); if(el) el.classList.remove('is-open') }
@@ -1530,13 +1510,14 @@ function translateReason(m){
   const n = normReason(m);
   if(!n) return null;
   const hit = EXACT[n] || (RULES.find(([re])=>re.test(n)) || [])[1];
-  return hit || null;   // null = keep as "Otro: …"
+  return hit || null;   // null = Otro
 }
 
 /* Stop reasons typed by hand before the list existed are rewritten into the
    list, so the sheet reads the same way for every day. Checklists that were
    marked as "Detenido" become the Checklist activity. Records already in the
-   list, or already "Otro: …", are left alone, so this runs safely every time
+   list are left alone; anything else (also old "Otro: …" texts) becomes
+   plain "Otro", so this runs safely every time
    (also on records that arrive from a phone that still has an old version). */
 function migrateReasons(){
   let n = 0; const now = Date.now();
@@ -1544,10 +1525,10 @@ function migrateReasons(){
     if(t.estado !== 'detenido') return;
     const m = String(t.motivo || '').trim();
     if(m === 'Checklist'){ t.estado = 'checklist'; t.motivo = ''; t.mod = now; n++; return }
-    if(!m || STOP_REASONS.includes(m) || /^Otro(:|$)/.test(m)) return;
+    if(!m || STOP_REASONS.includes(m)) return;
     const r = translateReason(m);
     if(r === '__checklist'){ t.estado = 'checklist'; t.motivo = '' }
-    else t.motivo = r || `Otro: ${m}`;
+    else t.motivo = r || 'Otro';
     t.mod = now; n++;
   });
   return n;
