@@ -158,6 +158,9 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
 .btn-close{ background:var(--g50); border:none; border-radius:50%; width:30px; height:30px; flex:0 0 auto;
   display:flex; align-items:center; justify-content:center; color:var(--g500); font-size:16px; line-height:1 }
 .options{ display:flex; flex-direction:column; gap:5px }
+.options.grid2{ display:grid; grid-template-columns:1fr 1fr }
+.btn-sec[aria-pressed=true] .options.grid2 .opt{ padding:10px 9px; font-size:12px; line-height:1.25; min-height:52px }
+.options.grid2 .opt:last-child:nth-child(odd){ grid-column:1 / -1 }
 .opt{ --c:var(--amber); background:var(--g50); border:1.5px solid var(--g100); border-radius:var(--radius-sm); padding:11px 12px;
   font-size:13px; font-weight:600; color:var(--g800); text-align:left; width:100%; display:flex; align-items:center; gap:10px;
   transition:all .15s }
@@ -290,7 +293,7 @@ table.sum td.ok{ color:var(--green) }
     </g>
   </svg>
   <span class="topbar-sep"></span>
-  <div class="topbar-title">Registro CDR<br>Clasificación GIRI</div>
+  <div class="topbar-title">Registro CDR<br>Nave CDR</div>
   <button class="pill" id="sync-state" onclick="openSyncModal()"><span class="dot"></span><span id="sync-label">Guardado</span></button>
 </header>
 
@@ -404,7 +407,7 @@ table.sum td.ok{ color:var(--green) }
       <button class="btn-close" onclick="closeOverlay('ov-stop')" aria-label="Cerrar">✕</button>
     </div>
     <p class="panel-sub">Toca el motivo y listo.</p>
-    <div class="options" id="stop-reasons"></div>
+    <div class="options grid2" id="stop-reasons"></div>
     <div class="field" id="stop-other" style="display:none">
       <label>Escribe el motivo</label>
       <input type="text" id="stop-text" placeholder="Ej: espera de camión" onkeydown="if(event.key==='Enter') confirmStop()">
@@ -455,7 +458,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v18 · 20-10-2026';
+const VERSION = 'cdr v28 · 27-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -467,6 +470,7 @@ const STORE_KEY = 'giri_cdr_v1';
    Clasificación is time, not production, so there the button stays off.
    `camion` marks the state that means a truck is being loaded. */
 const STATES = [
+  { id:'checklist',  name:'Checklist',           col:'#2E8B8B', produce:false, first:true },   // first thing every shift
   { id:'triturando', name:'Triturando',          col:'#1B7A44', produce:true  },
   { id:'piso',       name:'Carga de camión',     col:'#1565C0', produce:false, camion:true },   // only a timer
   { id:'movimiento', name:'Movimiento material', col:'#8A6A2F', produce:false },
@@ -500,9 +504,9 @@ const DEFAULT_META = 120;
 function target(){ const m = Number(state.config && state.config.meta); return m > 0 ? m : DEFAULT_META }
 
 /* ── Shifts ────────────────────────────────────────────────────────────
-   Día until 18:30, noche from 18:30 to the end of the shift. At each boundary whatever is
+   Día until 17:30, noche from 17:30 to the end of the shift. At each boundary whatever is
    running is closed and the operator is asked again. */
-const SHIFT_CHANGE = 18*60 + 30;   // 18:30
+const SHIFT_CHANGE = 17*60 + 30;   // 17:30
 /* End of the shift: the clock-out time plus 30 minutes to close the nave
    (checklist, keys, radios). Monday to Thursday they clock out at 22:00, so
    the shift ends at 22:30; Friday at 21:30, so 22:00. Weekends use Friday's. */
@@ -527,7 +531,25 @@ function currentOperator(){
   return c.operador && c.operadorTurno === shiftKey(Date.now()) ? c.operador : '';
 }
 
-const STOP_REASONS = ['Atoro trituradora','Falla mecánica','Sin material','Colación','Cambio de turno','Otro'];
+/* Built from the reasons the operators typed by hand in "Otro" during
+   October (CDR Registro), grouped so the same cause is always written the
+   same way. "Otro" stays for anything new. Old records keep their text. */
+const STOP_REASONS = [
+  'Checklist',                 // recorded as the Checklist activity, not as a stop
+  'Atoro trituradora',
+  'Fierro o metales en el material',
+  'Colación',
+  'Break',
+  'Charla o reunión',
+  'Carga de petróleo',
+  'Recarga aceite hidráulico',
+  'Revisión o falla del equipo',
+  'Limpieza o aseo',
+  'Apoyo a camión',
+  'Sin material',
+  'Cambio de turno o fin de jornada',
+  'Otro',
+];
 
 /* ── The clock must not invent hours ──────────────────────────────────────
    While the loader is working a scoop lands every few minutes. If they stop
@@ -693,9 +715,9 @@ function idleNo(){
   document.getElementById('idle-ask').style.display = 'none';
   document.getElementById('idle-change').style.display = 'block';
   document.getElementById('idle-change-sub').textContent = stateOf(tr.estado).produce
-    ? `Se va a registrar desde las ${clock(lastSign(tr))}, la hora de la última palada.`
+    ? `${stateOf(tr.estado).name} se cierra a las ${clock(lastSign(tr))}, la hora de la última palada. La carga de camión parte desde ahora.`
     : 'Se va a registrar desde ahora.';
-  document.getElementById('idle-states').innerHTML = STATES.filter(s=>s.id !== tr.estado).map(s=>
+  document.getElementById('idle-states').innerHTML = STATES.filter(s=>s.id !== tr.estado && !s.first).map(s=>
     `<button class="btn-sec" style="--c:${s.col}" onclick="idlePick('${s.id}')">
       <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span></button>`).join('');
 }
@@ -718,7 +740,7 @@ function changeTime(cur){
   if(c && cur && c.tramo === cur.id && Date.now() < c.until && c.t >= cur.ini) return c.t;
   return Date.now();
 }
-/* Whatever is running when the shift changes (18:30) or ends (22:30 / 22:00) is
+/* Whatever is running when the shift changes (17:30) or ends (22:30 / 22:00) is
    closed right at that minute; the next operator starts fresh. */
 function watchShift(){
   const tr = currentTramo();
@@ -731,7 +753,7 @@ function watchShift(){
       closeTruck(b);
       save(); render();
       toast(why === 'cambio de turno'
-        ? 'Cambio de turno 18:30: se cerró la actividad. El siguiente operador elige su nombre.'
+        ? 'Cambio de turno 17:30: se cerró la actividad. El siguiente operador elige su nombre y marca el checklist.'
         : `Fin del turno ${shiftEndLabel(tr.ini)}: se cerró la actividad.`, true);
       return true;
     }
@@ -748,10 +770,15 @@ function openLoad(){ return state.cargas.find(c=>!c.fin) || null }
    clock of an activity stop when the loader stops doing it. */
 function setState(id, motivo, destino){
   const cur = currentTramo();
-  const now = changeTime(cur);
+  const cierre = changeTime(cur);
   if(cur && cur.estado === id && (cur.motivo||'') === (motivo||'')) return;   // already there
-  if(cur){ cur.fin = now; cur.cierre = 'manual'; cur.mod = now }
-  state.tramos.push({ id:uid('t'), estado:id, motivo:motivo||'', operador:currentOperator(), ini:now, fin:null, mod:now });
+  /* The previous activity may end back at the last scoop (20-minute window),
+     but a truck load always starts NOW: the truck is being loaded from the
+     moment the operator says so, and its stopwatch must start at 0:00:00.
+     The minutes in between stay without an activity. */
+  const now = stateOf(id).camion ? Date.now() : cierre;
+  if(cur){ cur.fin = cierre; cur.cierre = 'manual'; cur.mod = Date.now() }
+  state.tramos.push({ id:uid('t'), estado:id, motivo:motivo||'', operador:currentOperator(), ini:now, fin:null, mod:Date.now() });
   /* Loading the walking floor IS loading a truck: the load opens and closes
      with the state, so the operator has one less thing to remember. */
   if(stateOf(id).camion) openTruck(now, destino); else closeTruck(now);
@@ -782,7 +809,7 @@ function truckDone(){
 }
 function openNext(sub){
   document.getElementById('next-sub').textContent = sub || '';
-  document.getElementById('next-states').innerHTML = STATES.map(s=>
+  document.getElementById('next-states').innerHTML = STATES.filter(s=>!s.first).map(s=>
     `<button class="btn-sec" style="--c:${s.col}" onclick="closeOverlay('ov-next');pickState('${s.id}')">
       <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span></button>`).join('');
   document.getElementById('ov-next').classList.add('is-open');
@@ -939,19 +966,25 @@ function openStopModal(){
 }
 function renderStopReasons(){
   document.getElementById('stop-reasons').innerHTML = STOP_REASONS.map((r, i)=>
-    `<button type="button" class="opt" style="--c:var(--red)" aria-pressed="${r===stopSel}" onclick="pickStopReason(${i})"><span class="dot"></span>${esc(r)}</button>`).join('');
+    `<button type="button" class="opt" style="--c:${r === 'Checklist' ? stateOf('checklist').col : 'var(--red)'}" aria-pressed="${r===stopSel}" onclick="pickStopReason(${i})"><span class="dot"></span>${esc(r)}</button>`).join('');
   const otro = stopSel === 'Otro';
   document.getElementById('stop-other').style.display = otro ? 'block' : 'none';
   document.getElementById('stop-ok').style.display = otro ? 'block' : 'none';
 }
 function pickStopReason(i){
   const r = STOP_REASONS[i];
+  /* Shown under Detenido because that is where the operator looks for a
+     pause, but kept apart so it does not count as stopped time. */
+  if(r === 'Checklist'){ closeOverlay('ov-stop'); setState('checklist'); return }
   if(r !== 'Otro'){ closeOverlay('ov-stop'); setState('detenido', r); return }
   stopSel = r; renderStopReasons();
   document.getElementById('stop-text').focus();
 }
 function confirmStop(){
-  const motivo = document.getElementById('stop-text').value.trim() || 'Otro';
+  /* Kept as "Otro: …" so the sheet can be filtered by Otro and the new
+     causes reviewed to add them to the list. */
+  const txt = document.getElementById('stop-text').value.trim();
+  const motivo = txt ? `Otro: ${txt}` : 'Otro';
   closeOverlay('ov-stop');
   setState('detenido', motivo);
 }
@@ -975,6 +1008,17 @@ function toast(txt, malo){
 /* ══════════════════════════════════════════════════════════════════════════
    RENDERING
    ══════════════════════════════════════════════════════════════════════════ */
+/* ── Checklist of the shift ─────────────────────────────────────────────
+   No window: the operator just taps "Checklist". The button itself shows
+   whether it was done in this shift, so anyone can see it at a glance. */
+function shiftHasActivity(){
+  const [a, b] = shiftWindow(Date.now());
+  return state.tramos.some(t=>t.ini >= a && t.ini < b);
+}
+function checklistThisShift(){
+  const [a, b] = shiftWindow(Date.now());
+  return state.tramos.filter(t=>t.estado === 'checklist' && t.ini >= a && t.ini < b).sort((x,y)=>x.ini - y.ini)[0] || null;
+}
 function render(){
   if(watchShift()) return;
   renderOperator();
@@ -1082,10 +1126,11 @@ function renderLoad(){
 
 function renderStates(){
   const cur = currentTramo();
-  document.getElementById('states').innerHTML = STATES.map(s=>{
+  document.getElementById('states').innerHTML = STATES.filter(s=>!s.first).map(s=>{
     const on = !!cur && cur.estado === s.id;
-    return `<button class="btn-sec state-btn" aria-pressed="${on}" style="--c:${s.col}" onclick="pickState('${s.id}')">
-      <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span></button>`;
+    const extra = '';
+    return `<button class="btn-sec state-btn" aria-pressed="${on}" style="--c:${s.col}${s.first ? ';grid-column:1 / -1' : ''}" onclick="pickState('${s.id}')">
+      <span class="btn-icon-sm"></span><span class="btn-text-sm">${esc(s.name)}</span>${extra}</button>`;
   }).join('');
 }
 
@@ -1114,7 +1159,7 @@ function renderHistory(){
       </div>`;
     }
     const t = it.tr, s = stateOf(t.estado);
-    const fin = t.fin ? `hasta ${clock(t.fin)} · ${hm(t.fin - t.ini)}${t.cierre && t.cierre !== 'manual' ? ` · cerrado ${t.cierre}` : ''}` : 'En curso';
+    const fin = t.cierre === 'marcado' ? 'Checklist hecho' : t.fin ? `hasta ${clock(t.fin)} · ${hm(t.fin - t.ini)}${t.cierre && t.cierre !== 'manual' ? ` · cerrado ${t.cierre}` : ''}` : 'En curso';
     return `<div class="hist" style="--c:${s.col}">
       <div class="hist-info"><span class="hist-time">${dateCL(t.ini)} · ${clockS(t.ini)}</span>
         <span class="hist-op">▸ ${esc(s.name)}</span>
@@ -1160,7 +1205,7 @@ const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
 const GROUPS = [
   { id:'trit',  name:'Triturando',       col:'#B8DFC8', of:['triturando'] },
   { id:'carga', name:'Carga de camión',  col:'#B8D6E8', of:['piso'] },
-  { id:'otras', name:'Otras actividades',col:'#F5DDB8', of:['movimiento','apoyo','mantencion'] },
+  { id:'otras', name:'Otras actividades',col:'#F5DDB8', of:['checklist','movimiento','apoyo','mantencion'] },
   { id:'det',   name:'Detenido',         col:'#F2B8AC', of:['detenido'] },
 ];
 function stats(a, b){
@@ -1177,6 +1222,19 @@ function stats(a, b){
   o.msTotal = GROUPS.reduce((x, g)=>x + o.ms[g.id], 0);
   /* days worked and days that reached the target */
   const m = target();
+  /* Shifts worked and shifts with a checklist (day until 17:30, night after). */
+  o.turnos = 0; o.turnosCk = 0; const ckMs = [];
+  for(let t = dayStart(a); t < b; t = addDays(t, 1)){
+    [[t, t + SHIFT_CHANGE*60000], [t + SHIFT_CHANGE*60000, addDays(t, 1)]].forEach(([x, y])=>{
+      x = Math.max(x, a); y = Math.min(y, b); if(x >= y) return;
+      const tr = state.tramos.filter(q=>q.ini >= x && q.ini < y);
+      if(!tr.length) return;
+      o.turnos++;
+      const ck = tr.filter(q=>q.estado === 'checklist');
+      if(ck.length){ o.turnosCk++; ckMs.push(ck.reduce((z, q)=>z + ((q.fin || Date.now()) - q.ini), 0)) }
+    });
+  }
+  o.ckProm = ckMs.length ? ckMs.reduce((z, v)=>z + v, 0) / ckMs.length : null;
   o.dias = 0; o.diasOk = 0;
   for(let t = dayStart(a); t < b; t = addDays(t, 1)){
     const e = Math.min(addDays(t, 1), b);
@@ -1197,7 +1255,10 @@ function cardsHTML(st){
     <div class="cardk"><div class="k-lbl">Camiones cargados</div><div class="k-val">${st.camiones}</div>
       <div class="k-sub">${st.msPorCamion == null ? 'sin camiones' : hrs(st.msPorCamion) + ' promedio por camión'}</div></div>
     <div class="cardk"><div class="k-lbl">Tiempo detenido</div><div class="k-val">${hShort(st.ms.det)}</div>
-      <div class="k-sub">${pct(st.ms.det, st.msTotal)} del tiempo registrado</div></div>`;
+      <div class="k-sub">${pct(st.ms.det, st.msTotal)} del tiempo registrado</div></div>
+    <div class="cardk" style="grid-column:1 / -1"><div class="k-lbl">Checklist</div>
+      <div class="k-val">${st.turnosCk} de ${st.turnos} turnos</div>
+      <div class="k-sub">${st.turnos ? pct(st.turnosCk, st.turnos) + ' de los turnos lo marcaron' : 'sin turnos'}${st.ckProm ? ' · demora ' + hrs(st.ckProm) + ' en promedio' : ''}</div></div>`;
 }
 
 /* The bars for the chosen view. Days for "Sem. actual" and "14 días";
@@ -1248,7 +1309,7 @@ function renderSummary(){
     bars: bs.map(k=>{ const d = avg ? (k.st.dias || 1) : 1;
       const parts = GROUPS.map(g=>({ v: k.st.ms[g.id] / 3600000 / d, col: g.col, name: g.name }));
       const tot = parts.reduce((x, q)=>x + q.v, 0);
-      return { x:k.x, total:tot, label: tot ? fmtNum(tot) + ' h' : '', parts,
+      return { x:k.x, total:tot, label: tot ? fmtNum(tot) + (bs.length > 8 ? '' : ' h') : '', parts,
         tip: `${k.tip}: ` + parts.filter(q=>q.v > 0.005).map(q=>`${q.name} ${hrs(q.v*3600000)}`).join(' · ') || 'sin registro' } }),
   });
   document.getElementById('sum-note').innerHTML =
@@ -1265,7 +1326,8 @@ function drawBars(box, o){
   const bars = o.bars || [];
   if(!bars.length || !bars.some(b=>b.total > 0)){
     box.innerHTML = `<p class="chart-title">${esc(o.title)}</p><p class="empty">Sin datos en este período.</p>`; return }
-  const W = 340, H = 170, L = 6, R = 6, T = 18, B = 20;
+  const n0 = bars.length, twoLines = bars.some(b=>/ /.test(b.x));
+  const W = 340, H = twoLines ? 178 : 170, L = 6, R = 6, T = 18, B = twoLines ? 28 : 20;
   const max = niceMax(Math.max(o.meta ? o.meta * 1.15 : 0, ...bars.map(b=>b.total), 0.1));
   const n = bars.length, slot = (W - L - R) / n, bw = Math.max(6, slot - 3);
   const x = i => L + slot * i + (slot - bw) / 2, y = v => T + (H - T - B) * (1 - v / max);
@@ -1273,8 +1335,14 @@ function drawBars(box, o){
     let acc = 0;
     const rects = b.parts.filter(p=>p.v > 0).map(p=>{ const y0 = y(acc), y1 = y(acc + p.v); acc += p.v;
       return `<rect x="${x(i)}" y="${y1}" width="${bw}" height="${Math.max(0, y0 - y1 - (acc < b.total ? 1 : 0))}" fill="${p.col}"/>` }).join('');
-    return rects + (b.label ? `<text x="${x(i) + bw/2}" y="${y(b.total) - 5}" class="val" text-anchor="middle">${esc(b.label)}</text>` : '')
-      + `<text x="${x(i) + bw/2}" y="${H - 5}" class="xl" text-anchor="middle">${esc(b.x)}</text>`
+    /* Many bars: smaller value text. Two-word labels ("Mi 14") go on two lines. */
+    const small = n0 > 8 ? ' style="font-size:8.5px"' : '';
+    const [l1, l2] = String(b.x).split(' ');
+    const xl = l2 ? `<text x="${x(i) + bw/2}" y="${H - 15}" class="xl" text-anchor="middle">${esc(l1)}</text>
+        <text x="${x(i) + bw/2}" y="${H - 4}" class="xl" text-anchor="middle" style="font-weight:800;fill:var(--g800)">${esc(l2)}</text>`
+      : `<text x="${x(i) + bw/2}" y="${H - 5}" class="xl" text-anchor="middle">${esc(b.x)}</text>`;
+    return rects + (b.label ? `<text x="${x(i) + bw/2}" y="${y(b.total) - 5}" class="val" text-anchor="middle"${small}>${esc(b.label)}</text>` : '')
+      + xl
       + `<rect x="${L + slot*i}" y="0" width="${slot}" height="${H}" fill="transparent" class="hit" data-i="${i}"/>`;
   }).join('');
   const meta = o.meta ? `<line x1="${L}" x2="${W-R}" y1="${y(o.meta)}" y2="${y(o.meta)}" class="meta-line"/>
@@ -1370,7 +1438,7 @@ function mergeStates(local, remote){
       if(!cur){ out.set(r.id, r); return }
       let win = (r.mod || 0) > (cur.mod || 0) ? r : cur;
       const lose = win === r ? cur : r;
-      /* A phone that was asleep closes its stale copy at 18:30 or at the end of the shift and
+      /* A phone that was asleep closes its stale copy at 17:30 or at the end of the shift and
          that copy is newer, but the operator had already closed it earlier on
          another phone: the real, earlier end wins over an automatic one. */
       if(win.fin && lose.fin && lose.fin < win.fin && autoClosed(win))
@@ -1427,8 +1495,66 @@ function contentKey(st){
   return [recs(st.tramos), recs(st.paladas), recs(st.cargas),
           JSON.stringify(Object.keys(st.borrados||{}).sort())].join('\u0001');
 }
+/* Translation of the stop reasons typed by hand before v20. */
+const normReason = s => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+  .replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+const EXACT = {
+  'cheklist limpieza nave acopio material con minicargador gruas se dejan eatacionadas y cargando devolucion de llaves y radios cierre de sala control entrega de llaves a guardias': 'Cambio de turno o fin de jornada',
+  'limpieza cdr actualizar cheklist': 'Limpieza o aseo',
+  'cambio de maquina al farisin por problema de falta aceite hidraulico': 'Revisión o falla del equipo',
+  'se revisa aceite hidraulico y se encuentra critico': 'Recarga aceite hidráulico',
+  'se revisa la trituradora': 'Atoro trituradora',
+  'retiro d matetial en rueda del equipo': 'Limpieza o aseo',
+  'aseo en retiro d metales y retirar metales': 'Fierro o metales en el material',
+  'soa paladas del doosan y en triturar 11 minutos': 'Atoro trituradora',
+  '2 paladas doosan se demora en triturar 11 minutos': 'Atoro trituradora',
+  'entrega d epp': 'Charla o reunión',
+  'mover material d camones': 'Apoyo a camión',
+};
+const RULES = [
+  [/^(c?he[ck]{1,2}l|chec|chek|checm)/, '__checklist'],
+  [/atoro|tritur/, 'Atoro trituradora'],
+  [/fierro|metal|chatarra/, 'Fierro o metales en el material'],
+  [/colaci|almuerzo/, 'Colación'],
+  [/break/, 'Break'],
+  [/charla|reunion/, 'Charla o reunión'],
+  [/petrol|combustible|vombustible/, 'Carga de petróleo'],
+  [/aceite/, 'Recarga aceite hidráulico'],
+  [/falla|balde|garra|mantencion|engras|flexible/, 'Revisión o falla del equipo'],
+  [/limpieza|aseo/, 'Limpieza o aseo'],
+  [/cami|carga|caminante|acopia|ap0llo|apoyo/, 'Apoyo a camión'],
+  [/sin material/, 'Sin material'],
+  [/turno|jornada/, 'Cambio de turno o fin de jornada'],
+];
+function translateReason(m){
+  const n = normReason(m);
+  if(!n) return null;
+  const hit = EXACT[n] || (RULES.find(([re])=>re.test(n)) || [])[1];
+  return hit || null;   // null = keep as "Otro: …"
+}
+
+/* Stop reasons typed by hand before the list existed are rewritten into the
+   list, so the sheet reads the same way for every day. Checklists that were
+   marked as "Detenido" become the Checklist activity. Records already in the
+   list, or already "Otro: …", are left alone, so this runs safely every time
+   (also on records that arrive from a phone that still has an old version). */
+function migrateReasons(){
+  let n = 0; const now = Date.now();
+  state.tramos.forEach(t=>{
+    if(t.estado !== 'detenido') return;
+    const m = String(t.motivo || '').trim();
+    if(m === 'Checklist'){ t.estado = 'checklist'; t.motivo = ''; t.mod = now; n++; return }
+    if(!m || STOP_REASONS.includes(m) || /^Otro(:|$)/.test(m)) return;
+    const r = translateReason(m);
+    if(r === '__checklist'){ t.estado = 'checklist'; t.motivo = '' }
+    else t.motivo = r || `Otro: ${m}`;
+    t.mod = now; n++;
+  });
+  return n;
+}
 function applyMerged(m){
   state.tramos = m.tramos; state.paladas = m.paladas; state.cargas = m.cargas; state.borrados = m.borrados;
+  migrateReasons();
   /* Two phones could each leave a stretch open; keep only the newest. */
   const abiertos = state.tramos.filter(t=>!t.fin).sort((a,b)=>a.ini - b.ini);
   abiertos.slice(0, -1).forEach((t, i)=>{ t.fin = abiertos[i+1].ini });
@@ -1520,9 +1646,12 @@ async function syncWithSheet(manual){
   let ok = false;
   try{
     const remote = await readSheet(url);
+    /* Taken before merging: records are shared objects, and the reason
+       cleanup may rewrite them; the sheet must still get the new version. */
+    const remoteKey = contentKey(remote);
     const merged = mergeStates(state, remote);
     if(contentKey(merged) !== contentKey(state)) applyMerged(merged);
-    if(contentKey(merged) !== contentKey(remote)){
+    if(contentKey(merged) !== remoteKey){
       state.actualizado = Date.now();
       save(true);
       await writeSheet(url, JSON.stringify(payload()));
@@ -1614,9 +1743,10 @@ async function connectSheet(){
    ══════════════════════════════════════════════════════════════════════════ */
 load();
 takeSnapshot();
+if(migrateReasons()) save();
 /* The app may have been closed on Friday with a stretch still running. */
 (function cerrarColgados(){
-  if(watchShift()) return;         // closed at 18:30 or at the end of the shift of its own day
+  if(watchShift()) return;         // closed at 17:30 or at the end of the shift of its own day
   const tr = currentTramo();
   if(!tr) return;
   if(lateTramo(tr) && idleMs(tr) >= LATE_CUT) cutLate(tr);
