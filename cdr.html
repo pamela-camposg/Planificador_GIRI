@@ -453,7 +453,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v29 · 27-10-2026';
+const VERSION = 'cdr v30 · 27-10-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -1202,19 +1202,6 @@ function stats(a, b){
   o.msTotal = GROUPS.reduce((x, g)=>x + o.ms[g.id], 0);
   /* days worked and days that reached the target */
   const m = target();
-  /* Shifts worked and shifts with a checklist (day until 17:30, night after). */
-  o.turnos = 0; o.turnosCk = 0; const ckMs = [];
-  for(let t = dayStart(a); t < b; t = addDays(t, 1)){
-    [[t, t + SHIFT_CHANGE*60000], [t + SHIFT_CHANGE*60000, addDays(t, 1)]].forEach(([x, y])=>{
-      x = Math.max(x, a); y = Math.min(y, b); if(x >= y) return;
-      const tr = state.tramos.filter(q=>q.ini >= x && q.ini < y);
-      if(!tr.length) return;
-      o.turnos++;
-      const ck = tr.filter(q=>q.estado === 'checklist');
-      if(ck.length){ o.turnosCk++; ckMs.push(ck.reduce((z, q)=>z + ((q.fin || Date.now()) - q.ini), 0)) }
-    });
-  }
-  o.ckProm = ckMs.length ? ckMs.reduce((z, v)=>z + v, 0) / ckMs.length : null;
   o.dias = 0; o.diasOk = 0;
   for(let t = dayStart(a); t < b; t = addDays(t, 1)){
     const e = Math.min(addDays(t, 1), b);
@@ -1235,10 +1222,7 @@ function cardsHTML(st){
     <div class="cardk"><div class="k-lbl">Camiones cargados</div><div class="k-val">${st.camiones}</div>
       <div class="k-sub">${st.msPorCamion == null ? 'sin camiones' : hrs(st.msPorCamion) + ' promedio por camión'}</div></div>
     <div class="cardk"><div class="k-lbl">Tiempo detenido</div><div class="k-val">${hShort(st.ms.det)}</div>
-      <div class="k-sub">${pct(st.ms.det, st.msTotal)} del tiempo registrado</div></div>
-    <div class="cardk" style="grid-column:1 / -1"><div class="k-lbl">Checklist</div>
-      <div class="k-val">${st.turnosCk} de ${st.turnos} turnos</div>
-      <div class="k-sub">${st.turnos ? pct(st.turnosCk, st.turnos) + ' de los turnos lo marcaron' : 'sin turnos'}${st.ckProm ? ' · demora ' + hrs(st.ckProm) + ' en promedio' : ''}</div></div>`;
+      <div class="k-sub">${pct(st.ms.det, st.msTotal)} del tiempo registrado</div></div>`;
 }
 
 /* The bars for the chosen view. Days for "Sem. actual" and "14 días";
