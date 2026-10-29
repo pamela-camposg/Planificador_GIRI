@@ -76,7 +76,15 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 .bajada{ margin-top:.625rem; max-width:38rem; font-size:14px; line-height:1.625; color:var(--z500) }
 
 .layout{ display:grid; grid-template-columns:1fr; gap:1.5rem; align-items:start }
-@media (min-width:1240px){ .layout{ grid-template-columns:minmax(0,1fr) 280px } }
+@media (min-width:1040px){ .layout{ grid-template-columns:minmax(0,1fr) 260px } }
+@media (min-width:1300px){ .layout{ grid-template-columns:minmax(0,1fr) 280px } }
+/* Cuando no cabe al lado, las tres cajas se ponen en fila en vez de dejar
+   una columna larga y vacía bajo el calendario. */
+@media (max-width:1039px){
+  aside{ position:static; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.5rem }
+  .side-block + .side-block{ margin-top:0 }
+}
+@media (max-width:700px){ aside{ grid-template-columns:1fr } }
 
 /* ---------- CARDS ---------- */
 .card{ border:1px solid var(--z200); border-left:3px solid var(--z200); border-radius:8px; background:#fff; padding:1.25rem 1.5rem 1.5rem; transition:all .3s ease-in-out }
@@ -141,7 +149,15 @@ h1.premium-heading{ font-size:2.25rem; line-height:2.5rem; font-weight:500 }
 #dock-notice ul{ list-style:none; margin-top:.35rem; display:flex; flex-direction:column; gap:.2rem }
 #dock-notice li button{ background:none; border:0; padding:0; font-family:inherit; font-size:12.5px; color:#7A4A05; text-decoration:underline; text-underline-offset:2px }
 #clash-notice b{ font-weight:600 }
-#clash-notice ul{ list-style:none; margin-top:.35rem; display:flex; flex-direction:column; gap:.2rem }
+#clash-notice .cn-head{ display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap }
+#clash-notice .cn-hint{ color:#9C5A50; font-size:11.5px }
+#clash-notice .cn-toggle{ margin-left:auto; background:none; border:0; font-family:inherit;
+  font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#7B2318;
+  text-decoration:underline; text-underline-offset:3px; padding:0 }
+#clash-notice .cn-body{ display:none; margin-top:.6rem }
+#clash-notice.abierto .cn-body{ display:block }
+#clash-notice .cn-body p{ margin-bottom:.45rem }
+#clash-notice ul{ list-style:none; display:flex; flex-direction:column; gap:.2rem }
 #clash-notice li button{ background:none; border:0; padding:0; font-family:inherit; font-size:12.5px; color:#7B2318; text-decoration:underline; text-underline-offset:2px }
 
 /* =========================================================================
@@ -872,7 +888,7 @@ footer.footer{ border-top:1px solid var(--z200); background:#fff }
    │  Left empty, the planner still works, but each device keeps its own copy.│
    └──────────────────────────────────────────────────────────────────────────┘ */
 /* Shown in the footer: makes it obvious which file is published. */
-const VERSION = 'v42 · 22-10-2026';
+const VERSION = 'v43 · 29-10-2026';
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0s8-WtDRGzto8Wl2AhjlvDPemw9uFWkCijktv-dB8R4ymbB6tHc3l7EBnR91cOmoMXg/exec';
 
@@ -1957,6 +1973,8 @@ function renderHeaderText(){
       .setAttribute('aria-pressed', v===moveFilter));
 }
 
+let clashOpen = false;
+function toggleClashNotice(){ clashOpen = !clashOpen; renderClashNotice() }
 function renderClashNotice(){
   const box = document.getElementById('clash-notice');
   const visible = visibleBookings().filter(r=>clashes.has(r.id));
@@ -1980,13 +1998,23 @@ function renderClashNotice(){
     return `<li>· <button onclick="goToBooking('${f}','${(mueve[0]||list[0]).id}')">${DAY_ABBR[(fromISO(f).getDay()+6)%7]} ${shortDate(f)} · ${dock(n).name}: ${esc(quienes)}</button>${quien}</li>`;
   }).join('');
   const n = Object.keys(groups).length + enBloqueo.length;
-  box.className='on';
-  box.innerHTML = `<b>Hay ${n} problema${n>1?'s':''} de horario.</b>
-    Camiones que ocupan el mismo lugar a la misma hora, o que caen en un horario bloqueado.
-    (Los pallets y maxisacos van a patio, así que no compiten con granel ni piso caminante.)
-    Se queda con la hora quien agendó a tiempo; entre esos, el cliente con hora
-    crítica; y si están iguales, el que agendó primero. Arrastra el otro bloque.
-    <ul>${items}${itemsBloq}</ul>`;
+  /* One line by default. The whole explanation used to open on its own and
+     pushed the calendar down; the detail of each crossing is already in the
+     block's tooltip, so here it only opens if the person asks for it. */
+  box.className = 'on' + (clashOpen ? ' abierto' : '');
+  box.innerHTML = `
+    <div class="cn-head">
+      <b>Hay ${n} problema${n>1?'s':''} de horario.</b>
+      <span class="cn-hint">Pasa el mouse por un bloque rojo para ver por qué.</span>
+      <button class="cn-toggle" onclick="toggleClashNotice()">${clashOpen ? 'Ocultar' : 'Ver cuáles'}</button>
+    </div>
+    <div class="cn-body">
+      <p>Camiones que ocupan el mismo lugar a la misma hora, o que caen en un horario
+         bloqueado. Los pallets y maxisacos van a patio, así que no compiten con granel
+         ni piso caminante. Se queda con la hora quien agendó a tiempo; entre esos, el
+         cliente con hora crítica; y si están iguales, el que agendó primero.</p>
+      <ul>${items}${itemsBloq}</ul>
+    </div>`;
 }
 
 /* Customers booked at a dock that is not theirs. */
