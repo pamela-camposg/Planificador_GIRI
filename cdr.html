@@ -259,6 +259,11 @@ table.sum td.ok{ color:var(--green) }
 .chart .last{ font-family:'Roboto Mono',monospace; font-size:11px; font-weight:500; fill:var(--g800) }
 .chart .last.in{ fill:#fff; font-size:10.5px }
 .chart .hit{ cursor:pointer }
+.pareto{ display:grid; grid-template-columns:minmax(0,38%) 1fr auto; align-items:center; gap:7px 10px; margin-top:8px }
+.pareto .pl{ font-size:11.5px; font-weight:600; color:var(--g800); line-height:1.2 }
+.pareto .pb{ height:16px; background:var(--g100) }
+.pareto .pb i{ display:block; height:100%; background:#F2B8AC }
+.pareto .pv{ font-family:'Roboto Mono',monospace; font-size:11px; font-weight:500; color:var(--g800); text-align:right; white-space:nowrap }
 .tip{ position:absolute; background:#fff; color:var(--g800); border:1.5px solid var(--green-mid); font-size:11px; font-weight:600; padding:7px 10px; border-radius:var(--radius-sm); white-space:nowrap; pointer-events:none; box-shadow:var(--shadow); line-height:1.4 }
 
 /* ---------- IDLE POPUP ---------- */
@@ -359,6 +364,7 @@ table.sum td.ok{ color:var(--green) }
 
     <div class="chart" id="chart-pal"></div>
     <div class="chart" id="chart-hrs"></div>
+    <div class="chart" id="chart-causas"></div>
 
     <p class="note" id="sum-note"></p>
   </section>
@@ -453,7 +459,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v30 · 27-10-2026';
+const VERSION = 'cdr v31 · 03-11-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -1276,8 +1282,31 @@ function renderSummary(){
       return { x:k.x, total:tot, label: tot ? fmtNum(tot) + (bs.length > 8 ? '' : ' h') : '', parts,
         tip: `${k.tip}: ` + parts.filter(q=>q.v > 0.005).map(q=>`${q.name} ${hrs(q.v*3600000)}`).join(' · ') || 'sin registro' } }),
   });
+  drawCauses(document.getElementById('chart-causas'), bs[0].a, Math.min(bs[bs.length-1].b, addDays(dayStart(now),1)));
   document.getElementById('sum-note').innerHTML =
     `Meta: ${m} paladas por día · Paladas por hora = paladas ÷ horas triturando.<br>Toca una barra para ver el detalle.`;
+}
+
+/* Stop reasons for the chosen period, longest first (Pareto): the reason
+   at the top is where most loader time is lost. */
+const PERIOD_NAME = { sem:'semana actual', d14:'últimos 14 días', semanal:'últimas 8 semanas', mensual:'últimos 6 meses' };
+function hm(ms){ const m = Math.round((ms || 0) / 60000); return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')} hrs` }
+function drawCauses(box, a, b){
+  const by = {};
+  state.tramos.filter(t=>t.estado === 'detenido').forEach(t=>{
+    const ms = msIn(t, a, b); if(ms <= 0) return;
+    const k = t.motivo || 'Sin motivo';
+    by[k] = (by[k] || 0) + ms;
+  });
+  const rows = Object.entries(by).sort((x, y)=>y[1] - x[1]);
+  const title = `Causas de detención · ${PERIOD_NAME[period]}`;
+  if(!rows.length){ box.innerHTML = `<p class="chart-title">${esc(title)}</p><p class="empty">Sin detenciones en este período.</p>`; return }
+  const tot = rows.reduce((z, r)=>z + r[1], 0), max = rows[0][1];
+  box.innerHTML = `<p class="chart-title">${esc(title)}</p>
+    <p class="chart-sub">De mayor a menor tiempo detenido · total ${hm(tot)}</p>
+    <div class="pareto">${rows.map(([k, ms])=>`<span class="pl">${esc(k)}</span>
+      <span class="pb"><i style="width:${Math.max(1, ms / max * 100)}%"></i></span>
+      <span class="pv">${hm(ms)}</span>`).join('')}</div>`;
 }
 
 /* Bars anchored to zero, value written on top of each one, optional
