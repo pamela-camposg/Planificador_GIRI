@@ -1,0 +1,695 @@
+<title>Mantención GIRI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#CCFF00">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* Mismo sistema de diseño que Planificador GIRI: barra lima, tarjetas blancas con borde izquierdo,
+   Neo Sans / Barlow Semi Condensed. Contenedores grandes 8px; todo lo coloreado en ángulo recto o 6px como en el Planificador. Solo tema claro. */
+:root{
+  --neon:#CCFF00; --neon-suave:#FBFFE8; --tinta:#031716;
+  --z50:#FAFAFA; --z100:#F4F4F5; --z200:#E4E4E7; --z300:#D4D4D8;
+  --z400:#A1A1AA; --z500:#71717A; --z600:#52525B; --z700:#3F3F46;
+  --rojo:#C0392B; --rojoBg:#FCEDEB; --ambar:#B26A00; --ambarBg:#FFF8EC;
+  --verde:#1E8E4E; --verdeBg:#F2F9F4; --blanco:#FFFFFF;
+  --font:'Neo Sans','Neo Sans W01','Barlow Semi Condensed',system-ui,sans-serif;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{overflow-x:hidden}
+body{font-family:var(--font);background:var(--z100);color:var(--tinta);-webkit-font-smoothing:antialiased;font-size:13px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--neon)}
+::selection{background:var(--neon);color:var(--tinta)}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+
+.watermark{pointer-events:none;position:fixed;left:-277px;top:-18px;z-index:0;height:716px;width:716px;user-select:none;opacity:.17}
+.watermark img{height:100%;width:100%;object-fit:contain;display:block}
+
+header.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:60;background:var(--neon)}
+.topbar-in{margin:0 auto;max-width:1100px;display:flex;align-items:center;gap:1.25rem;min-height:4.5rem;padding-block:.6rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));flex-wrap:wrap}
+.topbar-in .logo{height:2rem;width:auto;display:block;flex:0 0 auto}
+.divider{height:2.25rem;width:1px;background:rgba(3,23,22,.25)}
+.app-title{min-width:0;line-height:1.25}
+.app-title p{margin:0}
+.app-title p:first-child{font-size:17px;font-weight:500;letter-spacing:-.01em}
+.app-title p:last-child{margin-top:.125rem;font-size:13px;color:rgba(3,23,22,.7)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:.625rem}
+.pill-top{display:flex;align-items:center;gap:.5rem;border-radius:6px;background:var(--tinta);color:var(--blanco);padding:.5rem .75rem;font-size:12px}
+.dot{width:6px;height:6px;border-radius:9999px;background:var(--neon);flex-shrink:0;animation:latir 2.4s ease-in-out infinite}
+@keyframes latir{0%,100%{opacity:1}50%{opacity:.35}}
+
+.canvas{position:relative;z-index:1;margin:0 auto;max-width:1100px;padding-block:2rem 3rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page-head{margin-bottom:1.25rem;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem}
+.lime-rule{display:block;height:3px;width:2.5rem;background:var(--neon);margin-bottom:1rem}
+h1{font-size:2.25rem;line-height:2.5rem;font-weight:500;letter-spacing:-.01em;margin:0;text-wrap:balance}
+.bajada{margin:.625rem 0 0;max-width:40rem;font-size:14px;line-height:1.6;color:var(--z500)}
+.switch{display:inline-flex;border:1px solid var(--z200);border-radius:6px;padding:2px;background:var(--blanco);flex-wrap:wrap}
+.switch a{text-decoration:none;padding:.45rem .95rem;font-size:13px;color:var(--z500);border-radius:4px;transition:.15s}
+.switch a:hover{background:var(--z50);color:var(--tinta)}
+.switch a[aria-current="page"]{background:var(--neon);color:var(--tinta);font-weight:500}
+
+.proto{margin:0 0 1.25rem;border:1px solid var(--z200);border-left:3px solid var(--neon);border-radius:0 6px 6px 0;background:var(--z50);padding:.7rem .95rem;font-size:12.5px;color:var(--z600)}
+
+.stack{display:flex;flex-direction:column;gap:1.25rem}
+.card{border:1px solid var(--z200);border-left:3px solid var(--z200);border-radius:8px;background:var(--blanco);padding:1.25rem 1.5rem 1.5rem;transition:border-color .3s,box-shadow .3s}
+.card:hover{border-left-color:var(--neon);box-shadow:0 8px 30px rgb(0 0 0 / .04)}
+.card-head{display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap}
+.fmtNum{display:inline-flex;height:1.25rem;min-width:1.5rem;padding:0 .3rem;align-items:center;justify-content:center;border-radius:3px;background:var(--z100);font-size:10px;font-weight:600;color:var(--z500);transition:.3s}
+.card:hover .fmtNum{background:var(--neon);color:var(--tinta)}
+.card h2{font-size:15px;font-weight:500;letter-spacing:-.01em;margin:0}
+.card-note{margin:.375rem 0 0;max-width:46rem;font-size:13px;line-height:1.6;color:var(--z500)}
+.tag{border-radius:4px;background:var(--z100);padding:.125rem .5rem;font-size:10px;font-weight:500;letter-spacing:.12em;color:var(--z500);text-transform:uppercase}
+.tag.crit{background:var(--tinta);color:var(--neon)}
+.tag.critB{background:var(--z100);color:var(--z600)}
+.head-right{margin-left:auto;font-size:12px;color:var(--z500)}
+
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-top:1rem}
+.kpi{border:1px solid var(--z200);border-radius:6px;padding:.8rem .9rem;background:var(--z50)}
+.kpi .n{font-size:28px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--z500);margin-top:.4rem}
+.kpi.bad .n{color:var(--rojo)}
+.kpi.ok .n{color:var(--verde)}
+
+.cap{margin-top:1rem}
+.caprow{display:flex;justify-content:space-between;gap:.75rem;align-items:center;flex-wrap:wrap;font-size:12.5px;margin-bottom:.45rem;color:var(--z600)}
+.caprow b{color:var(--tinta);font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--z100);position:relative;overflow:hidden}
+.bar>span{position:absolute;inset:0 auto 0 0;background:var(--neon)}
+.dock-filter{border:1px solid var(--z200);border-radius:6px;background:var(--blanco);padding:.4rem .55rem;font-size:12.5px;color:var(--tinta)}
+.notice{margin-top:1rem;border:1px solid #E6D5B0;border-left:3px solid var(--ambar);border-radius:0 6px 6px 0;background:var(--ambarBg);padding:.7rem .9rem;font-size:12.5px;color:#7A4A05}
+.notice b{font-weight:600}
+
+.tasks{margin-top:.9rem;border-top:1px solid var(--z200)}
+.task{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.5rem 1rem;padding:.8rem 0;border-bottom:1px solid var(--z200)}
+.task:last-child{border-bottom:none;padding-bottom:0}
+.task .d{font-size:14px;font-weight:500}
+.task .m{display:flex;flex-wrap:wrap;gap:.2rem .9rem;font-size:12px;color:var(--z500);margin-top:.2rem;font-variant-numeric:tabular-nums}
+.late{color:var(--rojo);font-weight:600}
+.soon{color:var(--ambar);font-weight:600}
+.task details{grid-column:1/-1;font-size:12.5px;color:var(--z600)}
+.task details p{margin:.35rem 0 0}
+.task summary{cursor:pointer;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--z400);width:max-content}
+.task summary:hover{color:var(--tinta)}
+.acts{display:flex;gap:.4rem;align-items:flex-start}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;background:var(--neon);color:var(--tinta);border:1px solid var(--neon);border-radius:6px;padding:.5rem 1rem;font-size:12.5px;font-weight:600;transition:.15s ease;white-space:nowrap}
+.btn:hover{background:var(--tinta);color:var(--neon);border-color:var(--tinta);transform:translateY(-1px)}
+.btn.secondary{background:var(--blanco);color:var(--tinta);border-color:var(--z200);font-weight:500}
+.btn.secondary:hover{border-color:var(--neon);background:var(--neon-suave);color:var(--tinta)}
+.link-btn{background:none;border:0;padding:2px 4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--z400)}
+.link-btn:hover{color:var(--tinta)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
+
+.motivos{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;font-size:12.5px;color:var(--z600)}
+.rs-opt{border:1px solid var(--z200);border-radius:6px;background:var(--blanco);padding:.45rem .75rem;font-size:12.5px;color:var(--tinta)}
+.rs-opt:hover{background:var(--tinta);border-color:var(--tinta);color:var(--blanco)}
+.done{grid-column:1/-1;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:12.5px;padding:.5rem .75rem;background:var(--verdeBg);border-left:3px solid var(--verde);color:#14663A}
+.done.no{background:var(--rojoBg);border-left-color:var(--rojo);color:#7B2318}
+.done input{width:110px;padding:.25rem .45rem;border:1px solid var(--z300);border-radius:4px;font-size:12.5px}
+
+.tscroll{overflow-x:auto;margin-top:.9rem}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--z500);text-align:left;padding:.55rem .6rem;background:var(--z50);border-bottom:1px solid var(--z200);white-space:nowrap}
+td{padding:.65rem .6rem;border-bottom:1px solid var(--z200);vertical-align:top}
+td.num,th.num{text-align:right}
+.minibar{width:80px;height:6px;background:var(--z100);position:relative;display:inline-block;vertical-align:middle;margin-right:.4rem}
+.minibar span{position:absolute;inset:0 auto 0 0;background:var(--neon)}
+.src{font-size:11.5px;color:var(--z500)}
+
+.help{margin-top:1rem;display:flex;flex-direction:column;gap:.55rem;font-size:13px;color:var(--z600);padding:0;list-style:none}
+.help li{display:flex;align-items:baseline;gap:.6rem}
+.help li b.k{font-weight:600;color:var(--tinta);font-size:10px;background:var(--neon);width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.help li span b{color:var(--tinta);font-weight:600}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem}
+.mail{border:1px solid var(--z200);border-radius:6px;overflow:hidden;background:var(--blanco)}
+.mail .mh{padding:.7rem .9rem;border-bottom:1px solid var(--z200);font-size:12px;color:var(--z500);display:grid;gap:.1rem;background:var(--z50)}
+.mail .mh b{color:var(--tinta);font-weight:600}
+.mail .mb{padding:.9rem;font-size:13px;display:grid;gap:.6rem}
+.mail ul{margin:0;padding-left:1.1rem;display:grid;gap:.2rem}
+.mail .alert{font-size:10px;font-weight:600;letter-spacing:.1em;padding:.1rem .4rem;background:var(--rojo);color:var(--blanco);margin-right:.4rem}
+.rule{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.6rem;align-items:start;font-size:13px;padding-block:.6rem;border-top:1px solid var(--z200)}
+.rule:first-child{border-top:none}
+.rule .sq{width:9px;height:9px;margin-top:.3rem;background:var(--rojo)}
+.rule .sq.y{background:var(--ambar)}
+.rule .sq.g{background:var(--neon);outline:1px solid var(--tinta)}
+.rules{margin-top:.6rem}
+.hbars{display:grid;gap:.5rem;margin-top:.9rem}
+.hb{display:grid;grid-template-columns:150px minmax(0,1fr) 28px;gap:.6rem;align-items:center;font-size:12.5px}
+.empty{font-size:13px;color:var(--z500);margin:.9rem 0 0}
+
+@media (max-width:640px){
+  h1{font-size:1.75rem;line-height:2rem}
+  .topbar-in{gap:.75rem;min-height:3.75rem}
+  .topbar-in .logo{height:1.5rem}
+  .divider{height:1.75rem}
+  .app-title p:last-child{display:none}
+  .card{padding:1rem 1rem 1.15rem}
+  .kpis{gap:.5rem}
+  .kpi{padding:.6rem}
+  .kpi .n{font-size:22px}
+  .task{grid-template-columns:minmax(0,1fr)}
+  .split{grid-template-columns:minmax(0,1fr)}
+  .hb{grid-template-columns:110px minmax(0,1fr) 24px}
+  .head-right{display:none}
+  .watermark{opacity:.1}
+}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}.btn:hover{transform:none}}
+</style>
+<style>
+.confirm{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.5rem .75rem;align-items:flex-end;padding:.65rem .75rem;background:var(--neon-suave);border-left:3px solid var(--neon)}
+.confirm label{display:grid;gap:.2rem;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--z500)}
+.confirm input{width:150px;padding:.4rem .5rem;border:1px solid var(--z300);border-radius:4px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--tinta)}
+.confirm input.wide{width:240px}
+.rowlink{cursor:pointer}
+.rowlink:hover td{background:var(--neon-suave)}
+.rowlink td b{text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--z300)}
+.back{display:inline-flex;align-items:center;gap:.35rem;font-size:12px;color:var(--z500);text-decoration:none;margin-bottom:.25rem}
+.back:hover{color:var(--tinta)}
+.estado{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.1rem .4rem;white-space:nowrap}
+.estado.v{background:var(--rojoBg);color:var(--rojo)}
+.estado.p{background:var(--ambarBg);color:var(--ambar)}
+.estado.a{background:var(--verdeBg);color:var(--verde)}
+.estado.s{background:var(--z100);color:var(--z500)}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tinta);color:var(--blanco);padding:.6rem 1rem;border-radius:6px;font-size:13px;z-index:80;max-width:calc(100% - 32px)}
+.toast.err{background:var(--rojo)}
+.pill-top{cursor:pointer;border:0;font-family:inherit}
+.reglist{margin:.9rem 0 0;padding:0;list-style:none;border-top:1px solid var(--z200)}
+.reglist li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.6rem;padding:.55rem 0;border-bottom:1px solid var(--z200);font-size:12.5px;align-items:baseline}
+.reglist .when{color:var(--z500);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ok-t{color:var(--verde);font-weight:600}
+.refman{color:var(--z500);white-space:nowrap}
+
+footer.footer{position:relative;z-index:1;border-top:1px solid var(--z200);background:#fff}
+.footer-in{margin:0 auto;max-width:1100px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;padding-block:1.5rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:12px;color:var(--z400)}
+.toast{background:var(--green);color:#fff;font-weight:600}
+.bar.avance-sem{height:10px;border-radius:5px}
+.bar.avance-sem>span{background:var(--green);border-radius:5px}
+.toast.err{background:var(--rojo)}
+
+/* "Cómo hacerlo": botón desplegable */
+details.como{grid-column:1/-1;margin-top:.15rem}
+details.como>summary{list-style:none;display:inline-flex;align-items:center;gap:.45rem;cursor:pointer;user-select:none;
+  padding:.45rem .8rem .45rem .55rem;border:1px solid var(--z200);border-radius:999px;background:var(--z50);
+  font-size:12.5px;font-weight:600;letter-spacing:.02em;text-transform:none;color:var(--z700);width:auto;transition:background .15s,border-color .15s}
+details.como>summary::-webkit-details-marker{display:none}
+details.como>summary:hover{border-color:var(--neon);background:var(--neon-suave);color:var(--tinta)}
+details.como[open]>summary{background:var(--neon-suave);border-color:var(--neon);color:var(--tinta)}
+.como-ic{width:22px;height:22px;border-radius:50%;background:var(--neon);color:var(--tinta);display:inline-flex;align-items:center;justify-content:center}
+.como-ic svg{width:13px;height:13px}
+.como-chev{display:inline-flex;color:var(--z400);transition:transform .2s}
+.como-chev svg{width:14px;height:14px}
+details.como[open] .como-chev{transform:rotate(180deg);color:var(--tinta)}
+.como-body{margin-top:.55rem;border:1px solid var(--z200);border-left:3px solid var(--neon);border-radius:8px;background:#fff;padding:.75rem .9rem;display:grid;gap:.55rem}
+.como-body p{margin:0;font-size:14px;line-height:1.5;color:var(--tinta)}
+.como-ref{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;font-size:12px;color:var(--z600);background:var(--z50);border-radius:6px;padding:.35rem .6rem;width:fit-content;max-width:100%}
+.como-ref i{font-style:normal;color:var(--z400)}
+.como-doc{display:inline-flex;color:var(--z500)}
+.como-doc svg{width:14px;height:14px}
+@media (max-width:640px){ details.como>summary{padding:.6rem .95rem .6rem .6rem;font-size:13.5px} .como-body p{font-size:15px} }
+.modal{position:fixed;inset:0;z-index:90;background:rgba(3,23,22,.45);display:flex;align-items:center;justify-content:center;padding:20px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px))}
+.modal[hidden]{display:none}
+.modal-box{background:#fff;border-radius:16px;width:100%;max-width:380px;padding:24px 20px 20px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal-ic{width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center}
+.modal-ic svg{width:28px;height:28px}
+.modal-box h3{margin:0;font-size:19px;font-weight:600;line-height:1.3}
+.modal-tarea{margin:.6rem 0 0;font-size:16px;color:var(--z600);line-height:1.4}
+.modal-btns{display:grid;gap:10px;margin-top:20px}
+.btn-si{min-height:56px;border-radius:12px;border:2px solid var(--green-dark);background:var(--green);color:#fff;font-size:16px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
+.btn-cancelar{min-height:50px;border-radius:12px;border:1.5px solid var(--z300);background:#fff;color:var(--z600);font-size:15px;cursor:pointer}
+body.con-modal{overflow:hidden}
+/* Botones Hecha / No hecha: mismo estilo que la app de Detenciones */
+:root{--green:#00873D;--green-dark:#006830;--green-light:#E8F5EE;--green-mid:#B8DFC8;--red-dark:#922B21;--red-light:#FDF0EE;--red-mid:#F1A9A0}
+.btn-accion{border-radius:16px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:112px;min-height:76px;padding:10px 12px;border:2px solid transparent;cursor:pointer;user-select:none;transition:background .15s,transform .1s}
+.btn-accion:active{transform:scale(.96)}
+.btn-icono{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+.btn-icono svg{width:18px;height:18px}
+.btn-texto{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.2}
+.btn-andar{background:var(--green-light);border-color:var(--green-mid)}
+.btn-andar .btn-icono{background:var(--green)}
+.btn-andar .btn-texto{color:var(--green)}
+.btn-andar:hover,.btn-andar.activo{background:var(--green);border-color:var(--green-dark)}
+.btn-andar:hover .btn-texto,.btn-andar.activo .btn-texto{color:#fff}
+.btn-andar:hover .btn-icono,.btn-andar.activo .btn-icono{background:rgba(255,255,255,.2);box-shadow:none}
+.btn-parar{background:var(--red-light);border-color:var(--red-mid)}
+.btn-parar .btn-icono{background:var(--rojo)}
+.btn-parar .btn-texto{color:var(--rojo)}
+.btn-parar:hover,.btn-parar.activo{background:var(--rojo);border-color:var(--red-dark)}
+.btn-parar:hover .btn-texto,.btn-parar.activo .btn-texto{color:#fff}
+.btn-parar:hover .btn-icono,.btn-parar.activo .btn-icono{background:rgba(255,255,255,.2);box-shadow:none}
+.btn-guardar{border-radius:12px;background:var(--green);border:2px solid var(--green-dark);color:#fff;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;padding:.7rem 1.4rem;cursor:pointer}
+.btn-guardar:hover{background:var(--green-dark)}
+@media (max-width:640px){.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+
+.confirm{background:var(--green-light);border-left-color:var(--green)}
+.rs-opt{border-radius:8px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--rojo);font-weight:600}
+.rs-opt:hover{background:var(--rojo);border-color:var(--red-dark);color:#fff}
+.done{background:var(--green-light);border-left-color:var(--green);color:var(--green-dark)}
+.done.no{background:var(--red-light);border-left-color:var(--rojo);color:var(--red-dark)}
+@media (max-width:640px){
+  .acts .btn-accion{min-height:84px;width:100%}
+  .btn-icono{width:40px;height:40px}
+  .btn-texto{font-size:12px}
+  .confirm .btn-guardar{min-height:50px;font-size:14px}
+}
+
+.tag.crit{background:var(--rojoBg);color:var(--rojo)}
+.tag{white-space:nowrap}
+.eqlist{display:none;margin:.9rem 0 0;padding:0;list-style:none;border-top:1px solid var(--z200)}
+.eqlist li{border-bottom:1px solid var(--z200)}
+.eqlist a{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.25rem .75rem;padding:.75rem 0;text-decoration:none;color:var(--tinta)}
+.eqlist .nm{font-size:14px;font-weight:600}
+.eqlist .sub{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.2rem .8rem;font-size:12px;color:var(--z500);align-items:center}
+.eqlist .chev{color:var(--z400);font-size:18px;line-height:1}
+@media (max-width:640px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .topbar-in{min-height:3.25rem;flex-wrap:nowrap;gap:.6rem}
+  .topbar-in .logo{height:1.3rem}
+  .divider{height:1.4rem}
+  .app-title p:first-child{font-size:15px;white-space:nowrap}
+  .pill-top{padding:.35rem .55rem;font-size:11px;white-space:nowrap}
+  .canvas{padding-block:1rem 1.5rem}
+  .page-head{margin-bottom:.75rem}
+  .lime-rule{margin-bottom:.6rem}
+  h1{font-size:1.5rem;line-height:1.8rem}
+  .bajada{margin-top:.25rem;font-size:13px}
+  .proto{font-size:12px;padding:.55rem .75rem;margin-bottom:.9rem}
+  .stack{gap:.9rem}
+  .card-note{font-size:12.5px}
+  .switch{position:fixed;left:0;right:0;bottom:0;z-index:65;display:grid;grid-template-columns:repeat(3,1fr);border:0;border-top:1px solid var(--z200);border-radius:0;padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px));gap:6px;box-shadow:0 -6px 20px rgb(0 0 0 / .05)}
+  .switch a{text-align:center;padding:.8rem .25rem;font-size:14px;font-weight:500}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+  .acts .btn{min-height:46px;font-size:14px}
+  .acts:empty{display:none}
+  .confirm{display:grid;grid-template-columns:1fr}
+  .confirm input,.confirm input.wide{width:100%;min-height:42px;font-size:16px}
+  .confirm .btn{min-height:46px;font-size:14px}
+  .motivos{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+  .motivos>span{grid-column:1/-1}
+  .rs-opt{min-height:44px;font-size:13px}
+  .link-btn{padding:.6rem .4rem}
+  .task summary{padding:.35rem 0}
+  .eqtable{display:none}
+  .eqlist{display:block}
+}
+
+.no-t{color:var(--rojo);font-weight:600}
+</style>
+
+<div aria-hidden="true" class="watermark"><img alt="" src="data:image/png;base64,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"></div>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <img class="logo" alt="Ambipar" src="data:image/png;base64,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">
+    <span class="divider"></span>
+    <div class="app-title"><p>Mantención GIRI</p><p>GIRI - Chile</p></div>
+    <div class="topbar-right"><button class="pill-top" id="sync-state" title="Estado de la conexión con la planilla"><span class="dot" id="sync-dot"></span><span id="sync-label">Cargando</span></button></div>
+  </div>
+</header>
+
+<div class="canvas">
+  <div class="page-head">
+    <div><span class="lime-rule"></span><h1>Mantención preventiva</h1><p class="bajada" id="hoy"></p></div>
+    <nav class="switch" aria-label="Secciones">
+      <a href="#semana" data-v="semana">Esta semana</a>
+      <a href="#equipos" data-v="equipos">Equipos</a>
+      <a href="#resumen" data-v="resumen">Resumen</a>
+    </nav>
+  </div>
+  <p class="proto" id="demo-note" hidden>Modo demostración: la app no está conectada a la planilla. Funciona con los datos del maestro y lo que marques queda solo en este dispositivo.</p>
+  <main id="app" class="stack"></main>
+  <div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-t"></div>
+</div>
+
+<footer class="footer">
+  <div class="footer-in">
+    <span>Ambipar Chile - GIRI - Mantención Preventiva</span>
+    <span id="version">Inteligencia Circular LATAM</span>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   MANTENCIÓN GIRI · versión 1 (frecuencias por calendario)
+   · La planilla Google (hojas Equipos, Tareas, Registros, Config) es la fuente.
+   · Todo se guarda primero en el teléfono y se envía a la planilla; si no hay
+     conexión, queda en cola y se reintenta solo.
+   · Los registros nunca se borran: "Deshacer" marca el registro como anulado.
+   ══════════════════════════════════════════════════════════════════════════ */
+const VERSION = 'mantencion v1.21 · 29-10-2026';
+
+/* Pega aquí la dirección /exec del Apps Script de mantención, una vez publicado.
+   Vacía = modo demostración con los datos del maestro. */
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyJJaGMbioyLsx9GckAW9bBhZCzf8jKRD0N-qv3IbxsClV4reSKh_zOzexeUJGVg3o/exec';
+
+const STORE_KEY = 'giri_mantencion_v1';
+const DIA = 86400000;
+const MIN_DEF = 30;   // minutos supuestos para tareas sin tiempo cargado
+const TIPO = {M:'Mecánica',E:'Eléctrica',L:'Lubricación','Mecánica':'Mecánica','Eléctrica':'Eléctrica','Lubricación':'Lubricación'};
+const FUENTE = {linea:'Horas de la línea', cdr:'Horas del CDR', enf:'Horómetro enfardadora', faresin:'Horas del Faresín', doosan:'Horas del Doosan', minicarg1:'Horas del minicargador 1', minicarg2:'Horas del minicargador 2', calendario:'Calendario'};
+const MOTIVOS_DEF = ['Equipo en operación','Falta repuesto o insumo','Falta de tiempo','Atendiendo falla','Otro'];
+
+/* Datos del maestro para el modo demostración */
+const EQUIPOS=[["EQ-100AJ1", "Trituradora Untha XR2000", "100-AJ1", "A", "linea"], ["EQ-TRI09", "Trituradora Untha XR3000", "TRI-09", "A", "cdr"], ["EQ-114AT1", "Separador balístico", "114-AT1", "A", "linea"], ["EQ-120AT1", "Separador óptico 2D (Pellenc)", "120-AT1", "A", "linea"], ["EQ-142AT1", "Separador óptico 3D (Pellenc)", "142-AT1", "A", "linea"], ["EQ-190AN1", "Estación de aire comprimido", "190-AN1", "A", "linea"], ["EQ-182AK1", "Enfardadora Unotech 70 H4", "182-AK1", "A", "enf"], ["EQ-SMXR3000", "Separador de metales Untha XR3000", "", "B", "cdr"], ["EQ-SEPMET", "Separador de metal", "", "B", "linea"], ["EQ-170", "Separador de metales no ferrosos", "170", "B", "linea"], ["EQ-CORREAS", "Correas transportadoras", "", "B", "linea"], ["EQ-NAVE", "Nave GIRI (arranque general)", "", "A", "calendario"], ["EQ-FARESIN", "Faresín", "", "A", "faresin"], ["EQ-DOOSAN", "Doosan", "", "A", "doosan"], ["EQ-MINICARG1", "Minicargador 1", "", "B", "minicarg1"], ["EQ-MINICARG2", "Minicargador 2", "", "B", "minicarg2"]];
+const TAREAS=[["EQ-100AJ1-01", "EQ-100AJ1", "Compruebe el nivel del aceite del engranaje", "L", 15, null, "2025-10-21", "Revisar nivel", "A", "(Ref. Punto 8.8.2; Manual Untha XR2000)", null], ["EQ-100AJ1-02", "EQ-100AJ1", "Limpiar todos los sensores (p. ej. el sensor de ultrasonidos) y actuadores", "E", 15, null, "2025-10-06", "Realizar limpieza e inspección de estado de instrumentos", "A", "", null], ["EQ-100AJ1-03", "EQ-100AJ1", "Limpiar el motor de accionamiento", "E", 30, null, "2025-11-05", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.1.3; Manual Untha XR2000)", null], ["EQ-100AJ1-04", "EQ-100AJ1", "Comprobar estado del acoplamiento", "M", 30, null, "2025-11-25", "Realizar control", "A", "(Ref. Punto 8.8.15; Manual Untha XR2000)", null], ["EQ-100AJ1-05", "EQ-100AJ1", "Control de uniones atornilladas de la maquina", "M", 60, null, "2025-10-06", "Revisar uniones atornilladas, fijación motor, puertas, contracuchillas", "A", "(Ref. Manual Untha XR2000)", null], ["EQ-100AJ1-06", "EQ-100AJ1", "Controlar Juntas del rotor", "M", 60, null, "2025-08-18", "Revisar junta del rotor", "A", "(Ref. Punto 8.8.13; Manual Untha XR2000)", null], ["EQ-100AJ1-07", "EQ-100AJ1", "Controlar Placas de desgaste", "M", 60, null, "2025-10-06", "Revisar desgaste y ajuste", "A", "(Ref. Punto 8.8.12; Manual Untha XR2000)", null], ["EQ-100AJ1-08", "EQ-100AJ1", "Controlar el tubo del rotor y los soportes", "M", 60, null, "2025-10-06", "Revisar desgaste y ajuste", "A", "(Ref. Punto 8.8.14; Manual Untha XR2000)", null], ["EQ-100AJ1-09", "EQ-100AJ1", "Controlar desgaste de barras de la criba", "M", 60, null, "2025-10-06", "Revisar desgaste", "A", "(Ref. Punto 8.8.14; Manual Untha XR2000)", null], ["EQ-100AJ1-10", "EQ-100AJ1", "Revisar ajuste y torque de pernos de mecanismos de corte", "M", 60, null, "2025-10-06", "Inspección y ajuste", "A", "(Ref. Pág. 95–97; Manual Untha XR2000)", null], ["EQ-100AJ1-11", "EQ-100AJ1", "Ajustar Regletas de corte (Contra cuchilla)", "M", 60, null, "2025-08-18", "Inspección y ajuste", "A", "(Ref. Punto 8.8.11; Manual Untha XR2000)", null], ["EQ-100AJ1-12", "EQ-100AJ1", "Invertir o sustituir las regletas de corte", "M", 60, null, "2025-08-18", "Inspección y ajuste", "A", "(Ref. Punto 8.8.11; Manual Untha XR2000)", null], ["EQ-100AJ1-13", "EQ-100AJ1", "Lubricar  cojinete del cilindro hidráulico", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-14", "EQ-100AJ1", "Lubricar el casquillo del bloqueo", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-15", "EQ-100AJ1", "Lubricar el perno de seguridad de la compuerta de servicio", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-16", "EQ-100AJ1", "Lubricar el rodamientos de la compuerta de servicio", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-17", "EQ-100AJ1", "Lubricar el rodamiento de la puerta de servicio", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-18", "EQ-100AJ1", "Lubricar el cojinete del cilindro hidráulico sistema extraíble de criba", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-19", "EQ-100AJ1", "Lubricar el rodamiento de la cubierta GRP", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-20", "EQ-100AJ1", "Lubricar el rodamiento del sistema extraíble de criba", "L", 60, null, "2025-10-06", "Realizar lubricación", "A", "(Ref. Punto 8.8.7; Manual Untha XR2000)", null], ["EQ-100AJ1-21", "EQ-100AJ1", "Limpiar la grasa excesiva que haya salido", "L", 60, null, "2025-10-06", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.6; Manual Untha XR2000)", null], ["EQ-100AJ1-22", "EQ-100AJ1", "Comprobar si hay fugas en sistema hidraulico", "M", 60, null, "2025-10-06", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.6; Manual Untha XR2000)", null], ["EQ-100AJ1-23", "EQ-100AJ1", "Lubricación del motor", "E", 90, null, "2025-05-26", "Lubricar rodamientos con grasa Shell Gadus S5 V 100 31g", "A", "", null], ["EQ-100AJ1-24", "EQ-100AJ1", "Controlar visualmente el estado de todos los cordones de soldadura", "M", 180, null, "2025-10-06", "Realizar inspección", "A", "(Ref. Pág. 100 y 101; Manual Untha XR2000)", null], ["EQ-100AJ1-25", "EQ-100AJ1", "Revisar racores hidráulicos, conexiones hidráulicas y flexibles hidráulicos", "M", 180, null, "2025-05-26", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.6; Manual Untha XR2000)", null], ["EQ-100AJ1-26", "EQ-100AJ1", "Revisar el equipamiento eléctrico", "E", 180, null, "2025-04-11", "Realizar limpieza armario, ajuste de bornes e inspección de terminales de fuerza", "A", "", null], ["EQ-100AJ1-27", "EQ-100AJ1", "Cambio del aceite de engranaje 1000 hrs Shell Omala S4 GXV 220", "L", 200, null, "2025-10-01", "Realizar reemplazo aceite", "A", "(Ref. Punto 8.8.3; Manual Untha XR2000)", null], ["EQ-100AJ1-28", "EQ-100AJ1", "Reemplazo del aceite hidráulico Shell Tellus S2 MX 46", "L", 365, null, "2025-05-26", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.5; Manual Untha XR2000)", null], ["EQ-100AJ1-29", "EQ-100AJ1", "Reemplazo del filtro del aceite hidráulico", "L", 365, null, "2025-05-26", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.5; Manual Untha XR2000)", null], ["EQ-100AJ1-30", "EQ-100AJ1", "Reemplazo de mangueras hidráulicas", "M", 1800, null, "2024-10-02", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.6; Manual Untha XR2000)", null], ["EQ-TRI09-01", "EQ-TRI09", "Compruebe el nivel del aceite del engranaje", "L", 15, 30, "2026-06-27", "Revisar nivel", "A", "(Ref. Pág. 88; Punto 8.8.2; Manual Untha XR3000)", null], ["EQ-TRI09-02", "EQ-TRI09", "Controlar el estado de conductores eléctricos", "E", 15, 30, "2026-06-27", "Control visual del estado de conductores eléctricos", "A", "", null], ["EQ-TRI09-03", "EQ-TRI09", "Limpieza de todos los sensores y actuadores eléctricos", "E", 15, null, "2025-10-15", "Limpieza de sensores y actuadores", "A", "", null], ["EQ-TRI09-04", "EQ-TRI09", "Limpieza del filtro del sistema de refrigeración", "E", 15, 60, "2026-06-27", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.7.2; Manual Untha XR3000)", null], ["EQ-TRI09-05", "EQ-TRI09", "Limpieza del condensador del sistema de agua de refrigeración", "E", 15, 60, "2026-06-27", "Realizar limpieza con aire comprimido", "A", "(Ref. Punto 8.8.7.2; Manual Untha XR3000)", null], ["EQ-TRI09-06", "EQ-TRI09", "Revisar aseo interior sala control", "E", 15, 60, "2026-06-27", "Revisar estado sala, limpieza exterior de tablero eléctricos y limpieza de sala", "A", "", null], ["EQ-TRI09-07", "EQ-TRI09", "Revisar estado de filtro de aspiración sala de control", "E", 15, 60, "2026-06-27", "Revisar estado de saturación filtro aspiración, reemplazar si es necesario", "A", "", null], ["EQ-TRI09-08", "EQ-TRI09", "Limpieza general de la maquina y su entorno", "M", 30, null, "2025-07-22", "Realizar limpieza general de la maquina, tanto sobre tolva como bajo cintas", "A", "", null], ["EQ-TRI09-09", "EQ-TRI09", "Controlar el funcionamiento de los dispositivos de seguridad", "M", 30, null, "2025-07-22", "Realizar inspección de botoneras, paros de emergencia y Pull Cord", "A", "", null], ["EQ-TRI09-10", "EQ-TRI09", "Control de uniones atornilladas de la maquina", "M", 30, 30, "2026-06-27", "Revisar uniones atornilladas, fijación motor, puertas, contracuchillas", "A", "(Ref. Manual Untha XR3000)", null], ["EQ-TRI09-11", "EQ-TRI09", "Controlar Juntas del rotor", "M", 30, null, "2025-07-22", "Revisar desgaste y ajuste", "A", "(Ref. Punto 8.8.15; Manual Untha XR3000)", null], ["EQ-TRI09-12", "EQ-TRI09", "Controlar Placas de desgaste", "M", 30, 30, "2026-06-27", "Revisar desgaste y ajuste", "A", "(Ref. Punto 8.8.14; Manual Untha XR3000)", null], ["EQ-TRI09-13", "EQ-TRI09", "Controlar el tubo del rotor y los soportes", "M", 30, null, "2025-12-16", "Revisar desgaste y ajuste", "A", "(Ref. Punto 8.8.16; Manual Untha XR3000)", null], ["EQ-TRI09-14", "EQ-TRI09", "Controlar limpieza y desgaste de la criba", "M", 30, null, "2025-12-16", "Revisar desgaste (Cambio criba)", "A", "(Ref. Punto 8.8.1.4; Manual Untha XR3000)", null], ["EQ-TRI09-15", "EQ-TRI09", "Revisar ajuste y torque de pernos de mecanismos de corte", "M", 30, null, "2025-12-16", "Revisar mensualmente pares de apriete de tornillos", "A", "(Ref. Manual Untha XR3000)", null], ["EQ-TRI09-16", "EQ-TRI09", "Ajustar Regletas de corte (Contra cuchilla)", "M", 30, 180, "2026-06-27", "Inspección y ajuste", "A", "(Ref. Pág. 106; Punto 8.8.12; Manual Untha XR3000)", null], ["EQ-TRI09-17", "EQ-TRI09", "Limpiar el motores de accionamiento", "E", 30, null, "2025-07-22", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.1.3; Manual Untha XR3000)", null], ["EQ-TRI09-18", "EQ-TRI09", "Comprobar estado del acoplamiento", "M", 30, null, "2025-07-22", "Realizar control", "A", "(Ref. Pág. 110; Punto 8.8.17; Manual Untha XR3000)", null], ["EQ-TRI09-19", "EQ-TRI09", "Comprobar nivel llenado lubricador automático Grasa SKFLGHB2", "L", 30, 30, "2026-06-27", "Revisar nivel de llenado lubricador", "A", "(Ref. Punto 8.8.8.1; Manual Untha XR3000)", null], ["EQ-TRI09-20", "EQ-TRI09", "Controlar el funcionamiento del sistema de lubricación automático", "L", 30, 30, "2026-06-27", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8.1; Manual Untha XR3000)", null], ["EQ-TRI09-21", "EQ-TRI09", "Controlar la hermeticidad de los tubos de lubricación.", "L", 30, 30, "2026-06-27", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8.1; Manual Untha XR3000)", null], ["EQ-TRI09-22", "EQ-TRI09", "Lubricar el casquillo del bloqueo", "L", 30, null, "2025-12-16", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 100; Manual Untha XR3000)", null], ["EQ-TRI09-23", "EQ-TRI09", "Lubricar el perno de seguridad de la compuerta de servicio", "L", 30, null, "2025-07-22", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8.2; Manual Untha XR3000)", null], ["EQ-TRI09-24", "EQ-TRI09", "Lubricar el rodamientos de la compuerta de servicio", "L", 30, null, "2025-07-22", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8.2; Manual Untha XR3000)", null], ["EQ-TRI09-25", "EQ-TRI09", "Lubricar el rodamiento de la cubierta GRP", "L", 30, null, "2025-07-22", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8.2; Manual Untha XR3000)", null], ["EQ-TRI09-26", "EQ-TRI09", "Lubricar el cojinete del cilindro hidráulico sistema extraíble de criba", "L", 30, null, "2025-12-16", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8.2; Manual Untha XR3000)", null], ["EQ-TRI09-27", "EQ-TRI09", "Lubricar el rodamiento del sistema extraíble de criba", "L", 30, null, "2025-12-16", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8.2; Manual Untha XR3000)", null], ["EQ-TRI09-28", "EQ-TRI09", "Limpiar la grasa excesiva", "L", 30, null, "2025-12-16", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.8; Manual Untha XR3000)", null], ["EQ-TRI09-29", "EQ-TRI09", "Revisar nivel de aceite unidad hidráulica", "L", 30, 30, "2026-06-27", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.4; Manual Untha XR3000)", null], ["EQ-TRI09-30", "EQ-TRI09", "Controlar el sistema de agua refrigerante glicol", "L", 30, 30, "2026-06-27", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.7.1; Manual Untha XR3000)", null], ["EQ-TRI09-31", "EQ-TRI09", "Invertir las regletas de corte (Contra cuchilla)", "M", 60, null, "2025-12-16", "Inspección y ajuste", "A", "(Ref. Pág. 103; Punto 8.8.10; Manual Untha XR3000)", null], ["EQ-TRI09-32", "EQ-TRI09", "Girar placas de corte (cuchillas)", "M", 60, null, "2025-10-13", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.10; Manual Untha XR3000)", null], ["EQ-TRI09-33", "EQ-TRI09", "Controlar visualmente el estado de todos los cordones de soldadura", "M", 180, 30, "2026-06-27", "Realizar inspección", "A", "(Ref. Pág. 109 y 110; Manual Untha XR3000)", null], ["EQ-TRI09-34", "EQ-TRI09", "Revisar racores hidráulicos, conexiones hidráulicas y flexibles hidráulicos", "M", 180, null, "2025-07-22", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.6; Manual Untha XR3000)", null], ["EQ-TRI09-35", "EQ-TRI09", "Revisar estado de equipamiento eléctrico", "E", 180, null, "2025-07-22", "Realizar limpieza de tableros, motores, ajuste de bornes y contactos", "A", "", null], ["EQ-TRI09-36", "EQ-TRI09", "Reemplazar las regletas y placas de corte (Cuchillas y Contra cuchillas)", "M", 200, 720, "2026-06-06", "Inspección y ajuste", "A", "(Ref. Pág. 103; Punto 8.8.10; Manual Untha XR3000)", null], ["EQ-TRI09-37", "EQ-TRI09", "Cambio del aceite de engranaje 1000 hrs Shell Omala S4 GXV 220", "L", 200, 480, "2026-02-07", "Realizar reemplazo 40 Lts. De aceite", "A", "(Ref. Pág. 90; Punto 8.8.3; Manual Untha XR3000)", null], ["EQ-TRI09-38", "EQ-TRI09", "Reemplazo del aceite hidráulico Shell Tellus S2 MX 46", "M", 365, null, "2025-07-21", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.5; Manual Untha XR3000)", null], ["EQ-TRI09-39", "EQ-TRI09", "Reemplazo del filtro del aceite hidráulico", "M", 365, null, "2025-07-21", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.5; Manual Untha XR3000)", null], ["EQ-TRI09-40", "EQ-TRI09", "Sustituir mangueras hidráulicas", "M", 1800, null, "2025-07-21", "Seguir el procedimiento del manual", "A", "(Ref. Punto 8.8.6; Manual Untha XR3000)", null], ["EQ-114AT1-01", "EQ-114AT1", "Chequear limpieza de aletas y ventilador del motor electrico", "M", 15, null, "2026-01-05", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 40 y 41; Manual Sutco)", null], ["EQ-114AT1-02", "EQ-114AT1", "Verificar estado de la consola motor electrico", "M", 30, null, "2025-12-15", "Revisar ajustes de uniones roscadas y ajustar", "A", "(Ref. Pág. 47; Manual Sutco)", null], ["EQ-114AT1-03", "EQ-114AT1", "Verificar estado del motoreductor", "E", 30, null, "2025-12-15", "Revisar si existen perdidas de aceite, medir consumo electrico motor", "A", "", null], ["EQ-114AT1-04", "EQ-114AT1", "Verificar estado de Bastidores y soportes separador", "M", 30, null, "2025-12-15", "Revisar estado de estructuras soportantes", "A", "", null], ["EQ-114AT1-05", "EQ-114AT1", "Lubricación de cojinetes cigüeñal", "M", 30, null, "2025-12-15", "Lubricar descansos con 10g de grasa KP3K-20 (Mobilux EP3)", "A", "", null], ["EQ-114AT1-06", "EQ-114AT1", "Inspección de dispositivos de seguridad", "M", 30, null, "2025-12-15", "Verificar estado fisico y funcionamiento de los dispositivos de seguridad", "A", "", null], ["EQ-114AT1-07", "EQ-114AT1", "Inspección del estado de los asientos del cigüeñal", "M", 90, null, "2025-06-20", "Realizar inspección", "A", "(Ref. Pág. 43 y 44; Manual Sutco)", null], ["EQ-114AT1-08", "EQ-114AT1", "Inspección general estructuras", "M", 90, null, "2025-10-04", "Revisar que no exista corrosion en todas las estructuras del separador", "A", "", null], ["EQ-114AT1-09", "EQ-114AT1", "Verificar estado de uniones roscadas", "M", 90, null, "2025-10-04", "Revisar ajuste de fijaciones de componentes de baja carga y resbaladeras", "A", "(Ref. Pág. 47; Manual Sutco)", null], ["EQ-114AT1-10", "EQ-114AT1", "Verificar nivel de aceite hidraulico Bba. Levante separador (160 Hrs)", "L", 39, null, "2025-10-06", "Verificar nivel de aceite Tellus si es necesario rellenar", "A", "", null], ["EQ-114AT1-11", "EQ-114AT1", "Verificar apriete de uniones y componentes hidraulicos (500 Hrs)", "L", 90, null, "2025-10-06", "Verificar apriete, posibles fugas y estanqueidad del cto. Hidraulico", "A", "", null], ["EQ-114AT1-12", "EQ-114AT1", "Verificar estado de dispositivos electricos de seguridad", "E", 180, null, "2025-06-20", "Verificar estado fisico y de funcionamiento, si es necesario reemplazar", "A", "", null], ["EQ-114AT1-13", "EQ-114AT1", "Cambio de aceite motoreductor  Shell Omala S4 GX 220", "M", 365, null, "2025-04-30", "Realizar reemplazo de 1,65 L de aceite (2000 h)", "A", "(Ref. Manual Sutco)", null], ["EQ-114AT1-14", "EQ-114AT1", "Reemplazo aceite hidraulico bba. Levante separador (cada 2 años)", "L", 720, null, "2024-04-30", "Reemplazo de Lts de aceite Tellus", "A", "", null], ["EQ-114AT1-15", "EQ-114AT1", "Verificar estado de mangueras hidraulicas (cada 6 años)", "M", 1095, null, "2025-10-06", "Reemplazo de todas las mangueras hidraulicas", "A", "", null], ["EQ-120AT1-01", "EQ-120AT1", "Limpieza sensores de atasco", "E", 7, 30, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 97–100; Manual Pellenc)", null], ["EQ-120AT1-02", "EQ-120AT1", "Limpieza cristales de los reflectores y cajetin de detección", "E", 7, 30, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 100–102; Manual Pellenc)", null], ["EQ-120AT1-03", "EQ-120AT1", "Revisar turbosorter-sensores de atascos", "E", 7, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 103–105; Manual Pellenc)", null], ["EQ-120AT1-04", "EQ-120AT1", "Limpieza de barra de expulsión", "E", 7, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 105–107; Manual Pellenc)", null], ["EQ-120AT1-05", "EQ-120AT1", "Limpieza y prueba de electrovalvulas de expulsión", "E", 7, 30, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 107 y 108; Manual Pellenc)", null], ["EQ-120AT1-06", "EQ-120AT1", "Realizar pruebas de luminosidad de la detección", "E", 7, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 108–110; Manual Pellenc)", null], ["EQ-120AT1-07", "EQ-120AT1", "Limpieza cristales ventanillas", "M", 30, 30, "2026-06-20", "Realizar limpieza de vidrios y correcto ajuste ventanillas axiales", "A", "", null], ["EQ-120AT1-08", "EQ-120AT1", "Controlar los filtros del tratamiento del aire", "E", 60, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 110–112; Manual Pellenc)", null], ["EQ-120AT1-09", "EQ-120AT1", "Limpieza de zona de descarga cinta NIR", "M", 60, 60, "2026-06-20", "Realizar retiro de objetos acumulados en zona de descarga y bordes de la cinta", "A", "", null], ["EQ-120AT1-10", "EQ-120AT1", "Limpieza rodillo de corte", "M", 60, 30, "2026-06-20", "Retirar tapas laterales, retiro de residuos e impurezas", "A", "", null], ["EQ-120AT1-11", "EQ-120AT1", "Inspección de estructura Separador optico", "M", 90, 30, "2026-06-20", "Revisar partes moviles y fijaciones, limpieza de estructura", "A", "", null], ["EQ-120AT1-12", "EQ-120AT1", "Inspección de mangueras neumaticas", "M", 180, 30, "2026-06-20", "Observar si existen grietas o filtraciones en uniones y mangueras", "A", "", null], ["EQ-120AT1-13", "EQ-120AT1", "Reemplazo de tubo halógeno reflector", "E", 365, 60, "2025-05-15", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 112–116; Manual Pellenc)", null], ["EQ-120AT1-14", "EQ-120AT1", "Controlar sistema electrico (Ponerse en contacto con Pellenc)", "E", 365, null, "2024-04-30", "Seguir el procedimiento del manual y las indicaciones de Pellenc", "A", "(Ref. Pág. 117; Manual Pellenc)", null], ["EQ-120AT1-15", "EQ-120AT1", "Actualización de software", "", null, null, null, "", "P", "", null], ["EQ-142AT1-01", "EQ-142AT1", "Limpieza sensores de atasco", "E", 7, 30, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 97–100; Manual Pellenc)", null], ["EQ-142AT1-02", "EQ-142AT1", "Limpieza cristales de los reflectores y cajetin de detección", "E", 7, 30, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 100–102; Manual Pellenc)", null], ["EQ-142AT1-03", "EQ-142AT1", "Limpieza de barra de expulsión", "E", 7, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 105–107; Manual Pellenc)", null], ["EQ-142AT1-04", "EQ-142AT1", "Limpieza y prueba de electrovalvulas de expulsión", "E", 7, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 107 y 108; Manual Pellenc)", null], ["EQ-142AT1-05", "EQ-142AT1", "Realizar pruebas de luminosidad de la detección", "E", 7, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 108–110; Manual Pellenc)", null], ["EQ-142AT1-06", "EQ-142AT1", "Controlar los filtros del tratamiento del aire", "E", 60, 60, "2026-06-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 110–112; Manual Pellenc)", null], ["EQ-142AT1-07", "EQ-142AT1", "Limpieza de zona de descarga cinta NIR", "M", 60, 60, "2026-06-20", "Realizar retiro de objetos acumulados en zona de descarga y bordes de la cinta", "A", "", null], ["EQ-142AT1-08", "EQ-142AT1", "Limpieza rodillo de corte", "M", 60, 60, "2026-06-20", "Retirar tapas laterales, retiro de residuos e impurezas", "A", "", null], ["EQ-142AT1-09", "EQ-142AT1", "Inspección de estructura Separador optico", "M", 90, 30, "2026-06-20", "Revisar partes moviles y fijaciones, limpieza de estructura", "A", "", null], ["EQ-142AT1-10", "EQ-142AT1", "Inspección de mangueras neumaticas", "M", 180, 30, "2026-06-20", "Observar si existen grietas o filtraciones en uniones y mangueras", "A", "", null], ["EQ-142AT1-11", "EQ-142AT1", "Reemplazo de tubo halógeno reflector", "E", 365, 60, "2024-04-30", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 112–116; Manual Pellenc)", null], ["EQ-142AT1-12", "EQ-142AT1", "Controlar sistema electrico (Ponerse en contacto con Pellenc)", "E", 365, null, "2024-04-30", "Seguir el procedimiento del manual y las indicaciones de Pellenc", "A", "(Ref. Pág. 117; Manual Pellenc)", null], ["EQ-142AT1-13", "EQ-142AT1", "actualización de software", "", null, null, null, "", "P", "", null], ["EQ-190AN1-01", "EQ-190AN1", "Comprobar la temperatura desde panel de mando", "M", 7, 18, "2026-06-27", "Revisar temperatura de compresión final, valor nominal debe estar entre 70 a 100°C", "A", "", null], ["EQ-190AN1-02", "EQ-190AN1", "Controlar el alivio del sistema desde panel de mando", "M", 7, null, "2025-10-29", "Controlar el alivio del sistema en el manometro de la presión (valor entre 0-1,5 bar)", "A", "", null], ["EQ-190AN1-03", "EQ-190AN1", "Comprobar filtro de aire entrada", "M", 7, 18, "2026-06-27", "Verificar estado de filtro, limpiar o reemplazar si es necesario", "A", "(Ref. Pág. 65; Manual BOGE)", null], ["EQ-190AN1-04", "EQ-190AN1", "Limpieza del secador de absorción", "M", 15, null, "2025-10-20", "Realizar el retiro de polvo de acumuladores e inspección visual del secador", "A", "", null], ["EQ-190AN1-05", "EQ-190AN1", "Control de presion de retención del secador de absorción", "M", 15, null, "2025-10-20", "Seguir el procedimiento del manual", "A", "(Ref. Pág. 42; Manual secador de absorción)", null], ["EQ-190AN1-06", "EQ-190AN1", "Comprobar funcion del pulsador de paro emergencia", "M", 30, 18, "2026-06-27", "Verificar correcto funcionamiento de paro de emergencia", "A", "", null], ["EQ-190AN1-07", "EQ-190AN1", "Comprobar limpieza de filtro aspiración", "M", 30, 18, "2026-06-27", "Verificar limpieza de filtro de aspiración, cambiar si es necesario", "A", "(Ref. Pág. 63; Manual BOGE)", null], ["EQ-190AN1-08", "EQ-190AN1", "Controlar si presenta fugas el compresor", "M", 30, 60, "2026-06-27", "Verificar fugas de lubricantes y de aire comprimido en partes del compresor", "A", "", null], ["EQ-190AN1-09", "EQ-190AN1", "Controlar nivel de aceite compresor", "M", 30, 18, "2026-06-27", "Verificar nivel de aceite, rellenar si es necesario", "A", "(Ref. Pág. 67; Manual BOGE)", null], ["EQ-190AN1-10", "EQ-190AN1", "Comprobar la presión de servicio", "M", 30, 30, "2026-06-27", "Revisar o ajustar desde mando la presión de servicio", "A", "", null], ["EQ-190AN1-11", "EQ-190AN1", "Verificar el punto de rocio del condensador frigorifico(Dew Point)", "M", 30, 18, "2026-06-27", "Verificar temperatura de las lineas (temperatura entre 3 a 6°C)", "A", "", null], ["EQ-190AN1-12", "EQ-190AN1", "Verificar los sistemas de descarga de condensado", "M", 30, 18, "2026-06-27", "Comprobar que los sistemas y equipos de drenajes funcionen correctamente", "A", "", null], ["EQ-190AN1-13", "EQ-190AN1", "Limpieza del condensador frigorifico DT140", "M", 30, 60, "2026-06-27", "Limpiar el condensador con aire comprimido (máx. 2 bares)", "A", "(Ref. Pág. 24; Manual secador DT140)", null], ["EQ-190AN1-14", "EQ-190AN1", "Cambiar el filtro insertado de aspiración", "M", 90, null, "2025-10-20", "Reemplazar filtro de aspiración y limpieza del porta filtro", "A", "(Ref. Pág. 63; Manual BOGE)", null], ["EQ-190AN1-15", "EQ-190AN1", "Revisar sistema electrico del condensador frigorifico DT140", "E", 120, null, "2025-02-17", "Verificar apriete de los tornillos del conjunto electrico", "A", "(Ref. Pág. 24; Manual secador DT140)", null], ["EQ-190AN1-16", "EQ-190AN1", "Verificar funcionamiento de motor del condensador frigorifico DT140", "E", 120, null, "2025-10-20", "Medir consumo electrico(Amperes) y comparar con tabla de especificaciones", "A", "", null], ["EQ-190AN1-17", "EQ-190AN1", "Verificar perdidas de aceite o refrigerante", "M", 120, null, "2025-10-20", "Verificar y revisar fugas de fluidos en los circuitos de secador frigorifico", "A", "", null], ["EQ-190AN1-18", "EQ-190AN1", "Inspección de tuberias flexibles del secador frigorifico DT140", "M", 120, null, "2025-10-20", "Verificar que no existan grietas, sustituir si es necesario", "A", "", null], ["EQ-190AN1-19", "EQ-190AN1", "Inspección de cartridge de lubricación motor electrico", "E", 180, 18, "2026-06-27", "Revisar y rellenar con grasa Shell Gadus S5 V100 2", "A", "", null], ["EQ-190AN1-20", "EQ-190AN1", "Limpiar el radiador del aceite", "M", 365, 60, "2026-06-27", "Realizar procedimiento de limpieza", "A", "(Ref. Pág. 75; Manual BOGE)", null], ["EQ-190AN1-21", "EQ-190AN1", "Controlar conexiones electricas", "E", 365, null, "2025-10-20", "Revisar apriete de conexiones electricas en el cuadro electrico y compresor", "A", "", null], ["EQ-190AN1-22", "EQ-190AN1", "Cambiar regulador de aspiración", "L", 365, null, "2025-02-17", "Reemplazar regulador de aspiración (juego de piezas de desgaste)", "A", "", null], ["EQ-190AN1-23", "EQ-190AN1", "Valvula de presión minima", "M", 365, null, "2025-02-17", "Reemplazar a las 3000 hrs valvula de presión minima", "A", "", null], ["EQ-190AN1-24", "EQ-190AN1", "Comprobar valvula de seguridad", "M", 365, null, "2025-02-17", "Comprobar funcionamiento de valvula de seguridad", "A", "(Ref. Pág. 76; Manual BOGE)", null], ["EQ-190AN1-25", "EQ-190AN1", "Cambiar regulador de aceite", "M", 365, null, "2025-02-17", "Verificar estado, realizar limpieza y reemplazar si es necesario", "A", "(Ref. Pág. 73; Manual BOGE)", null], ["EQ-190AN1-26", "EQ-190AN1", "Cambiar separador de aceite", "M", 365, 60, "2026-06-27", "Reemplazar filtro separador de aceite cada 3000 hrs", "A", "(Ref. Pág. 70; Manual BOGE)", null], ["EQ-190AN1-27", "EQ-190AN1", "Cambiar filtro de aceite", "M", 365, 60, "2026-06-27", "Reemplazar filtro de aceite cada 3000 hrs", "A", "(Ref. Pág. 69; Manual BOGE)", null], ["EQ-190AN1-28", "EQ-190AN1", "Sistema electrico", "E", 365, null, "2025-02-17", "Realizar limpieza de componentes y ajuste de contactos electricos", "A", "", null], ["EQ-190AN1-29", "EQ-190AN1", "Reemplazo unidad de servicio de drenaje de condensado electronico", "E", 365, null, "2025-02-17", "Reemplazar cada 9000 Hrs o 2 años", "A", "", null], ["EQ-190AN1-30", "EQ-190AN1", "Reemplazo elemento filtrante del secador de absorción", "M", 365, null, "2025-02-17", "Revisar estado, reemplazar", "A", "(Ref. Pág. 42; Manual secador de absorción)", null], ["EQ-190AN1-31", "EQ-190AN1", "Reemplazo del silenciador del secador de absorción", "M", 365, null, "2025-02-17", "Revisar y reemplazar", "A", "(Ref. Pág. 43; Manual secador de absorción)", null], ["EQ-190AN1-32", "EQ-190AN1", "Reemplazo del sensor de control de punto de rocio del sec. de absorción", "M", 365, null, "2025-02-17", "Revisar y reemplazar", "A", "(Ref. Pág. 43; Manual secador de absorción)", null], ["EQ-190AN1-33", "EQ-190AN1", "Reemplazo Valvula piloto", "M", 365, null, "2025-02-17", "Revisar y reemplazar", "A", "(Ref. Pág. 44; Manual secador de absorción)", null], ["EQ-190AN1-34", "EQ-190AN1", "Reemplazo de bloque de valvulas", "M", 365, null, "2025-02-17", "Revisar y reemplazar", "A", "(Ref. Pág. 45; Manual secador de absorción)", null], ["EQ-190AN1-35", "EQ-190AN1", "Reemplazo del primer y segundo filtro del secador de absorción", "M", 365, null, "2025-02-17", "Revisar y evaluar si es necesario el reemplazo", "A", "", null], ["EQ-190AN1-36", "EQ-190AN1", "Cambiar valvula magnetica", "M", 730, null, "2024-04-15", "Reemplazar a las 9000 Hrs. De operación", "A", "", null], ["EQ-190AN1-37", "EQ-190AN1", "Cambio de aceite BOGE Syprem 3000 S", "M", 730, 120, "2026-06-27", "Reemplazar aceite", "A", "(Ref. Pág. 73; Manual BOGE)", null], ["EQ-190AN1-38", "EQ-190AN1", "Reemplazo de tamices para el polvo, juntas anulares", "M", 760, null, "2025-02-17", "Revisar y reemplazar", "A", "(Ref. Pág. 45; Manual secador de absorción)", null], ["EQ-190AN1-39", "EQ-190AN1", "Revisar sistema electrico", "E", 1095, null, "2025-02-17", "Sustituir componentes electricos y cambio de convertidor", "A", "", null], ["EQ-190AN1-40", "EQ-190AN1", "Mantenimiento motor electrico Compresor", "E", 1095, null, "2025-02-17", "Sustituir motor electrico", "A", "", null], ["EQ-182AK1-01", "EQ-182AK1", "Limpieza dedos de retención.", "M", 7, 30, "2026-06-07", "Comprobar funcionamiento, ajuste pretensado, lubricar cojinetes", "A", "(Ref. Pág. 190; Manual Upamat)", null], ["EQ-182AK1-02", "EQ-182AK1", "Limpieza del sistema de bloqueo de llaves", "M", 7, 30, "2026-07-11", "Realizar procedimiento de limpieza", "A", "(Ref. Pág. 217; Manual Upamat)", null], ["EQ-182AK1-03", "EQ-182AK1", "Verificar agujeros de barra de corte", "M", 7, 18, "2026-07-11", "Limpiar los agujeros alargados de la barra de corte del atado (E04)", "A", "(Ref. Pág. 216; Manual Upamat)", null], ["EQ-182AK1-04", "EQ-182AK1", "Comprobar la tensión de las cadenas del sistema de atado.", "M", 7, 30, "2026-06-07", "Verificar tensión y lubricar cadenas con aceite lubricante para cadenas", "A", "(Ref. Pág. 195; Manual Upamat)", null], ["EQ-182AK1-05", "EQ-182AK1", "Lubricación sistema de atado horizontal H4", "L", 7, 30, "2026-06-07", "Lubricar con grasa en spray", "A", "(Ref. Pág. 194–196; Manual Upamat)", null], ["EQ-182AK1-06", "EQ-182AK1", "Comprobar desgastes en poleas inversoras", "M", 7, 30, "2026-06-07", "Verificar la marcha suave y desgastes en poleas E18. Reemplazar si es necesario", "A", "", null], ["EQ-182AK1-07", "EQ-182AK1", "Revisar estado de bisagras y articulaciones", "M", 7, 18, "2026-06-07", "Lubricar partes móviles y articulaciones con grasa EP2", "A", "", null], ["EQ-182AK1-08", "EQ-182AK1", "Mantenimiento del sistema de llave STS", "M", 7, 30, "2026-07-11", "Realizar limpieza y lubricar con los lubricantes indicados", "A", "(Ref. Pág. 217 y 218; Manual Upamat)", null], ["EQ-182AK1-09", "EQ-182AK1", "Comprobar funcionamiento del rascador superior E16", "M", 7, 30, "2026-07-11", "Limpie la zona del rascador y verifique el desgaste", "A", "(Ref. Pág. 299; Manual Upamat)", null], ["EQ-182AK1-10", "EQ-182AK1", "Comprobar funcionamiento de las barreras fotoeléctricas", "E", 7, 18, "2026-07-11", "Limpie la óptica, reajuste las barreras fotoeléctricas si es necesario", "A", "", null], ["EQ-182AK1-11", "EQ-182AK1", "Inspección de desgaste de los listones guía de la caja de prensado E01", "M", 30, 18, "2026-07-11", "Comprobar visualmente desgastes y estado de listones guías", "A", "", null], ["EQ-182AK1-12", "EQ-182AK1", "Comprobar si la barra de cuchillas E01 presenta daños", "M", 30, 18, "2026-06-07", "Inspección y lubricación", "A", "(Ref. Pág. 190; Manual Upamat)", null], ["EQ-182AK1-13", "EQ-182AK1", "Comprobar si los rieles guía de la placa de prensado E02 presentan desgaste.", "M", 30, 18, "2026-07-11", "Verificar estado y lubricar", "A", "(Ref. Pág. 194; Manual Upamat)", null], ["EQ-182AK1-14", "EQ-182AK1", "Verificar estado de rodillos de placa prensado", "M", 30, 18, "2026-07-11", "Verificar estado, revisar deslizamiento y lubricar con grasa EP2", "A", "(Ref. Pág. 284; Manual Upamat)", null], ["EQ-182AK1-15", "EQ-182AK1", "Verificar estado de pernos, guías y cojinetes de ajuste del canal E03", "M", 30, 18, "2026-07-11", "Dar ajuste y lubricar pernos y cojinetes con grasa EP2", "A", "", null], ["EQ-182AK1-16", "EQ-182AK1", "Lubricación, tapa corrediza y guías de plástico E07", "L", 30, 18, "2026-07-11", "Lubricar con grasa en spray", "A", "(Ref. Pág. 197; Manual Upamat)", null], ["EQ-182AK1-17", "EQ-182AK1", "Lubricación embolo expulsor estrecho E11", "L", 30, 30, "2026-07-11", "Lubricar con grasa EP2", "A", "(Ref. Pág. 198; Manual Upamat)", null], ["EQ-182AK1-18", "EQ-182AK1", "Revisar filtro de aire del la unidad hidráulica", "M", 30, 30, "2026-07-11", "Realizar limpieza de porta filtro y del filtro de aire", "A", "(Ref. Pág. 228; Manual Upamat)", null], ["EQ-182AK1-19", "EQ-182AK1", "Limpieza y lubricación de accionamiento simple del rompedor de botellas E32", "M", 30, 90, "2026-07-11", "Realizar limpieza y lubricación", "A", "(Ref. Pág. 200; Manual Upamat)", null], ["EQ-182AK1-20", "EQ-182AK1", "Limpieza interruptores de fin de carrera y de interruptores de proximidad", "E", 30, 30, "2026-07-11", "Realice la limpieza del entorno de cada sensor de proximidad y de carrera", "A", "", null], ["EQ-182AK1-21", "EQ-182AK1", "Comprobación del dedo de retención", "M", 30, 18, "2026-06-07", "Verificar estado y ajuste si es necesario la tensión del muelle del dedo de retención", "A", "", null], ["EQ-182AK1-22", "EQ-182AK1", "Comprobar estado de mangueras y válvulas hidráulicas", "M", 30, 30, "2026-07-11", "Comprobar uniones y mandos de las válvulas a fin de encontrar fugas", "A", "", null], ["EQ-182AK1-23", "EQ-182AK1", "Compruebe el juego de las cuchillas del cortador de alambre E04", "M", 30, 30, "2026-07-11", "Comprobar desgaste, si es necesario reemplazar", "A", "", null], ["EQ-182AK1-24", "EQ-182AK1", "Comprobar funcionamiento correcto de las tenazas de ajuste E03", "M", 30, 30, "2025-11-07", "Compruebe los pernos y lubríquelos si es necesario.- Lubricante: grasa EP2", "A", "", null], ["EQ-182AK1-25", "EQ-182AK1", "Verificar estado del contador de fardos", "E", 30, 18, "2026-07-11", "Realizar limpieza y verificar funcionamiento", "A", "", null], ["EQ-182AK1-26", "EQ-182AK1", "Verificar estado de conexiones eléctricas", "E", 30, 90, "2026-07-11", "Verificar estado de cables eléctricos y conexiones eléctricas", "A", "", null], ["EQ-182AK1-27", "EQ-182AK1", "Verificar estado eléctrico de generadores de señal", "E", 30, null, "2025-11-07", "Verificar que los sensores externos generan la señal correcta", "A", "", null], ["EQ-182AK1-28", "EQ-182AK1", "Verificar funcionamiento de los interruptores de fin de carrera y proximidad", "M", 30, 30, "2026-07-11", "Verificar distancia, no debe superar oh descender por debajo de los 2 a 5 mm", "A", "", null], ["EQ-182AK1-29", "EQ-182AK1", "Verificar estado piñones de inversión y cojinetes del sistema de tracción del alambre", "M", 30, 150, "2026-07-11", "Compruebe los piñones de inversión y los cojinetes del sistema de tracción del alambre y del sistema de atado", "A", "", null], ["EQ-182AK1-30", "EQ-182AK1", "Verificación filtro aceite hidráulico", "M", 30, 18, "2026-07-11", "Lavar filtro de aceite y cambiar si es necesario (reemplazado 25-07-25)", "A", "", null], ["EQ-182AK1-31", "EQ-182AK1", "Comprobar ajuste fijo de uniones roscadas", "M", 60, 30, "2026-07-11", "Revisar y ajustar todas las uniones roscadas", "A", "", null], ["EQ-182AK1-32", "EQ-182AK1", "Limpieza canal decantación percolados", "M", 90, null, "2025-09-05", "Realizar limpieza de canal decantación, verificar estado de fosa y retirar material s/n", "A", "", null], ["EQ-182AK1-33", "EQ-182AK1", "Verificar distancias de placa de prensado", "M", 180, 30, "2026-07-11", "Comprobar distancia entre piso y placa prensado medida mínima 00mm, máxima 2 mm. Durante la prueba, los rodillos no deben separase del piso", "A", "", null], ["EQ-182AK1-34", "EQ-182AK1", "Verificar juego entre cuchillas de placa prensado y contra cuchillas", "M", 180, 30, "2026-07-11", "Comprobar juego entre cuchillas de la placa de prensado y contra cuchillas (3mm)", "A", "", null], ["EQ-182AK1-35", "EQ-182AK1", "Verificar distancia de placa de prensado", "M", 180, null, "2026-07-11", "Compruebe distancia entre placa de prensado (E02) y las paredes laterales de la caja de prensado (E01) Máximo 3mm", "A", "", null], ["EQ-182AK1-36", "EQ-182AK1", "Verificar estado del sistema de corte", "M", 180, null, "2026-07-11", "Verificar desgaste de cuchillas del sistema de atado, si es necesario reemplazar", "A", "", null], ["EQ-182AK1-37", "EQ-182AK1", "Lubricación de bisagras y articulaciones", "M", 180, null, "2026-07-11", "Lubricar todas las articulaciones y bisagras de la maquina con grasa EP2", "A", "", null], ["EQ-182AK1-38", "EQ-182AK1", "Comprobar estado de pasadores y ojos de vástago y cilindro", "M", 180, null, "2026-07-11", "Verificar que no exista movimiento en los ojos de sujeción del cilindro", "A", "", null], ["EQ-182AK1-39", "EQ-182AK1", "Comprobar estado de cilindros hidráulicos", "M", 180, null, "2026-07-11", "Revisar si existen filtraciones por sellos y verificar estado de los vástagos", "A", "", null], ["EQ-182AK1-40", "EQ-182AK1", "Control e inspección de mangueras hidráulicas", "M", 180, null, "2026-07-11", "Revisar estado de mangueras, reemplazar después de un máximo de 6 años", "A", "", null], ["EQ-182AK1-41", "EQ-182AK1", "Reemplazo de filtros de aire e hidráulicos", "M", 180, null, "2025-09-05", "Sustituir filtros de aire y filtro de aceite, limpie a fondo la carcasa del filtro", "A", "(Ref. Pág. 231; Manual Upamat)", null], ["EQ-182AK1-42", "EQ-182AK1", "Inspección de interruptores de fin de carrera y proximidad", "E", 180, null, "2026-07-11", "Comprobar funcionamiento, verificar fijación y limpieza de sensores de proximidad", "A", "", null], ["EQ-182AK1-43", "EQ-182AK1", "Lubricación de motores eléctricos", "E", 180, null, "2025-09-05", "Lubricar rodamientos de motores eléctricos con grasa multiuso EP2", "A", "", null], ["EQ-182AK1-44", "EQ-182AK1", "Comprobar acoplamiento mecánico", "M", 365, null, "2023-08-08", "Comprobar funcionamiento y posibles daños en acoplamiento entre bomba y motor", "A", "", null], ["EQ-182AK1-45", "EQ-182AK1", "Realizar análisis de aceite hidráulico unidad holeo hidráulica UPAMAT", "M", 365, null, "2023-08-08", "Realizar análisis de aceite hidráulico según norma ISO 4406", "A", "(Ref. Cap. 8; Manual Upamat)", null], ["EQ-182AK1-46", "EQ-182AK1", "Reemplazo aceite reductores motores de atado", "M", 526, null, "2023-04-01", "Realizar reemplazo de aceite Shell Omala S4 GXV 220", "A", "", null], ["EQ-182AK1-47", "EQ-182AK1", "Reemplazo de aceite hidráulico central holeo hidráulica UPAMAT", "M", 1095, null, "2023-08-08", "Cambiar aceite Shell tellus 68 de central hidráulica cada 3 años o 3000 Hrs", "A", "", null], ["EQ-182AK1-48", "EQ-182AK1", "Limpieza de cinta", "", null, null, null, "", "P", "", null], ["EQ-182AK1-49", "EQ-182AK1", "Lubricación de puntos de engrase", "", null, null, null, "", "P", "", null], ["EQ-182AK1-50", "EQ-182AK1", "Revisión tension cadena", "", null, null, null, "", "P", "", null], ["EQ-182AK1-51", "EQ-182AK1", "limpieza y lubricación ruedas guias de alambre", "", null, null, null, "", "P", "", null], ["EQ-SMXR3000-01", "EQ-SMXR3000", "Verificar cinta transportadora de extracción.", "M", 60, null, "2025-08-08", "Verificar alineamiento y estado de empalme mecanico", "A", "", null], ["EQ-SMXR3000-02", "EQ-SMXR3000", "Limpieza separador de metal", "M", 180, null, "2025-08-08", "Retirar polvo y despuntes de metal adheridos de estructura", "A", "", null], ["EQ-SMXR3000-03", "EQ-SMXR3000", "Limpieza e inspección motor electrico", "M", 180, null, "2025-08-08", "Retirar material adherido en celdas refrigeración, verificar ajuste de fijaciones roscadas", "A", "", null], ["EQ-SMXR3000-04", "EQ-SMXR3000", "Lubricación de descansos UC", "L", 365, null, "2025-08-08", "Lubricar descansos cada 1 año o 2000 hrs", "A", "", null], ["EQ-SMXR3000-05", "EQ-SMXR3000", "Placa de desgaste inferior", "M", 365, null, "2025-08-08", "Verificar estado de placa inferior, si es necesario reemplazar", "A", "", null], ["EQ-SMXR3000-06", "EQ-SMXR3000", "Reemplazo aceite motoreductor Shell Omala S4 GX 100", "L", 730, null, "2024-04-01", "Realizar reemplazo de 5.2 Lts de aceite", "A", "", null], ["EQ-SEPMET-01", "EQ-SEPMET", "Limpieza general del equipo", "M", 60, null, "2025-08-09", "Retirar residuos de las cubiertas superiores e inferiores", "A", "", null], ["EQ-SEPMET-02", "EQ-SEPMET", "Verificar sistema de sujeción", "M", 60, null, "2025-08-09", "Control visual, verificar que soportes y uniones mecánicas se encuentren en buen estado", "A", "", null], ["EQ-SEPMET-03", "EQ-SEPMET", "Verificar estado cinta transportadora de extracción.", "M", 60, null, "2025-08-09", "Verificar que no existan grietas ni cortes en banda, verificar centrado y ajuste", "A", "(Ref. Pág. 70; Manual separador de metal)", null], ["EQ-SEPMET-04", "EQ-SEPMET", "Verificar ángulo de inclinación de funcionamiento", "M", 60, null, "2025-08-09", "Angulo debe mantener 25°", "A", "", null], ["EQ-SEPMET-05", "EQ-SEPMET", "Verificar cortina de goma", "M", 60, null, "2025-08-09", "Verificar desgaste de la cortina de goma de salida", "A", "", null], ["EQ-SEPMET-06", "EQ-SEPMET", "Verificar limpieza de los elementos eléctricos", "E", 60, null, "2025-08-09", "Verificar limpieza de la aletas motor y verificar estado de cables eléctricos", "A", "", null], ["EQ-SEPMET-07", "EQ-SEPMET", "Comprobar fugas de lubricante en moto reductor", "M", 60, null, "2025-08-09", "Verificar que no existan perdidas de lubricante en moto reductor", "A", "", null], ["EQ-SEPMET-08", "EQ-SEPMET", "Lubricación de rodamientos y cojinetes separador de metal", "M", 20, null, "2025-08-09", "Lubricar cada 80 Hrs.o dos meses con grasa Shell Gadus S2 V220 2", "A", "(Ref. Pág. 61; Manual separador de metal)", null], ["EQ-SEPMET-09", "EQ-SEPMET", "Verificar nivel de aceite moto reductor", "L", 365, null, "2024-10-09", "Cada un año comprobar nivel de aceite y rellenar si es necesario", "A", "", null], ["EQ-SEPMET-10", "EQ-SEPMET", "Comprobar uniones mecánicas", "M", 365, null, "2024-10-09", "Cada un año verificar y dar torque a todas la uniones roscadas y mecánicas", "A", "", null], ["EQ-SEPMET-11", "EQ-SEPMET", "Verificación panel de control eléctrico", "E", 365, null, "2024-10-09", "Cada un año realizar reapriete de bornes y termografías a panel de control", "A", "(Ref. Pág. 42; Manual separador de metal)", null], ["EQ-SEPMET-12", "EQ-SEPMET", "Cada 2000 Hrs. Reemplazo de grasa en rodamientos motores", "L", 580, null, "2024-04-15", "Reemplazar grasa lubricante de todos los rodamientos", "A", "(Ref. Pág. 62; Manual separador de metal)", null], ["EQ-SEPMET-13", "EQ-SEPMET", "Cada 3 años cambiar aceite sintético", "E", 730, null, "2024-04-15", "Reemplazar con aceite Shell Omala S4 GX 460 sintetico", "A", "", null], ["EQ-SEPMET-14", "EQ-SEPMET", "Cada 3 años reemplazar reten del motor accionamiento", "L", 730, null, "2024-04-15", "Verificar tipo de retén", "A", "", null], ["EQ-SEPMET-15", "EQ-SEPMET", "Lubricación de rodamientos motores eléctricos cada 3000 Hrs", "L", 760, null, "2024-04-15", "Lubricar con 70g de grasa SKF LGHP2", "A", "", null], ["EQ-170-01", "EQ-170", "Limpieza separador de metales no ferrosos", "M", 15, null, "2026-01-13", "Limpieza de toda la estructura, zonas internas y externas del la cinta y estructura", "A", "", null], ["EQ-170-02", "EQ-170", "Limpieza de nervaduras", "M", 15, null, "2026-01-13", "Retiro de material adherido en nervaduras perimetrales, transversales y expulsion material", "A", "", null], ["EQ-170-03", "EQ-170", "Limpieza de rodillos", "M", 15, null, "2026-01-13", "Retiro de material adherido de rodillos portantes", "A", "", null], ["EQ-170-04", "EQ-170", "Limpieza del tambor de polos", "M", 15, null, "2026-01-13", "Retirar tapas y limpiar material acumulado", "A", "", null], ["EQ-170-05", "EQ-170", "Verificar ajuste tornillos fijación envoltura tambor PRFV", "M", 15, null, "2026-01-13", "Ajustar tornillos a 6Nm, si es necesario retirarlos e instalarlos con fijador medio Loctite 242", "A", "", null], ["EQ-170-06", "EQ-170", "Limpiar rodillos guia de la cinta", "M", 15, null, "2026-01-13", "Limpiar y retirar material adherido", "A", "", null], ["EQ-170-07", "EQ-170", "Inspección del rascador de cinta", "M", 30, null, "2026-01-13", "Verificar estado de rascador, reemplazar si es necesario", "A", "", null], ["EQ-170-08", "EQ-170", "Lubricación de todos los puntos", "L", 20, null, "2026-01-13", "Lubricar cada 80 Hrs. Todos los puntos de lubricación con 13 gr. De grasa SKF LGHP2", "A", "", null], ["EQ-170-09", "EQ-170", "Verificar tension y alineacion de la cinta", "M", 60, null, "2026-01-13", "Verificar correcto ajuste y tension de la cinta", "A", "(Ref. Pág. 64; Manual separador no ferrosos)", null], ["EQ-170-10", "EQ-170", "Controlar vibraciones", "M", 60, null, "2026-01-13", "Comprobar funcionamiento correcto", "A", "", null], ["EQ-170-11", "EQ-170", "Verificar estado de sensor de desplazamiento oblicuo", "M", 60, null, "2026-01-13", "Verificar correcto funcionamiento del sensor", "A", "", null], ["EQ-170-12", "EQ-170", "Verificar fuga de aceite de motorreductores", "M", 90, null, "2026-01-13", "Realizar control visual de fugas e informar anomalias", "A", "", null], ["EQ-170-13", "EQ-170", "Fuga de grasa excesiva en rodamientos", "M", 90, null, "2026-01-13", "Realizar control visual de fugas e informar anomalias", "A", "", null], ["EQ-170-14", "EQ-170", "Lubricar soporte de motor según indicación de placa lubricación motor", "L", 180, null, "2026-01-13", "Utilizar grasa SKF LGHP2", "A", "", null], ["EQ-170-15", "EQ-170", "Verificar nivel de aceite en reductora SPIROPLAN", "L", 180, null, "2025-08-25", "Verificar nivel de aceite", "A", "", null], ["EQ-170-16", "EQ-170", "Verificar rodamientos de la reductora SPIROPLAN", "L", 180, null, "2025-08-25", "Comprobar que no existan ruidos de marcha o posibles daños en rodamientos", "A", "", null], ["EQ-170-17", "EQ-170", "Limpieza motores electricos", "E", 180, null, "2025-08-25", "Realizar limpieza de las aletas de refrigeración", "A", "", null], ["EQ-170-18", "EQ-170", "Reemplazo lubricante en rodamientos", "L", 365, null, "2025-05-23", "Cada 2000 hrs o año y medio, reemplazar grasa SKFLGHP 2 en rodamientos", "A", "", null], ["EQ-170-19", "EQ-170", "Reemplazo del reten", "M", 365, null, "2025-05-23", "Cada 2000 hrs o año y medio, reemplazar sello reten", "A", "", null], ["EQ-170-20", "EQ-170", "Reemplazo aceite lubricante reductores", "L", 365, null, "2025-08-25", "Reemplazar cada 1 año el aceite de los reductores según placa Shell Omala S4 GX 460", "A", "", null], ["EQ-170-21", "EQ-170", "Limpieza panel de comando electrico", "E", 365, null, "2025-08-25", "Realizar retiro de polvo con aspiradora, reapretar todos los puntos de conexión", "A", "", null], ["EQ-CORREAS-01", "EQ-CORREAS", "Verificar estado de rodillos de retorno", "M", 45, null, "2025-05-31", "Realizar limpieza, verificar desgaste o reemplazar si es necesario", "A", "", null], ["EQ-CORREAS-02", "EQ-CORREAS", "Verificar tensión de las cintas", "M", 45, null, "2025-05-31", "Verificar holguras y tensar", "A", "(Ref. Pág. 66; Manual correas)", null], ["EQ-CORREAS-03", "EQ-CORREAS", "Verificar centrado de las cintas", "M", 45, null, "2025-05-31", "Al centrar la cinta, seguir el procedimiento", "A", "(Ref. Pág. 66; Manual correas)", null], ["EQ-CORREAS-04", "EQ-CORREAS", "Verificar limpieza de los motorreductores", "M", 60, null, "2025-05-31", "Retirar material de las aletas de ventilación del motor", "A", "", null], ["EQ-CORREAS-05", "EQ-CORREAS", "Lubricación de descansos con grasa Shell Gadus S2 220", "L", 180, null, "2025-05-25", "Lubricar rodamientos de los descansos con 13 g de grasa Shell Gadus S2 220", "A", "", null], ["EQ-CORREAS-06", "EQ-CORREAS", "Verificar estado de guarderas en zona de descarga", "L", 180, null, "2024-04-08", "Verificar desgaste de guardera, realizar ajuste, reemplazar si es necesario", "A", "", null], ["EQ-CORREAS-07", "EQ-CORREAS", "Verificar estado y ajuste de raspadores de poliuretano", "E", 180, null, "2024-04-08", "Ajustar raspador, verificar desgaste de hoja poliuretano", "A", "", null], ["EQ-CORREAS-08", "EQ-CORREAS", "Verificar ajuste de uniones roscadas", "M", 365, null, "2025-05-25", "Ajustar uniones roscadas de componentes como base motor, descansos y resbaladeras", "A", "", null], ["EQ-CORREAS-09", "EQ-CORREAS", "Verificar estado de dispositivos de seguridad", "E", 365, null, "2025-04-29", "Cada 1000 h o un año, ajustar bornes de switches de fuerza y paros de emergencia", "A", "", null], ["EQ-CORREAS-10", "EQ-CORREAS", "Verificar nivel de aceite de los motorreductores", "L", 365, null, "2025-05-29", "Cada 1000 h o un año, verificar nivel de aceite del motorreductor", "A", "", null], ["EQ-CORREAS-11", "EQ-CORREAS", "Reemplazo de aceite de los motorreductores", "L", 730, null, "2024-04-08", "A las 2000 h o 2 años, reemplazar el aceite Shell Omala S4 GXV 220 (2,7 L en la Correa 105)", "A", "", null], ["EQ-NAVE-01", "EQ-NAVE", "Arranque diario de toda la nave", "Operación", 1, null, null, "Echar a andar toda la nave antes de que empiece el proceso. Empieza 8:30 am.", "A", "", null], ["EQ-FARESIN-01", "EQ-FARESIN", "Engrase aditamento", "L", 7, 60, "2026-10-22", "Jueves (1 hr).", "A", "", null], ["EQ-FARESIN-02", "EQ-FARESIN", "Engrase partes", "L", 30, 180, "2026-10-08", "1/mes x (3 hr). 12-3. 1er sábado c/mes.", "A", "", null], ["EQ-FARESIN-03", "EQ-FARESIN", "Mantención c/500 hr", "M", 98, null, null, "C/500 hr.", "A", "", 500], ["EQ-FARESIN-04", "EQ-FARESIN", "Mantención c/1500 hr", "M", 294, null, null, "C/1500 hr.", "A", "", 1500], ["EQ-DOOSAN-01", "EQ-DOOSAN", "Engrase aditamento", "L", 7, 60, "2026-10-23", "Viernes (1 hr).", "A", "", null], ["EQ-DOOSAN-02", "EQ-DOOSAN", "Engrase partes", "L", 30, 180, "2026-10-15", "1/mes x (3 hr). 12-3 / 11-2 / 10-13. 2do sábado c/mes.", "A", "", null], ["EQ-DOOSAN-03", "EQ-DOOSAN", "Mantención c/500 hr", "M", 65, null, null, "C/500 hr.", "A", "", 500], ["EQ-DOOSAN-04", "EQ-DOOSAN", "Mantención c/1500 hr", "M", 195, null, null, "C/1500 hr.", "A", "", 1500], ["EQ-MINICARG1-01", "EQ-MINICARG1", "Engrase aditamento", "L", 7, 30, "2026-10-28", "Miércoles (0.5 hr).", "A", "", null], ["EQ-MINICARG1-02", "EQ-MINICARG1", "Engrase partes", "L", 30, null, null, "1/mes.", "A", "", null], ["EQ-MINICARG1-03", "EQ-MINICARG1", "Mantención c/500 hr", "M", null, null, null, "C/500 hr.", "A", "", 500], ["EQ-MINICARG1-04", "EQ-MINICARG1", "Mantención c/1500 hr", "M", null, null, null, "C/1500 hr.", "A", "", 1500], ["EQ-MINICARG2-01", "EQ-MINICARG2", "Engrase aditamento", "L", 7, 30, "2026-10-28", "Miércoles (0.5 hr).", "A", "", null], ["EQ-MINICARG2-02", "EQ-MINICARG2", "Engrase partes", "L", 30, null, null, "1/mes.", "A", "", null], ["EQ-MINICARG2-03", "EQ-MINICARG2", "Mantención c/500 hr", "M", null, null, null, "C/500 hr.", "A", "", 500], ["EQ-MINICARG2-04", "EQ-MINICARG2", "Mantención c/1500 hr", "M", null, null, null, "C/1500 hr.", "A", "", 1500]];
+
+/* ---------------- estado ---------------- */
+let S = { equipos:[], tareas:[], registros:[], config:{}, cola:[], actualizado:null };
+let UI = { abierta:null, modo:null };   // tarea con panel abierto y tipo de panel ('ok' | 'no')
+let syncing=false, syncFails=0, lastSync=null, retryTimer=null;
+const DEMO = !SHEET_URL;
+
+function demoData(){
+  return {
+    equipos: EQUIPOS.map(e=>({id_equipo:e[0],equipo:e[1],codigo_planta:e[2],tipo_equipo:'',criticidad:e[3],fuente_horas:e[4]})),
+    tareas: TAREAS.map(t=>({id_tarea:t[0],id_equipo:t[1],tarea:t[2],tipo:t[3],frecuencia_dias:t[4],tiempo_min:t[5],fecha_base:t[6]||'',referencia:t[7],ref_manual:t[9]||'',frecuencia_horas:t[10]||'',estado:t[8]==='A'?'Activa':'Pendiente definir',tipo_frecuencia:t[10]?'horas':'dias'})),
+    registros: [],
+    config: {horas_semana:25, encargado:'Encargado de mantención', motivos:MOTIVOS_DEF.join(',')}
+  };
+}
+function load(){
+  try{ const j=JSON.parse(localStorage.getItem(STORE_KEY)||'null'); if(j&&j.tareas&&j.tareas.length){S=Object.assign(S,j)} }catch(e){}
+  if(DEMO || !S.tareas.length){ const d=demoData(); S.equipos=d.equipos; S.tareas=d.tareas; if(DEMO||!S.config.horas_semana) S.config=d.config }
+}
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)) }catch(e){} }
+
+/* ---------------- fechas ---------------- */
+const hoy0 = ()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const p2 = n=>String(n).padStart(2,'0');
+const isoDia = d=>`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+const isoHora = d=>`${isoDia(d)}T${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+const parseDia = s=>{ if(!s) return null; const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m? new Date(+m[1],+m[2]-1,+m[3]) : null };
+const fmt = d=>d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'});
+const fmtc = d=>d.toLocaleDateString('es-CL',d.getFullYear()===new Date().getFullYear()?{day:'numeric',month:'short'}:{day:'numeric',month:'short',year:'numeric'});
+const horaTxt = s=>{const m=String(s).match(/T(\d{2}):(\d{2})/);return m?`${m[1]}:${m[2]}`:''};
+function lunesDe(d){const l=new Date(d);l.setDate(d.getDate()-((d.getDay()+6)%7));l.setHours(0,0,0,0);return l}
+function pauta(f){const t=[[1,'Diaria'],[5,'Semanal'],[10,'Quincenal'],[25,'Mensual'],[40,'Cada 1,5 meses'],[55,'Bimestral'],[85,'Trimestral'],[115,'Cuatrimestral'],[170,'Semestral'],[195,'Cada 200 días'],[300,'Anual'],[500,'Cada 18 meses'],[700,'Cada 2 años'],[1000,'Cada 3 años'],[1700,'Cada 5 años']];let r='';for(const[a,b]of t){if(f>=a)r=b}return r}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+const n2 = i=>p2(i);
+
+/* ---------------- cálculo ---------------- */
+function registrosVigentes(){
+  const ids=new Set(), out=[];
+  for(const r of [...S.registros, ...S.cola.filter(o=>o.op==='reg').map(o=>o.r)]){
+    if(ids.has(r.id_registro)) continue; ids.add(r.id_registro);
+    out.push(r);
+  }
+  const anulados=new Set(S.cola.filter(o=>o.op==='anular').map(o=>o.id));
+  return out.filter(r=>!(String(r.anulado).toLowerCase()==='true'||r.anulado===true||anulados.has(r.id_registro)));
+}
+function modelo(){
+  const HOY=hoy0(), LUN=lunesDe(HOY);
+  const eq=Object.fromEntries(S.equipos.map(e=>[e.id_equipo,e]));
+  const regs=registrosVigentes();
+  const ultHecha={}, semana={}, deHoy={};
+  for(const r of regs){
+    const d=parseDia(r.fecha_hora); if(!d) continue;
+    if(d.getTime()===HOY.getTime()) deHoy[r.id_tarea]=r;
+    if(r.resultado==='Realizada' && (!ultHecha[r.id_tarea] || d>ultHecha[r.id_tarea])) ultHecha[r.id_tarea]=d;
+    if(d>=LUN){ const prev=semana[r.id_tarea]; if(!prev || String(r.fecha_hora)>String(prev.fecha_hora)) semana[r.id_tarea]=r }
+  }
+  const ts=S.tareas.map(t=>{
+    const e=eq[t.id_equipo]||{equipo:t.id_equipo,criticidad:'B',fuente_horas:'calendario'};
+    const freq=Number(t.frecuencia_dias)||0, min=Number(t.tiempo_min)||0;
+    const base=parseDia(t.fecha_base), uh=ultHecha[t.id_tarea];
+    const ult = base&&uh ? (uh>base?uh:base) : (uh||base);
+    const o={...t, e, freq, min, ult, activa:t.estado==='Activa', reg:semana[t.id_tarea]||null};
+    if(!o.activa){o.est='No programada';return o}
+    if(!freq){o.est='Sin frecuencia';return o}   // activa pero por horas sin uso definido: se ve en Equipos, no entra al plan
+    if(freq===1){   // tarea diaria (lunes a sábado): solo cuenta el registro de hoy
+      o.diaria=true; o.reg=deHoy[t.id_tarea]||null; o.ciclos=0;
+      if(o.reg || HOY.getDay()===0){ o.prox=new Date(HOY.getTime()+DIA); o.dias=1; o.est='Al día' }
+      else { o.prox=new Date(HOY); o.dias=0; o.est='Por vencer' }
+      return o;
+    }
+    if(!ult){o.ult=null; o.prox=new Date(HOY); o.dias=0; o.est='Por vencer'; o.ciclos=0; o.nueva=true; return o}   // tarea nueva sin fecha: toca hoy
+    o.prox=new Date(ult.getTime()+freq*DIA);
+    o.dias=Math.round((o.prox-HOY)/DIA);
+    o.est=o.dias<0?'Vencida':o.dias<=7?'Por vencer':'Al día';
+    o.ciclos=o.dias<0?(-o.dias)/freq:0;
+    return o;
+  });
+  return {ts, eq, regs, HOY, LUN};
+}
+function capH(){ return Number(S.config.horas_semana)||25 }   // horas por semana para preventivo
+function plan(ts){
+  const cand=ts.filter(t=>t.activa && (t.est==='Vencida'||t.est==='Por vencer'||t.reg));
+  const cr=c=>({A:0,B:1,C:2}[c]??3);
+  const alDia=t=>t.est==='Vencida'?1:0;   // primero lo que toca esta semana (no se atrasa), después recuperar lo vencido
+  cand.sort((a,b)=>((b.diaria?1:0)-(a.diaria?1:0)) || (cr(a.e.criticidad)-cr(b.e.criticidad)) || (alDia(a)-alDia(b)) || ((b.ciclos||0)-(a.ciclos||0)) || ((a.dias??0)-(b.dias??0)));
+  let acc=0; const dentro=[], fuera=[];
+  for(const t of cand){const m=(t.min||MIN_DEF)*(t.diaria?6:1);   // las diarias reservan 6 días de la semana
+    if(t.diaria || t.reg || acc+m<=capH()*60){dentro.push(t);acc+=m} else fuera.push(t)}
+  return {dentro,fuera,min:acc};
+}
+
+/* ---------------- vistas ---------------- */
+const critTag = c=>`<span class="tag ${c==='A'?'crit':'critB'}">Crit. ${esc(c)}</span>`;
+const ICON_OK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_NO='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function estadoTxt(t){
+  if(t.est==='Vencida') return (t.dias===-1?`<span class="late">Vencida desde ayer</span>`:`<span class="late">Vencida hace ${-t.dias} días</span>`);
+  if(t.diaria) return `<span class="soon">Todos los días · hoy</span>`;
+  if(t.est==='Sin frecuencia') return `<span class="soon">Por horas (${esc(t.frecuencia_horas||'')} hr) · falta el uso del equipo en la planilla</span>`;
+  if(t.est==='Por vencer') return t.dias===0?`<span class="soon">Vence hoy</span>`:(t.dias===1?`<span class="soon">Vence mañana</span>`:`<span class="soon">Vence en ${t.dias} días</span>`);
+  if(t.est==='Al día') return `<span>Próxima: ${fmt(t.prox)}</span>`;
+  return `<span>${t.est}</span>`;
+}
+function motivos(){ const m=String(S.config.motivos||'').split(',').map(x=>x.trim()).filter(Boolean); return m.length?m:MOTIVOS_DEF }
+const ICON_LIBRO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8 7.5h8M8 11h6"/></svg>';
+const ICON_CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+const ICON_DOC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>';
+function comoHTML(t){
+  if(!t.referencia && !t.ref_manual) return '';
+  const ref=String(t.ref_manual||'').trim();
+  return `<details class="como">
+    <summary><span class="como-ic">${ICON_LIBRO}</span><span>Cómo hacerlo</span><span class="como-chev">${ICON_CHEV}</span></summary>
+    <div class="como-body">
+      ${t.referencia?`<p>${esc(t.referencia)}</p>`:''}
+      ${ref?`<div class="como-ref"><span class="como-doc">${ICON_DOC}</span><span>${esc(ref)}</span></div>`:''}
+    </div></details>`;
+}
+function taskHTML(t){
+  const r=t.reg;
+  const tiempo=t.min?`${t.min} min`:`~${MIN_DEF} min (estimado)`;
+  let foot='', acts='';
+  if(r && r.resultado==='Realizada'){
+    foot=`<div class="done"><b>✓ Realizada</b> · ${fmtc(parseDia(r.fecha_hora))} ${horaTxt(r.fecha_hora)}${r.comentario?` · ${esc(r.comentario)}`:''}</div>`;
+  } else if(r && r.resultado==='No realizada'){
+    foot=`<div class="done no"><b>✕ No realizada</b> · ${esc(r.motivo)} · vuelve al plan de la próxima semana</div>`;
+  } else if(UI.abierta===t.id_tarea){
+    foot=`<div class="motivos"><span>¿Por qué no se realizó?</span>${motivos().map(m=>`<button class="rs-opt" data-mot="${esc(t.id_tarea)}" data-m="${esc(m)}">${esc(m)}</button>`).join('')}<button class="link-btn" data-cancel="1">Cancelar</button></div>`;
+  }
+  if(!r && UI.abierta!==t.id_tarea && t.activa) acts=`<button class="btn-accion btn-andar" data-ok="${esc(t.id_tarea)}"><span class="btn-icono">${ICON_OK}</span><span class="btn-texto">Realizada</span></button><button class="btn-accion btn-parar" data-no="${esc(t.id_tarea)}"><span class="btn-icono">${ICON_NO}</span><span class="btn-texto">No realizada</span></button>`;
+  return `<div class="task">
+    <div><div class="d">${esc(t.tarea)}</div>
+    <div class="m">${r?'':estadoTxt(t)}<span>${TIPO[t.tipo]||esc(t.tipo)}</span><span>${pauta(t.freq)}</span><span>${tiempo}</span>${t.ult?`<span>Última: ${fmt(t.ult)}</span>`:''}</div></div>
+    <div class="acts">${acts}</div>
+    ${comoHTML(t)}
+    ${foot}</div>`;
+}
+function vSemana(){
+  const M=modelo(), p=plan(M.ts), dom=new Date(M.LUN.getTime()+6*DIA);
+  const realizadas=p.dentro.filter(t=>t.reg&&t.reg.resultado==='Realizada').length;
+  const pendientes=p.dentro.filter(t=>!t.reg).length;
+  const pos=Object.fromEntries(S.tareas.map((t,i)=>[t.id_tarea,i]));
+  const g={}; p.dentro.forEach(t=>{(g[t.id_equipo]=g[t.id_equipo]||[]).push(t)});
+  const cr=c=>({A:0,B:1,C:2}[c]??3);
+  const tieneDiaria=id=>g[id].some(t=>t.diaria)?0:1;
+  const orden=Object.keys(g).sort((a,b)=>tieneDiaria(a)-tieneDiaria(b) || cr(M.eq[a]?.criticidad)-cr(M.eq[b]?.criticidad) || g[b].length-g[a].length);
+  const pct=p.dentro.length?Math.round((p.dentro.length-pendientes)/p.dentro.length*100):0;
+  return `<section class="card">
+    <div class="card-head"><span class="fmtNum">01</span><h2>Plan de la semana</h2><span class="tag">${fmtc(M.LUN)} – ${fmtc(dom)}</span></div>
+    <p class="card-note">Tareas de esta semana, ordenadas por prioridad: empieza por el primer equipo.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="n">${p.dentro.length}</div><div class="l">Tareas de la semana</div></div>
+      <div class="kpi ok"><div class="n">${realizadas}</div><div class="l">Realizadas</div></div>
+      <div class="kpi"><div class="n">${pendientes}</div><div class="l">Pendientes</div></div>
+    </div>
+    <div class="cap"><div class="bar avance-sem"><span style="width:${pct}%"></span></div></div>
+  </section>
+  ${orden.map((id,i)=>{const e=M.eq[id]||{equipo:id,criticidad:'B',fuente_horas:'calendario'};const ts=g[id].slice().sort((a,b)=>pos[a.id_tarea]-pos[b.id_tarea]);return `<section class="card">
+    <div class="card-head"><span class="fmtNum">${n2(i+2)}</span><h2>${esc(e.equipo)}</h2>${critTag(e.criticidad)}<span class="head-right">${ts.length} tareas</span></div>
+    <div class="tasks">${ts.map(taskHTML).join('')}</div></section>`}).join('')}
+  ${orden.length?'':`<section class="card"><p class="card-note">No hay tareas pendientes esta semana.</p></section>`}`;
+}
+function vEquipos(){
+  const M=modelo(); const cr=c=>({A:0,B:1,C:2}[c]??3);
+  const rows=S.equipos.map(q=>{const a=M.ts.filter(t=>t.id_equipo===q.id_equipo&&t.activa&&t.freq);
+    const v=a.filter(t=>t.est==='Vencida').length, ok=a.filter(t=>t.est==='Al día'||t.est==='Por vencer').length;
+    const nx=a.filter(t=>t.prox&&t.est!=='Vencida').sort((x,y)=>x.prox-y.prox)[0];
+    return {q,n:a.length,v,pct:a.length?ok/a.length:0,nx}}).sort((a,b)=>cr(a.q.criticidad)-cr(b.q.criticidad)||b.v-a.v);
+  return `<section class="card">
+  <div class="card-head"><span class="fmtNum">01</span><h2>Estado por equipo</h2><span class="tag">${rows.length} equipos</span></div>
+  <p class="card-note">Toca un equipo para ver todas sus tareas y registrar cualquiera, aunque no esté en el plan de la semana.</p>
+  <ul class="eqlist">${rows.map(r=>`<li><a href="#equipo-${esc(r.q.id_equipo)}"><span class="nm">${esc(r.q.equipo)}</span><span class="chev">›</span>
+    <span class="sub">${critTag(r.q.criticidad)}<span><span class="minibar"><span style="width:${Math.round(r.pct*100)}%"></span></span>${Math.round(r.pct*100)}% al día</span><span class="${r.v?'late':''}">${r.v} vencidas</span>${r.nx?`<span>Próxima ${fmtc(r.nx.prox)}</span>`:''}</span></a></li>`).join('')}</ul>
+  <div class="tscroll eqtable"><table><thead><tr><th>Equipo</th><th>Crit.</th><th>Al día</th><th class="num">Vencidas</th><th>Próxima tarea</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr class="rowlink" data-eq="${esc(r.q.id_equipo)}" tabindex="0"><td><b>${esc(r.q.equipo)}</b><div class="src">${esc(r.q.codigo_planta||'sin código')} · ${FUENTE[r.q.fuente_horas]||'Calendario'}</div></td><td>${critTag(r.q.criticidad)}</td>
+  <td style="white-space:nowrap"><span class="minibar"><span style="width:${Math.round(r.pct*100)}%"></span></span>${Math.round(r.pct*100)}%</td>
+  <td class="num ${r.v?'late':''}">${r.v}</td><td>${r.nx?fmtc(r.nx.prox):'—'}</td></tr>`).join('')}
+  </tbody></table></div></section>`;
+}
+function vEquipo(id){
+  const M=modelo(), e=M.eq[id]; if(!e) return vEquipos();
+  const ord={'Vencida':0,'Por vencer':1,'Sin frecuencia':2,'Al día':3,'Sin fecha base':4,'No programada':5};
+  const a=M.ts.filter(t=>t.id_equipo===id).sort((x,y)=>(ord[x.est]-ord[y.est])||((x.dias??0)-(y.dias??0)));
+  const hist=M.regs.filter(r=>r.id_equipo===id).sort((x,y)=>String(y.fecha_hora).localeCompare(String(x.fecha_hora))).slice(0,15);
+  const nom=Object.fromEntries(S.tareas.map(t=>[t.id_tarea,t.tarea]));
+  return `<a class="back" href="#equipos">‹ Volver a equipos</a>
+  <section class="card"><div class="card-head"><span class="fmtNum">01</span><h2>${esc(e.equipo)}</h2>${critTag(e.criticidad)}<span class="head-right">${a.length} tareas · ${FUENTE[e.fuente_horas]||'Calendario'}</span></div>
+  <div class="tasks">${a.map(taskHTML).join('')}</div></section>
+  <section class="card"><div class="card-head"><span class="fmtNum">02</span><h2>Últimos registros</h2></div>
+  ${hist.length?`<ul class="reglist">${hist.map(r=>`<li><span class="when">${fmtc(parseDia(r.fecha_hora))} ${horaTxt(r.fecha_hora)}</span><span>${esc(nom[r.id_tarea]||r.id_tarea)}${r.motivo?` · ${esc(r.motivo)}`:''}</span><span class="${r.resultado==='Realizada'?'ok-t':'no-t'}">${esc(r.resultado)}</span></li>`).join('')}</ul>`:`<p class="card-note">Aún no hay registros de este equipo en la app.</p>`}
+  </section>`;
+}
+function vResumen(){
+  const M=modelo(); const act=M.ts.filter(t=>t.activa&&t.freq);
+  const p=plan(M.ts), fueraMin=p.fuera.reduce((a,t)=>a+(t.min||MIN_DEF),0);
+  const fueraEq={}; p.fuera.forEach(t=>{fueraEq[t.e.equipo]=(fueraEq[t.e.equipo]||0)+1});
+  const by=c=>{const a=act.filter(t=>!c||t.e.criticidad===c);const v=a.filter(t=>t.est==='Vencida');return {n:a.length,v:v.length,pct:a.length?1-v.length/a.length:0,h:v.reduce((s,t)=>s+(t.min||MIN_DEF),0)/60}};
+  const T=by(), A=by('A'), B=by('B');
+  const desde=new Date(M.HOY.getTime()-30*DIA);
+  const r30=M.regs.filter(r=>{const d=parseDia(r.fecha_hora);return d&&d>=desde});
+  const mot={}; r30.filter(r=>r.resultado==='No realizada').forEach(r=>{mot[r.motivo]=(mot[r.motivo]||0)+1});
+  const mx=Math.max(1,...Object.values(mot));
+  const semH=M.regs.filter(r=>parseDia(r.fecha_hora)>=M.LUN&&r.resultado==='Realizada').length;
+  const semN=M.regs.filter(r=>parseDia(r.fecha_hora)>=M.LUN&&r.resultado==='No realizada').length;
+  const tr=(l,o)=>`<tr><td>${l}</td><td class="num">${o.n}</td><td class="num ${o.v?'late':''}">${o.v}</td><td class="num">${Math.round(o.h)} h</td><td style="white-space:nowrap"><span class="minibar"><span style="width:${Math.round(o.pct*100)}%"></span></span>${(o.pct*100).toFixed(1)}%</td></tr>`;
+  return `<section class="card"><div class="card-head"><span class="fmtNum">01</span><h2>Cumplimiento</h2><span class="tag">Al ${fmt(M.HOY)}</span></div>
+    <div class="kpis"><div class="kpi"><div class="n">${(T.pct*100).toFixed(1)}%</div><div class="l">Cumplimiento planta</div></div>
+    <div class="kpi bad"><div class="n">${T.v}</div><div class="l">Tareas vencidas</div></div>
+    <div class="kpi"><div class="n">${Math.round(T.h)} h</div><div class="l">Atraso estimado</div></div></div>
+    <div class="tscroll"><table><thead><tr><th>Criticidad</th><th class="num">Tareas</th><th class="num">Vencidas</th><th class="num">Atraso</th><th>Cumplimiento</th></tr></thead>
+    <tbody>${tr('A · detiene la línea',A)}${tr('B · afecta recuperación',B)}</tbody></table></div>
+    <p class="card-note">Esta semana: ${semH} tareas realizadas y ${semN} no realizadas. El atraso en horas usa el tiempo de cada tarea, o ${MIN_DEF} min cuando falta.</p></section>
+  <section class="card"><div class="card-head"><span class="fmtNum">02</span><h2>Carga de la semana</h2><span class="tag">${capH()} h disponibles</span></div>
+    <div class="kpis"><div class="kpi"><div class="n">${p.dentro.length}</div><div class="l">Tareas en el plan</div></div>
+    <div class="kpi"><div class="n">${(p.min/60).toFixed(1)} h</div><div class="l">Horas planificadas</div></div>
+    <div class="kpi bad"><div class="n">${p.fuera.length}</div><div class="l">Vencidas que no caben</div></div></div>
+    <div class="cap"><div class="caprow"><span>Horas planificadas <b>${(p.min/60).toFixed(1)} h</b> de <b>${capH()} h</b> disponibles</span></div><div class="bar"><span style="width:${Math.min(100,p.min/(capH()*60)*100)}%"></span></div></div>
+    ${p.fuera.length?`<div class="notice"><b>${p.fuera.length} tareas vencidas no caben esta semana</b> (≈${Math.round(fueraMin/60)} h): ${Object.entries(fueraEq).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([n,c])=>`${esc(n)} ${c}`).join(', ')}${Object.keys(fueraEq).length>4?'…':''}. Pasan solas a las semanas siguientes.</div>`:''}
+  </section>
+  <section class="card"><div class="card-head"><span class="fmtNum">03</span><h2>Motivos de no ejecución</h2><span class="tag">Últimos 30 días</span></div>
+    ${Object.keys(mot).length?`<div class="hbars">${Object.entries(mot).sort((a,b)=>b[1]-a[1]).map(([m,c])=>`<div class="hb"><span>${esc(m)}</span><div class="bar"><span style="width:${c/mx*100}%"></span></div><b>${c}</b></div>`).join('')}</div>`:`<p class="empty">Sin tareas marcadas como "No realizada" en los últimos 30 días.</p>`}</section>
+`;
+}
+
+/* ---------------- render ---------------- */
+function vista(){ const h=(location.hash||'#semana').slice(1); if(h.startsWith('equipo-')) return ['equipos',h.slice(7)]; return [['semana','equipos','resumen'].includes(h)?h:'semana',null] }
+function render(){
+  const [v,id]=vista();
+  document.querySelectorAll('.switch a').forEach(a=>{if(a.dataset.v===v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  document.getElementById('app').innerHTML = id? vEquipo(id) : v==='equipos'? vEquipos() : v==='resumen'? vResumen() : vSemana();
+  document.getElementById('demo-note').hidden=!DEMO;
+}
+function abrirConfirmar(id){
+  const t=S.tareas.find(x=>x.id_tarea===id); if(!t) return;
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-ic">${ICON_OK}</div>
+    <h3 id="modal-t">¿Confirmas que esta tarea está realizada?</h3>
+    <p class="modal-tarea">${esc(t.tarea)}</p>
+    <div class="modal-btns"><button class="btn-si" data-si="${esc(id)}">Sí, está realizada</button><button class="btn-cancelar" data-cerrar="1">Cancelar</button></div>
+  </div>`;
+  m.hidden=false; document.body.classList.add('con-modal');
+  const s=m.querySelector('.btn-si'); if(s) s.focus();
+}
+function cerrarConfirmar(){ const m=document.getElementById('modal'); m.hidden=true; m.innerHTML=''; document.body.classList.remove('con-modal') }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarConfirmar() });
+function toast(msg, err){ const t=document.createElement('div'); t.className='toast'+(err?' err':''); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 2600) }
+
+/* ---------------- registrar ---------------- */
+function nuevoId(){ return 'R-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6) }
+function registrar(idTarea, resultado, extra){
+  const t=S.tareas.find(x=>x.id_tarea===idTarea); if(!t) return;
+  const r={id_registro:nuevoId(), fecha_hora:isoHora(new Date()), id_tarea:idTarea, id_equipo:t.id_equipo, resultado,
+           motivo:extra.motivo||'', comentario:extra.comentario||'', horometro:extra.horometro||'', registrado_por:S.config.encargado||'', anulado:''};
+  S.cola.push({op:'reg', r}); UI.abierta=null; UI.modo=null; save(); render();
+  toast(resultado==='Realizada'?'✓ Guardada como realizada':'Guardada como no realizada');
+  sync();
+}
+function editarHoro(idReg, valor){
+  if(!valor) return;
+  const o=S.cola.find(o=>o.op==='reg'&&o.r.id_registro===idReg);
+  if(o) o.r.horometro=valor;
+  else { S.cola.push({op:'editar', id:idReg, campos:{horometro:valor}}); const r=S.registros.find(r=>r.id_registro===idReg); if(r) r.horometro=valor }
+  save(); render(); toast('✓ Horómetro guardado'); sync();
+}
+function anular(idReg){
+  const i=S.cola.findIndex(o=>o.op==='reg'&&o.r.id_registro===idReg);
+  if(i>=0) S.cola.splice(i,1); else S.cola.push({op:'anular', id:idReg});
+  save(); render(); toast('Listo, se deshizo'); sync();
+}
+
+/* ---------------- planilla ---------------- */
+function fetchT(url, opts, ms){ const ac=new AbortController(); const t=setTimeout(()=>ac.abort(), ms||45000); return fetch(url, Object.assign({signal:ac.signal}, opts)).finally(()=>clearTimeout(t)) }
+async function leer(){
+  const r=await fetchT(SHEET_URL+'?accion=leer',{redirect:'follow',cache:'no-store'});
+  const j=await r.json(); if(!j||!j.ok) throw new Error(j&&j.error||'sin datos'); return j;
+}
+async function enviar(ops){
+  const body=JSON.stringify({accion:'lote', ops});
+  try{ const r=await fetchT(SHEET_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body},60000);
+       if((await r.text()).includes('"ok":true')) return true }catch(e){}
+  await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
+  return false;
+}
+async function sync(manual){
+  if(DEMO){ renderSync(); if(manual) toast('Modo demostración: falta conectar la planilla.'); return }
+  if(syncing) return; syncing=true;
+  try{
+    if(S.cola.length){ const ops=S.cola.slice(); await enviar(ops); }
+    const j=await leer();
+    S.equipos=j.equipos||S.equipos; S.tareas=j.tareas||S.tareas; S.registros=j.registros||[]; S.config=j.config||S.config;
+    // lo que ya está en la planilla sale de la cola
+    const enHoja=new Set(S.registros.map(r=>r.id_registro));
+    const anuladosHoja=new Set(S.registros.filter(r=>String(r.anulado).toLowerCase()==='true').map(r=>r.id_registro));
+    const horoHoja=Object.fromEntries(S.registros.map(r=>[r.id_registro,String(r.horometro||'')]));
+    S.cola=S.cola.filter(o=> o.op==='reg' ? !enHoja.has(o.r.id_registro) : o.op==='editar' ? horoHoja[o.id]!==String(o.campos.horometro) : !anuladosHoja.has(o.id));
+    lastSync=new Date(); syncFails=0; save(); renderSync(); render();
+    if(manual) toast('Planilla al día.');
+  }catch(e){
+    syncFails++; renderSync(syncFails>=3?'mal':'reintento');
+    if(manual) toast('La planilla está lenta; se vuelve a intentar sola.', true);
+    clearTimeout(retryTimer); retryTimer=setTimeout(sync, Math.min(15000*syncFails, 60000));
+  }finally{ syncing=false }
+}
+function renderSync(mal){
+  const dot=document.getElementById('sync-dot'), lab=document.getElementById('sync-label'), pill=document.getElementById('sync-state');
+  const hh=d=>`${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  if(DEMO){ dot.style.background='#A1A1AA'; lab.textContent='Demostración'; pill.title='Sin planilla conectada: los registros quedan en este dispositivo'; return }
+  if(mal==='mal'){ dot.style.background='#FF6B5A'; lab.textContent=S.cola.length?`Sin conexión · ${S.cola.length} por enviar`:'Sin conexión'; pill.title='No se pudo llegar a la planilla; los registros quedan guardados y se envían solos'; return }
+  if(mal==='reintento'){ dot.style.background='#E8A33D'; lab.textContent='Reintentando'; pill.title='La planilla está lenta; se reintenta solo'; return }
+  dot.style.background='var(--neon)'; lab.textContent=lastSync?`Actualizado ${hh(lastSync)}`:'Conectando'; pill.title='Toca para actualizar';
+}
+
+/* ---------------- eventos ---------------- */
+document.addEventListener('click',e=>{
+  if(e.target.id==='modal'){ cerrarConfirmar(); return }
+  const row=e.target.closest('tr[data-eq]'); if(row){ location.hash='equipo-'+row.dataset.eq; return }
+  const b=e.target.closest('button'); if(!b) return;
+  const d=b.dataset;
+  if(b.id==='sync-state'){ sync(true); return }
+  if(d.ok){ abrirConfirmar(d.ok) }
+  else if(d.si){ cerrarConfirmar(); registrar(d.si,'Realizada',{}) }
+  else if(d.cerrar){ cerrarConfirmar() }
+  else if(d.no){ UI.abierta=d.no; UI.modo='no'; render() }
+  else if(d.mot){ registrar(d.mot,'No realizada',{motivo:d.m}) }
+  else if(d.cancel){ UI.abierta=null; UI.modo=null; render() }
+  else if(d.undo){ anular(d.undo) }
+});
+document.addEventListener('submit',e=>{
+  const f=e.target.closest('form[data-form]'); if(!f) return; e.preventDefault();
+  registrar(f.dataset.form,'Realizada',{comentario:f.com.value.trim()});
+});
+window.addEventListener('hashchange',()=>{UI.abierta=null;render();window.scrollTo(0,0)});
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) sync() });
+
+load();
+document.getElementById('version').title=VERSION;
+document.getElementById('hoy').textContent='Planta GIRI · hoy '+fmt(hoy0());
+renderSync(); render(); sync();
+setInterval(()=>sync(), 5*60000);
+</script>
