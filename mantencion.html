@@ -371,6 +371,32 @@ const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyJJaGMbioyLsx9GckAW9
 
 const STORE_KEY = 'giri_mantencion_v1';
 const DIA = 86400000;
+const HORO_MIN_DIAS = 14, HORO_VENTANA = 60;   // uso real: lecturas separadas al menos 14 días, dentro de los últimos 60
+/* Horas de uso por día de cada equipo según sus lecturas de horómetro (null si aún no hay datos suficientes) */
+function usoReal(regs){
+  const por={}; regs.filter(r=>r.resultado==='Horómetro'&&r.horometro!==''&&r.horometro!=null).forEach(r=>{
+    const d=parseDia(r.fecha_hora), v=Number(String(r.horometro).replace(',','.')); if(d&&isFinite(v)) (por[r.id_equipo]=por[r.id_equipo]||[]).push({d,v}) });
+  const out={};
+  for(const id in por){
+    const xs=por[id].sort((a,b)=>a.d-b.d), u=xs[xs.length-1];
+    const b=xs.find(x=>x.d>=new Date(u.d.getTime()-HORO_VENTANA*DIA)); if(!b) continue;
+    const dias=Math.round((u.d-b.d)/DIA); if(dias<HORO_MIN_DIAS) continue;
+    const h=(u.v-b.v)/dias; if(h>0&&h<=24) out[id]={h, desde:b.d, hasta:u.d};
+  }
+  return out;
+}
+const USO_DEF={linea:4.1,cdr:3.7,enf:3.7,faresin:5.1,doosan:7.7};   // respaldo del uso de la planilla (modo demostración)
+/* Frecuencia en días ajustada al uso real del horómetro:
+   · tareas por horas: horas ÷ uso real
+   · tareas por días (más de 7): lo que ocurra primero entre los días y su equivalente en horas al uso real */
+function freqAjustada(t, ur){
+  const fd=Number(t.frecuencia_dias)||0, fh=Number(t.frecuencia_horas)||0;
+  if(!ur) return {freq:fd, porHoro:false};
+  if(String(t.tipo_frecuencia).trim().toLowerCase()==='horas' && fh>0) return {freq:Math.max(1,Math.round(fh/ur.h)), porHoro:true};
+  const uPlan=Number(t.uso_h_dia)||USO_DEF[t.fuente_horas||(S.equipos.find(e=>e.id_equipo===t.id_equipo)||{}).fuente_horas]||0;
+  if(fd>7 && uPlan>0){ const f=Math.max(1,Math.round(fd*uPlan/ur.h)); if(f<fd) return {freq:f, porHoro:true} }
+  return {freq:fd, porHoro:false};
+}
 const MIN_DEF = 30;   // minutos supuestos para tareas sin tiempo cargado
 const TIPO = {M:'Mecánica',E:'Eléctrica',L:'Lubricación','Mecánica':'Mecánica','Eléctrica':'Eléctrica','Lubricación':'Lubricación'};
 const FUENTE = {linea:'Horas de la línea', cdr:'Horas del CDR', enf:'Horómetro enfardadora', faresin:'Horas del Faresín', doosan:'Horas del Doosan', minicarg1:'Horas del minicargador 1', minicarg2:'Horas del minicargador 2', calendario:'Calendario'};
@@ -427,7 +453,7 @@ function registrosVigentes(){
 function modelo(){
   const HOY=hoy0(), LUN=lunesDe(HOY);
   const eq=Object.fromEntries(S.equipos.map(e=>[e.id_equipo,e]));
-  const regs=registrosVigentes();
+  const regs=registrosVigentes(), UR=usoReal(regs);
   const ultHecha={}, semana={}, deHoy={};
   for(const r of regs){
     const d=parseDia(r.fecha_hora); if(!d) continue;
@@ -437,10 +463,10 @@ function modelo(){
   }
   const ts=S.tareas.map(t=>{
     const e=eq[t.id_equipo]||{equipo:t.id_equipo,criticidad:'B',fuente_horas:'calendario'};
-    const freq=Number(t.frecuencia_dias)||0, min=Number(t.tiempo_min)||0;
+    const {freq, porHoro}=freqAjustada(t, UR[t.id_equipo]), min=Number(t.tiempo_min)||0;
     const base=parseDia(t.fecha_base), uh=ultHecha[t.id_tarea];
     const ult = base&&uh ? (uh>base?uh:base) : (uh||base);
-    const o={...t, e, freq, min, ult, activa:t.estado==='Activa', reg:semana[t.id_tarea]||null};
+    const o={...t, e, freq, min, ult, porHoro, activa:t.estado==='Activa', reg:semana[t.id_tarea]||null};
     if(!o.activa){o.est='No programada';return o}
     if(!freq){o.est='Sin frecuencia';return o}   // activa pero por horas sin uso definido: se ve en Equipos, no entra al plan
     if(freq===1){   // tarea diaria (lunes a sábado): solo cuenta el registro de hoy
@@ -456,7 +482,7 @@ function modelo(){
     o.ciclos=o.dias<0?(-o.dias)/freq:0;
     return o;
   });
-  return {ts, eq, regs, HOY, LUN};
+  return {ts, eq, regs, HOY, LUN, UR};
 }
 function capH(){ return Number(S.config.horas_semana)||25 }   // horas por semana para preventivo
 function plan(ts){
@@ -513,7 +539,7 @@ function taskHTML(t){
   if(!r && t.activa) acts=`<button class="btn-accion btn-andar" data-ok="${esc(t.id_tarea)}"><span class="btn-icono">${ICON_OK}</span><span class="btn-texto">Realizada</span></button><button class="btn-accion btn-parar" data-no="${esc(t.id_tarea)}"><span class="btn-icono">${ICON_NO}</span><span class="btn-texto">No realizada</span></button>`;
   return `<div class="task">
     <div><div class="d">${esc(t.tarea)}</div>
-    <div class="m">${r?'':estadoTxt(t)}<span>${TIPO[t.tipo]||esc(t.tipo)}</span><span>${pauta(t.freq)}</span><span>${tiempo}</span>${t.ult?`<span>Última: ${fmt(t.ult)}</span>`:''}</div></div>
+    <div class="m">${r?'':estadoTxt(t)}<span>${TIPO[t.tipo]||esc(t.tipo)}</span><span>${t.porHoro?(String(t.tipo_frecuencia).toLowerCase()==='horas'?`Cada ${numFmt(t.frecuencia_horas)} h`:`Cada ${t.frecuencia_dias} días`)+` · ≈${t.freq} días según horómetro`:pauta(t.freq)}</span><span>${tiempo}</span>${t.ult?`<span>Última: ${fmt(t.ult)}</span>`:''}</div></div>
     <div class="acts">${acts}</div>
     ${comoHTML(t)}
     ${foot}</div>`;
@@ -569,8 +595,8 @@ function vEquipo(id){
   const conHoro=!SIN_HORO.has(id), uH=conHoro?ultHoro(M.regs,id):null; let k=1;
   const horoCard=conHoro?`<section class="card"><div class="card-head"><span class="fmtNum">${n2(k++)}</span><h2>Horómetro</h2><span class="head-right">${esc(e.equipo)}</span></div>
     <p class="horo-ult">${uH?`Última lectura: <b>${numFmt(uH.horometro)} h</b> · ${fmtc(parseDia(uH.fecha_hora))}`:'Aún no hay lecturas de este equipo.'}</p>
-    <div class="horo-row"><div class="horo-in"><input id="horo-in" type="number" inputmode="decimal" step="0.1" min="0" placeholder="Lectura actual" aria-label="Lectura del horómetro en horas"><span class="u">horas</span></div><button class="btn-horo" data-horo="${esc(id)}">Guardar</button></div>
-    <p class="card-note">Anota lo que marca el horómetro del equipo. Con una lectura a la semana basta.</p></section>`:'';
+    <div class="horo-row"><div class="horo-in"><input id="horo-in" type="number" inputmode="decimal" step="0.1" min="0" placeholder="Ej: 6450" aria-label="Lectura del horómetro en horas"><span class="u">horas</span></div><button class="btn-horo" data-horo="${esc(id)}">Guardar</button></div>
+    <p class="card-note">${M.UR[id]?`Uso real: <b>${numFmt(M.UR[id].h)} h/día</b> (lecturas del ${fmtc(M.UR[id].desde)} al ${fmtc(M.UR[id].hasta)}). Las tareas de este equipo se programan con este uso.`:`Anota lo que marca el horómetro del equipo, una vez a la semana. Cuando haya lecturas separadas por ${HORO_MIN_DIAS} días o más, las tareas se ajustan solas al uso real.`}</p></section>`:'';
   return `<a class="back" href="#equipos">‹ Volver a equipos</a>
   ${horoCard}
   <section class="card"><div class="card-head"><span class="fmtNum">${n2(k++)}</span><h2>${esc(e.equipo)}</h2>${critTag(e.criticidad)}<span class="head-right">${a.length} tareas · ${FUENTE[e.fuente_horas]||'Calendario'}</span></div>
