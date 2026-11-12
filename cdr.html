@@ -259,6 +259,9 @@ table.sum td.ok{ color:var(--green) }
 .chart .last{ font-family:'Roboto Mono',monospace; font-size:11px; font-weight:500; fill:var(--g800) }
 .chart .last.in{ fill:#fff; font-size:10.5px }
 .chart .hit{ cursor:pointer }
+.cause-pick{ display:inline-flex; align-items:center; gap:6px; margin:4px 0 2px; padding:6px 10px; font:inherit; font-size:11px; font-weight:700;
+  color:var(--g800); background:var(--g50); border:1.5px solid var(--g300); border-radius:var(--radius-sm); cursor:pointer }
+.chart .dim{ opacity:.35 }
 .pareto{ display:grid; grid-template-columns:minmax(0,38%) 1fr auto; align-items:center; gap:7px 10px; margin-top:8px }
 .pareto .pl{ font-size:11.5px; font-weight:600; color:var(--g800); line-height:1.2 }
 .pareto .pb{ height:16px; background:var(--g100) }
@@ -459,7 +462,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v31 · 03-11-2026';
+const VERSION = 'cdr v33 · 11-11-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -1274,8 +1277,10 @@ function renderSummary(){
   });
   drawBars(document.getElementById('chart-hrs'), {
     title: avg ? 'Horas por actividad (promedio por día)' : 'Horas por actividad',
-    sub: 'Cuánto tiempo estuvo el cargador en cada cosa',
+    sub: 'Cuánto tiempo estuvo el cargador en cada cosa · toca una barra para ver sus causas de detención',
     legend: GROUPS,
+    pick: i=>pickCause(bs[i]),
+    selected: causeSel && causeSel.period === period ? bs.findIndex(k=>k.a === causeSel.a) : -1,
     bars: bs.map(k=>{ const d = avg ? (k.st.dias || 1) : 1;
       const parts = GROUPS.map(g=>({ v: k.st.ms[g.id] / 3600000 / d, col: g.col, name: g.name }));
       const tot = parts.reduce((x, q)=>x + q.v, 0);
@@ -1291,19 +1296,33 @@ function renderSummary(){
    at the top is where most loader time is lost. */
 const PERIOD_NAME = { sem:'semana actual', d14:'últimos 14 días', semanal:'últimas 8 semanas', mensual:'últimos 6 meses' };
 function hm(ms){ const m = Math.round((ms || 0) / 60000); return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')} hrs` }
+/* Tapping a bar of "Horas por actividad" shows the stop reasons of that
+   day (or week or month); tapping it again, or the chip, goes back to the
+   whole period. */
+let causeSel = null;   // { period, a, b, name } of the chosen bar
+function pickCause(k){
+  causeSel = (causeSel && causeSel.period === period && causeSel.a === k.a) ? null : { period, a:k.a, b:k.b, name:k.tip };
+  renderSummary();
+  if(causeSel) document.getElementById('chart-causas').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
 function drawCauses(box, a, b){
+  if(causeSel && causeSel.period !== period) causeSel = null;
+  const sel = causeSel;
+  const picker = sel ? `<button class="cause-pick" onclick="causeSel=null;renderSummary()">Ver todo el período ✕</button>`
+    : `<p class="chart-sub" style="margin-top:-2px">Toca una barra de "Horas por actividad" para ver solo ${period === 'semanal' ? 'esa semana' : period === 'mensual' ? 'ese mes' : 'ese día'}.</p>`;
+  if(sel){ a = Math.max(a, sel.a); b = Math.min(b, sel.b) }
   const by = {};
   state.tramos.filter(t=>t.estado === 'detenido').forEach(t=>{
     const ms = msIn(t, a, b); if(ms <= 0) return;
     const k = t.motivo || 'Sin motivo';
     by[k] = (by[k] || 0) + ms;
   });
-  const rows = Object.entries(by).sort((x, y)=>y[1] - x[1]);
-  const title = `Causas de detención · ${PERIOD_NAME[period]}`;
-  if(!rows.length){ box.innerHTML = `<p class="chart-title">${esc(title)}</p><p class="empty">Sin detenciones en este período.</p>`; return }
+  const rows = Object.entries(by).filter(r=>r[1] >= 30000).sort((x, y)=>y[1] - x[1]);   // under half a minute shows as 0:00
+  const title = `Causas de detención · ${sel ? sel.name : PERIOD_NAME[period]}`;
+  if(!rows.length){ box.innerHTML = `<p class="chart-title">${esc(title)}</p>${picker}<p class="empty">Sin detenciones ${sel ? 'en lo elegido' : 'en este período'}.</p>`; return }
   const tot = rows.reduce((z, r)=>z + r[1], 0), max = rows[0][1];
   box.innerHTML = `<p class="chart-title">${esc(title)}</p>
-    <p class="chart-sub">De mayor a menor tiempo detenido · total ${hm(tot)}</p>
+    <p class="chart-sub">De mayor a menor tiempo detenido · total ${hm(tot)}</p>${picker}
     <div class="pareto">${rows.map(([k, ms])=>`<span class="pl">${esc(k)}</span>
       <span class="pb"><i style="width:${Math.max(1, ms / max * 100)}%"></i></span>
       <span class="pv">${hm(ms)}</span>`).join('')}</div>`;
@@ -1334,8 +1353,9 @@ function drawBars(box, o){
     const xl = l2 ? `<text x="${x(i) + bw/2}" y="${H - 15}" class="xl" text-anchor="middle">${esc(l1)}</text>
         <text x="${x(i) + bw/2}" y="${H - 4}" class="xl" text-anchor="middle" style="font-weight:800;fill:var(--g800)">${esc(l2)}</text>`
       : `<text x="${x(i) + bw/2}" y="${H - 5}" class="xl" text-anchor="middle">${esc(b.x)}</text>`;
-    return rects + (b.label ? `<text x="${x(i) + bw/2}" y="${y(b.total) - 5}" class="val" text-anchor="middle"${small}>${esc(b.label)}</text>` : '')
-      + xl
+    const dim = o.selected >= 0 && o.selected !== i;
+    return `<g${dim ? ' class="dim"' : ''}>` + rects + (b.label ? `<text x="${x(i) + bw/2}" y="${y(b.total) - 5}" class="val" text-anchor="middle"${small}>${esc(b.label)}</text>` : '')
+      + xl + '</g>'
       + `<rect x="${L + slot*i}" y="0" width="${slot}" height="${H}" fill="transparent" class="hit" data-i="${i}"/>`;
   }).join('');
   const meta = o.meta ? `<line x1="${L}" x2="${W-R}" y1="${y(o.meta)}" y2="${y(o.meta)}" class="meta-line"/>
@@ -1352,7 +1372,8 @@ function drawBars(box, o){
     const left = Math.min(Math.max((x(i) + bw/2) * k - tip.offsetWidth / 2, 0), r.width - tip.offsetWidth);
     tip.style.left = left + 'px'; tip.style.top = Math.max(0, y(bars[i].total) * k - tip.offsetHeight - 10) + 'px';
   };
-  box.querySelectorAll('.hit').forEach(h=>{ h.addEventListener('pointerenter', show); h.addEventListener('pointerdown', show) });
+  box.querySelectorAll('.hit').forEach(h=>{ h.addEventListener('pointerenter', show); h.addEventListener('pointerdown', show);
+    if(o.pick) h.addEventListener('click', e=>o.pick(+e.target.dataset.i)) });
   svg.addEventListener('pointerleave', ()=>{ tip.hidden = true });
 }
 
