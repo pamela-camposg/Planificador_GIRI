@@ -262,6 +262,7 @@ table.sum td.ok{ color:var(--green) }
 .cause-pick{ display:inline-flex; align-items:center; gap:6px; margin:4px 0 2px; padding:6px 10px; font:inherit; font-size:11px; font-weight:700;
   color:var(--g800); background:var(--g50); border:1.5px solid var(--g300); border-radius:var(--radius-sm); cursor:pointer }
 .chart .dim{ opacity:.35 }
+.link-back{ border:none; background:none; font:inherit; font-weight:700; color:var(--green); padding:0 0 0 6px; cursor:pointer }
 .pareto{ display:grid; grid-template-columns:minmax(0,38%) 1fr auto; align-items:center; gap:7px 10px; margin-top:8px }
 .pareto .pl{ font-size:11.5px; font-weight:600; color:var(--g800); line-height:1.2 }
 .pareto .pb{ height:16px; background:var(--g100) }
@@ -415,10 +416,10 @@ table.sum td.ok{ color:var(--green) }
       <span class="panel-title">¿Por qué está detenido?</span>
       <button class="btn-close" onclick="closeOverlay('ov-stop')" aria-label="Cerrar">✕</button>
     </div>
-    <p class="panel-sub">Toca el motivo y listo.</p>
+    <p class="panel-sub" id="stop-sub">Toca el motivo y listo.</p>
     <div class="options grid2" id="stop-reasons"></div>
     <div class="field" id="stop-other" style="display:none">
-      <label>¿Qué pasó? (opcional)</label>
+      <label id="stop-label">¿Qué pasó? (opcional)</label>
       <input type="text" id="stop-text" maxlength="80" placeholder="Ej: corte de luz" onkeydown="if(event.key==='Enter') confirmStop()">
     </div>
     <button class="btn-confirm" id="stop-ok" onclick="confirmStop()" style="display:none;--c:var(--red);color:#fff">Marcar detenido</button>
@@ -467,7 +468,7 @@ table.sum td.ok{ color:var(--green) }
    Everything is kept on the phone first and mirrored to the spreadsheet;
    records are merged, never replaced (see the sync section).
    ══════════════════════════════════════════════════════════════════════════ */
-const VERSION = 'cdr v34 · 12-11-2026';
+const VERSION = 'cdr v38 · 17-11-2026';
 
 /* Paste here the /exec address of the CDR Apps Script, once deployed. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzen-izyNo_z5WRDLZGQlUJjT0STa2_WUCvUDX30AVNM4ECEfRC3DJPjUNfeYami2n3Bg/exec';
@@ -546,19 +547,35 @@ function currentOperator(){
 const STOP_REASONS = [
   'Checklist',                 // recorded as the Checklist activity, not as a stop
   'Atoro trituradora',
-  'Fierro o metales en el material',
   'Colación',
   'Break',
   'Charla o reunión',
   'Carga de petróleo',
   'Recarga aceite hidráulico',
   'Revisión o falla del equipo',
-  'Limpieza o aseo',
+  'Limpieza',
   'Apoyo a camión',
   'Sin material',
   'Cambio de turno o fin de jornada',
   'Otro',
 ];
+/* The causes the operator sees come from the sheet "CDR Configuración"
+   (column D, and in column E the options of each cause separated by
+   commas, e.g. "Metal, Boyas, Otro"). Until the sheet answers, this list
+   is used. "Otro", as a cause or as an option, lets the operator write.
+   Checklist always goes first: it is an activity, not a stop. */
+const DEFAULT_CAUSES = [
+  { name:'Atoro trituradora', opts:['Metal','Boyas','Otro'] },
+  ...STOP_REASONS.filter(r=>r !== 'Checklist' && r !== 'Atoro trituradora').map(name=>({ name, opts:[] })),
+];
+function stopCauses(){
+  const c = state.config && Array.isArray(state.config.causas) && state.config.causas.length
+    ? state.config.causas : DEFAULT_CAUSES;
+  const list = c.filter(x=>x.name !== 'Checklist');
+  if(!list.some(x=>x.name === 'Otro')) list.push({ name:'Otro', opts:[] });
+  return [{ name:'Checklist', opts:[] }, ...list.filter(x=>x.name !== 'Otro'), list.find(x=>x.name === 'Otro')];
+}
+const isOtro = v => /^otro$/i.test(String(v).trim());
 
 /* ── The clock must not invent hours ──────────────────────────────────────
    While the loader is working a scoop lands every few minutes. If they stop
@@ -965,35 +982,54 @@ function undoScoop(){
 
 
 /* ── Stop reason ──────────────────────────────────────────────────────── */
-/* One tap on a reason marks the loader stopped. "Otro" opens a short
-   optional text, saved as "Otro: …" so the sheet can be filtered by Otro
-   and repeated causes added to the list later. */
-let stopSel = null;
+/* One tap on a reason marks the loader stopped. A cause with options
+   (Atoro → Metal, Boyas, Otro) asks a second tap and is saved as
+   "Atoro trituradora: Metal". "Otro" opens a short optional text, saved as
+   "Otro: …" (or "Atoro trituradora: …") so the sheet can be filtered and
+   repeated causes added to the list later. */
+let stopCause = null, stopWrite = false;
 function openStopModal(){
-  stopSel = null;
+  stopCause = null; stopWrite = false;
   document.getElementById('stop-text').value = '';
   renderStopReasons();
   document.getElementById('ov-stop').classList.add('is-open');
 }
 function renderStopReasons(){
-  document.getElementById('stop-reasons').innerHTML = STOP_REASONS.map((r, i)=>
-    `<button type="button" class="opt" aria-pressed="${r === stopSel}" style="--c:${r === 'Checklist' ? stateOf('checklist').col : 'var(--red)'}" onclick="pickStopReason(${i})"><span class="dot"></span>${esc(r)}</button>`).join('');
-  const otro = stopSel === 'Otro';
-  document.getElementById('stop-other').style.display = otro ? 'block' : 'none';
-  document.getElementById('stop-ok').style.display = otro ? 'block' : 'none';
+  const box = document.getElementById('stop-reasons'), red = 'var(--red)';
+  box.classList.toggle('grid2', !stopCause);   // options of a cause: one column
+  const opt = (label, on, i, col)=>`<button type="button" class="opt" aria-pressed="${on}" style="--c:${col || red}" onclick="pickStopReason(${i})"><span class="dot"></span>${esc(label)}</button>`;
+  if(stopCause){
+    document.getElementById('stop-sub').innerHTML = `<b>${esc(stopCause.name)}</b> · ¿qué material? <button type="button" class="link-back" onclick="stopCause=null;stopWrite=false;renderStopReasons()">‹ Volver</button>`;
+    box.innerHTML = stopCause.opts.map((o, i)=>opt(o, stopWrite && isOtro(o), i)).join('');
+  } else {
+    document.getElementById('stop-sub').textContent = 'Toca el motivo y listo.';
+    box.innerHTML = stopCauses().map((c, i)=>opt(c.name + (c.opts.length ? ' ›' : ''), stopWrite && c.name === 'Otro', i,
+      c.name === 'Checklist' ? stateOf('checklist').col : null)).join('');
+  }
+  document.getElementById('stop-label').textContent = stopCause ? '¿Qué material? (opcional)' : '¿Qué pasó? (opcional)';
+  document.getElementById('stop-text').placeholder = stopCause ? 'Ej: madera, cartón, plástico duro' : 'Ej: corte de luz';
+  document.getElementById('stop-other').style.display = stopWrite ? 'block' : 'none';
+  document.getElementById('stop-ok').style.display = stopWrite ? 'block' : 'none';
 }
 function pickStopReason(i){
-  const r = STOP_REASONS[i];
+  if(stopCause){
+    const o = stopCause.opts[i];
+    if(isOtro(o)){ stopWrite = true; renderStopReasons(); document.getElementById('stop-text').focus(); return }
+    closeOverlay('ov-stop'); setState('detenido', `${stopCause.name}: ${o}`); return;
+  }
+  const c = stopCauses()[i];
   /* Shown under Detenido because that is where the operator looks for a
      pause, but kept apart so it does not count as stopped time. */
-  if(r === 'Checklist'){ closeOverlay('ov-stop'); setState('checklist'); return }
-  if(r === 'Otro'){ stopSel = r; renderStopReasons(); document.getElementById('stop-text').focus(); return }
-  closeOverlay('ov-stop'); setState('detenido', r);
+  if(c.name === 'Checklist'){ closeOverlay('ov-stop'); setState('checklist'); return }
+  if(c.opts.length){ stopCause = c; stopWrite = false; renderStopReasons(); return }
+  if(c.name === 'Otro'){ stopWrite = true; renderStopReasons(); document.getElementById('stop-text').focus(); return }
+  closeOverlay('ov-stop'); setState('detenido', c.name);
 }
 function confirmStop(){
   const txt = document.getElementById('stop-text').value.trim().replace(/\s+/g, ' ');
+  const base = stopCause ? stopCause.name : 'Otro';
   closeOverlay('ov-stop');
-  setState('detenido', txt ? `Otro: ${txt}` : 'Otro');
+  setState('detenido', txt ? `${base}: ${txt}` : (stopCause ? `${base}: Otro` : 'Otro'));
 }
 
 function closeOverlay(id){ const el = document.getElementById(id); if(el) el.classList.remove('is-open') }
@@ -1323,6 +1359,18 @@ function pickCause(k){
   renderSummary();
   if(causeSel) document.getElementById('chart-causas').scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
+/* Bars per cause and option ("Atoro trituradora: Metal"). What was written
+   by hand is added up as "…: Otro" (or "Otro"); the text is in the sheet. */
+function causeKey(m){
+  m = String(m || '').trim();
+  if(!m) return 'Sin motivo';
+  const i = m.indexOf(': ');
+  if(i < 0) return m;
+  const base = m.slice(0, i), det = m.slice(i + 2);
+  if(base === 'Otro') return 'Otro';
+  const c = stopCauses().find(x=>x.name === base);
+  return c && c.opts.includes(det) && !isOtro(det) ? `${base}: ${det}` : `${base}: Otro`;
+}
 function drawCauses(box, a, b){
   if(causeSel && causeSel.period !== period) causeSel = null;
   const sel = causeSel;
@@ -1332,7 +1380,7 @@ function drawCauses(box, a, b){
   const by = {};
   state.tramos.filter(t=>t.estado === 'detenido').forEach(t=>{
     const ms = msIn(t, a, b); if(ms <= 0) return;
-    const k = /^Otro: /.test(t.motivo || '') ? 'Otro' : (t.motivo || 'Sin motivo');   // Otro texts read in the sheet
+    const k = causeKey(t.motivo);
     by[k] = (by[k] || 0) + ms;
   });
   const rows = Object.entries(by).filter(r=>r[1] >= 30000).sort((x, y)=>y[1] - x[1]);   // under half a minute shows as 0:00
@@ -1532,12 +1580,12 @@ const normReason = s => String(s||'').toLowerCase().normalize('NFD').replace(/[�
   .replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
 const EXACT = {
   'cheklist limpieza nave acopio material con minicargador gruas se dejan eatacionadas y cargando devolucion de llaves y radios cierre de sala control entrega de llaves a guardias': 'Cambio de turno o fin de jornada',
-  'limpieza cdr actualizar cheklist': 'Limpieza o aseo',
+  'limpieza cdr actualizar cheklist': 'Limpieza',
   'cambio de maquina al farisin por problema de falta aceite hidraulico': 'Revisión o falla del equipo',
   'se revisa aceite hidraulico y se encuentra critico': 'Recarga aceite hidráulico',
   'se revisa la trituradora': 'Atoro trituradora',
-  'retiro d matetial en rueda del equipo': 'Limpieza o aseo',
-  'aseo en retiro d metales y retirar metales': 'Fierro o metales en el material',
+  'retiro d matetial en rueda del equipo': 'Limpieza',
+  'aseo en retiro d metales y retirar metales': 'Atoro trituradora: Metal',
   'soa paladas del doosan y en triturar 11 minutos': 'Atoro trituradora',
   '2 paladas doosan se demora en triturar 11 minutos': 'Atoro trituradora',
   'entrega d epp': 'Charla o reunión',
@@ -1546,14 +1594,14 @@ const EXACT = {
 const RULES = [
   [/^(c?he[ck]{1,2}l|chec|chek|checm)/, '__checklist'],
   [/atoro|tritur/, 'Atoro trituradora'],
-  [/fierro|metal|chatarra/, 'Fierro o metales en el material'],
+  [/fierro|metal|chatarra/, 'Atoro trituradora: Metal'],
   [/colaci|almuerzo/, 'Colación'],
   [/break/, 'Break'],
   [/charla|reunion/, 'Charla o reunión'],
   [/petrol|combustible|vombustible/, 'Carga de petróleo'],
   [/aceite/, 'Recarga aceite hidráulico'],
   [/falla|balde|garra|mantencion|engras|flexible/, 'Revisión o falla del equipo'],
-  [/limpieza|aseo/, 'Limpieza o aseo'],
+  [/limpieza|aseo/, 'Limpieza'],
   [/cami|carga|caminante|acopia|ap0llo|apoyo/, 'Apoyo a camión'],
   [/sin material/, 'Sin material'],
   [/turno|jornada/, 'Cambio de turno o fin de jornada'],
@@ -1571,13 +1619,20 @@ function translateReason(m){
    list or written as "Otro: …" are left alone; anything else becomes
    plain "Otro", so this runs safely every time
    (also on records that arrive from a phone that still has an old version). */
+const MIGRATE_BEFORE = Date.parse('2026-10-28T00:00:00-03:00');   // the list exists since 28/10
+/* Causes renamed after they were in use (17/11): old records follow. */
+const RENAMED = {
+  'Fierro o metales en el material': 'Atoro trituradora: Metal',
+  'Limpieza o aseo': 'Limpieza',
+};
 function migrateReasons(){
   let n = 0; const now = Date.now();
   state.tramos.forEach(t=>{
-    if(t.estado !== 'detenido') return;
+    if(t.estado === 'detenido' && RENAMED[t.motivo]){ t.motivo = RENAMED[t.motivo]; t.mod = now; n++ }
+    if(t.estado !== 'detenido' || t.ini >= MIGRATE_BEFORE) return;
     const m = String(t.motivo || '').trim();
     if(m === 'Checklist'){ t.estado = 'checklist'; t.motivo = ''; t.mod = now; n++; return }
-    if(!m || STOP_REASONS.includes(m) || /^Otro: /.test(m)) return;
+    if(!m || STOP_REASONS.includes(m) || /^(Otro|Atoro trituradora): /.test(m)) return;
     const r = translateReason(m);
     if(r === '__checklist'){ t.estado = 'checklist'; t.motivo = '' }
     else t.motivo = r || 'Otro';
@@ -1713,10 +1768,17 @@ async function syncWithSheet(manual){
 function applyConfig(cfg){
   const ops = Array.isArray(cfg.operadores) ? cfg.operadores.map(x=>String(x).trim()).filter(Boolean) : [];
   const meta = Number(cfg.meta) > 0 ? Number(cfg.meta) : 0;
-  const before = JSON.stringify([state.config.operadores, state.config.meta]);
+  /* Causes: [{ nombre, opciones:[…] }] from columns D and E of the sheet. */
+  const causas = Array.isArray(cfg.causas) ? cfg.causas.map(c=>({
+      name: String(c.nombre || c.name || '').trim(),
+      opts: (Array.isArray(c.opciones) ? c.opciones : String(c.opciones || '').split(','))
+        .map(x=>String(x).trim()).filter(Boolean),
+    })).filter(c=>c.name) : [];
+  const before = JSON.stringify([state.config.operadores, state.config.meta, state.config.causas]);
   if(ops.length) state.config.operadores = ops;
+  if(causas.length) state.config.causas = causas;
   state.config.meta = meta;
-  if(JSON.stringify([state.config.operadores, state.config.meta]) !== before){
+  if(JSON.stringify([state.config.operadores, state.config.meta, state.config.causas]) !== before){
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)) }catch(e){}
     renderOperator(); renderNums();
   }
