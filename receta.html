@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#CCFF00" />
+<title>Receta CDR · Ambipar Chile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   Mismo look que el Registro CDR: tarjeta blanca sobre gris claro,
+   Montserrat para textos, Roboto Mono para números, botones tintados.
+   ========================================================================= */
+:root{
+  --neon:#CCFF00; --tinta:#031716;
+  --green:#00873D; --green-dark:#006830; --green-light:#E8F5EE; --green-mid:#B8DFC8;
+  --white:#FFFFFF; --g50:#F4F5F4; --g100:#EAECEA; --g300:#C8CDC8; --g500:#7A877A; --g800:#1E271E;
+  --red:#C0392B; --red-light:#FDF0EE;
+  --amber:#E67E22; --amber-light:#FEF6EE; --amber-mid:#F5D5B0; --amber-dark:#B35C00;
+  --shadow:0 4px 24px rgba(0,87,40,.13);
+  --radius:16px; --radius-sm:8px;
+}
+*{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
+html,body{ overflow-x:hidden }
+body{ font-family:'Montserrat',system-ui,sans-serif; background:var(--g50); color:var(--g800);
+  min-height:100vh; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; align-items:center }
+button{ font-family:inherit; cursor:pointer; color:inherit }
+input{ font-family:inherit }
+.mono{ font-family:'Roboto Mono',ui-monospace,monospace }
+
+/* ---------- TOP BAR ---------- */
+.topbar{ position:sticky; top:0; z-index:60; width:100%; background:var(--neon); padding:10px 16px;
+  display:flex; align-items:center; gap:12px }
+.topbar-logo{ height:28px; width:auto; display:block; flex:0 0 auto }
+svg.topbar-logo{ width:120px }
+.topbar-sep{ width:1px; height:20px; background:rgba(0,0,0,.25); flex:0 0 auto }
+.topbar-title{ font-size:11px; margin-right:auto; font-weight:700; color:var(--g800); letter-spacing:.06em; text-transform:uppercase;
+  line-height:1.3; min-width:0; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.pill{ flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; text-decoration:none;
+  background:rgba(3,23,22,.88); color:#fff; border-radius:999px; padding:6px 10px; font-size:10.5px; font-weight:600 }
+
+/* ---------- CARD ---------- */
+.card{ background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow);
+  width:calc(100% - 32px); max-width:420px; margin:16px 0; padding:14px 18px 16px }
+.label{ font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--g500); margin-bottom:6px }
+.section{ margin-top:14px }
+.note{ text-align:center; font-size:10px; font-weight:600; color:var(--g500); line-height:1.5; margin-top:12px }
+
+/* ---------- SEMÁFORO ---------- */
+.verdict{ --c:var(--g500); background:color-mix(in srgb, var(--c) 9%, white);
+  border:2px solid color-mix(in srgb, var(--c) 32%, white); border-radius:var(--radius-sm);
+  padding:12px 12px; display:flex; align-items:center; gap:12px }
+.verdict .ico{ width:46px; height:46px; border-radius:50%; background:var(--c); color:#fff; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;
+  box-shadow:0 4px 12px color-mix(in srgb, var(--c) 30%, transparent) }
+.verdict .tt{ font-size:20px; font-weight:800; color:color-mix(in srgb, var(--c) 85%, black); letter-spacing:.02em; line-height:1.1 }
+.verdict .dd{ font-size:12px; font-weight:600; color:var(--g800); margin-top:3px; line-height:1.35 }
+.verdict.si{ --c:var(--green) } .verdict.lim{ --c:var(--amber) } .verdict.no{ --c:var(--red) }
+.verdict.vacio{ --c:var(--g300) }
+
+/* ---------- SUGERENCIA ---------- */
+.sug{ display:none; margin-top:8px; background:var(--amber-light); border:1.5px solid var(--amber-mid);
+  border-radius:var(--radius-sm); padding:10px 12px }
+.sug.on{ display:block }
+.sug-title{ font-size:9.5px; font-weight:700; color:var(--amber-dark); text-transform:uppercase; letter-spacing:.06em }
+.sug p{ font-size:14px; font-weight:600; color:var(--g800); line-height:1.4; margin-top:3px }
+.sug small{ display:block; font-size:11.5px; font-weight:500; color:var(--g500); margin-top:2px }
+.sug button{ width:100%; margin-top:8px; border:0; border-radius:var(--radius-sm); padding:11px 8px; font-size:11.5px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; background:var(--amber); color:#fff; box-shadow:0 4px 12px rgba(230,126,34,.3) }
+.sug button:active{ transform:scale(.98) }
+
+/* ---------- MATERIALES ---------- */
+.mat-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px }
+.tot{ font-size:11px; font-weight:600; color:var(--g500) }
+.tot b{ font-family:'Roboto Mono',monospace; font-weight:500; color:var(--green); font-size:13px }
+.mats{ display:flex; flex-direction:column; gap:8px }
+.mat{ border:1.5px solid var(--g100); border-radius:var(--radius-sm); padding:9px 10px; display:grid;
+  grid-template-columns:1fr auto; align-items:center; gap:4px 10px }
+.mat.on{ border-color:var(--green-mid); background:color-mix(in srgb, var(--green) 4%, white) }
+.mat .nm{ font-size:14px; font-weight:700; color:var(--g800) }
+.mat .sub{ font-size:10.5px; font-weight:600; color:var(--g500); margin-top:1px }
+.step{ display:flex; align-items:center; gap:6px }
+.step button{ width:44px; height:44px; border-radius:50%; font-size:26px; font-weight:400; line-height:1;
+  display:flex; align-items:center; justify-content:center; user-select:none; transition:transform .1s }
+.step button:active{ transform:scale(.9) }
+.step .minus{ background:var(--g50); border:2px solid var(--g100); color:var(--g500) }
+.step .plus{ background:var(--green); border:0; color:#fff; box-shadow:0 4px 12px rgba(0,135,61,.3) }
+.step input{ width:54px; height:44px; border:0; text-align:center; font-family:'Roboto Mono',monospace; font-size:24px; font-weight:500;
+  color:var(--g800); background:transparent; border-radius:var(--radius-sm) }
+.step input:focus{ outline:none; background:var(--green-light) }
+.bar{ grid-column:1/-1; height:5px; background:var(--g50); border-radius:3px; overflow:hidden }
+.bar i{ display:block; height:100%; width:0; background:var(--green); border-radius:3px; transition:width .2s }
+
+.acts{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px }
+.btn-sec{ border-radius:var(--radius-sm); padding:11px 8px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  border:1.5px solid var(--green-mid); background:var(--green-light); color:var(--green-dark) }
+.btn-sec.gray{ border-color:var(--g100); background:var(--g50); color:var(--g500) }
+.btn-sec:active{ transform:scale(.97) }
+
+/* ---------- PARÁMETROS ---------- */
+.block{ border-radius:var(--radius-sm); padding:10px 10px 12px; background:var(--g50); border:1.5px solid var(--g100) }
+.cards{ display:grid; grid-template-columns:1fr 1fr; gap:6px }
+.cardk{ --c:var(--green); background:#fff; border-radius:var(--radius-sm); padding:9px 6px; text-align:center; border:1.5px solid transparent }
+.cardk.no{ background:var(--red-light); border-color:color-mix(in srgb, var(--red) 25%, white); --c:var(--red) }
+.cardk.lim{ background:var(--amber-light); border-color:var(--amber-mid); --c:var(--amber-dark) }
+.cardk .k-lbl{ font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--g500) }
+.cardk .k-val{ font-family:'Roboto Mono',monospace; font-size:22px; font-weight:500; line-height:1.15; margin-top:2px; color:var(--c) }
+.cardk .k-val small{ font-size:11px; font-family:'Montserrat',sans-serif; font-weight:600; color:var(--g500) }
+.cardk .k-sub{ font-size:9.5px; font-weight:600; color:var(--g500); margin-top:2px; line-height:1.3 }
+.cardk .k-st{ font-size:10px; font-weight:700; color:var(--c); margin-top:3px; text-transform:uppercase; letter-spacing:.04em }
+
+/* ---------- PANEL RECETA BASE ---------- */
+.overlay{ position:fixed; inset:0; background:rgba(30,39,30,.35); z-index:100; display:none; justify-content:center; align-items:flex-start }
+.overlay.on{ display:flex }
+.panel{ background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 18px 16px;
+  width:calc(100% - 32px); max-width:420px; margin-top:64px }
+.panel-title{ font-size:13px; font-weight:800; color:var(--g800); text-transform:uppercase; letter-spacing:.04em }
+.panel-sub{ font-size:11.5px; font-weight:500; color:var(--g500); line-height:1.45; margin:4px 0 12px }
+.seg4{ display:grid; grid-template-columns:repeat(4,1fr); gap:4px; background:var(--g50); border-radius:var(--radius-sm); padding:4px }
+.seg4 button{ border:0; background:transparent; border-radius:6px; padding:12px 2px; font-family:'Roboto Mono',monospace; font-size:18px; font-weight:500; color:var(--g500) }
+.seg4 button[aria-pressed=true]{ background:#fff; color:var(--green); box-shadow:0 1px 4px rgba(0,87,40,.12) }
+.panel .acts button.ok{ background:var(--green); border-color:var(--green); color:#fff; box-shadow:0 4px 12px rgba(0,135,61,.3) }
+
+/* ---------- CONFIGURACIÓN ---------- */
+.pill.cfg{ border:0; padding:6px 9px; font-size:13px; margin-left:0 }
+.panel.big{ margin-top:24px; max-height:calc(100dvh - 48px); overflow-y:auto }
+.panel-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px }
+.btn-close{ background:var(--g50); border:none; border-radius:50%; width:30px; height:30px; flex:0 0 auto; font-size:16px; color:var(--g500) }
+.tabs{ display:grid; grid-template-columns:1fr 1fr; gap:4px; background:var(--g50); border-radius:var(--radius-sm); padding:4px; margin:10px 0 12px }
+.tabs button{ border:0; background:transparent; border-radius:6px; padding:9px 6px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--g500) }
+.tabs button[aria-selected=true]{ background:#fff; color:var(--green); box-shadow:0 1px 4px rgba(0,87,40,.12) }
+.fld{ display:flex; flex-direction:column; gap:3px }
+.fld span{ font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--g500) }
+.fld input, .fld select{ width:100%; border:1.5px solid var(--g100); border-radius:6px; padding:8px 8px; font-size:14px; font-weight:500;
+  font-family:'Roboto Mono',monospace; color:var(--g800); background:#fff }
+.fld input:focus, .fld select:focus{ outline:none; border-color:var(--green) }
+.cm{ border:1.5px solid var(--g100); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px }
+.cm-top{ display:flex; gap:8px; align-items:center; margin-bottom:8px }
+.cm-top input{ flex:1; border:1.5px solid var(--g100); border-radius:6px; padding:8px; font-size:14px; font-weight:700; font-family:'Montserrat',sans-serif; color:var(--g800) }
+.cm-top input:focus{ outline:none; border-color:var(--green) }
+.cm-top button{ border:1.5px solid var(--g100); background:var(--g50); color:var(--g500); border-radius:6px; padding:8px 10px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em }
+.cm-top button.armed{ background:var(--red); border-color:var(--red); color:#fff }
+.cm-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px }
+.lm{ display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr; gap:6px; align-items:end; margin-bottom:8px }
+.lm .lmn{ font-size:12px; font-weight:700; padding-bottom:9px }
+.cfg-msg{ font-size:11.5px; font-weight:600; color:var(--g500); text-align:center; margin-top:8px; min-height:14px }
+.cfg-msg.bad{ color:var(--red) }
+.pin-in{ width:100%; text-align:center; font-family:'Roboto Mono',monospace; font-size:28px; letter-spacing:.3em; border:1.5px solid var(--g100); border-radius:var(--radius-sm); padding:10px }
+.pin-in:focus{ outline:none; border-color:var(--green) }
+textarea.code{ width:100%; min-height:120px; margin-top:8px; font-family:'Roboto Mono',monospace; font-size:10.5px; border:1.5px solid var(--g100); border-radius:6px; padding:8px; display:none }
+textarea.code.on{ display:block }
+.subtle{ font-size:11px; font-weight:500; color:var(--g500); line-height:1.45; margin-top:6px }
+
+footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em; padding:0 0 18px; text-align:center }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <img src="ambipar-logo.png" alt="Ambipar" class="topbar-logo"
+       onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
+  <svg id="logo-fallback" viewBox="0 0 260 46" class="topbar-logo" style="display:none" aria-label="Ambipar">
+    <text x="0" y="35" font-family="Montserrat, sans-serif" font-size="40" font-weight="600" letter-spacing="-1" fill="#1E271E">ambipar</text>
+    <g transform="translate(212 3)" fill="none" stroke="#1E271E">
+      <rect x="5" y="5" width="26" height="26" rx="6" transform="rotate(45 18 18)" stroke-width="3.2"/>
+      <circle cx="17.4" cy="19.8" r="4.9" stroke-width="3"/>
+      <path d="M22.3 13.4 V 26.2" stroke-width="3"/>
+    </g>
+  </svg>
+  <span class="topbar-sep"></span>
+  <div class="topbar-title">Receta CDR<br>Nave CDR</div>
+  <button class="pill cfg" id="btnCfg" aria-label="Configuración">⚙</button>
+  <a class="pill" href="cdr.html" style="margin-left:0">← Registro</a>
+</header>
+
+<main class="card">
+  <p class="label">¿La mezcla cumple?</p>
+  <div class="verdict vacio" id="verdict"></div>
+
+  <div class="sug" id="sug">
+    <div class="sug-title">Sugerencia</div>
+    <p id="sugTxt"></p>
+    <button id="sugBtn">Aplicar</button>
+  </div>
+
+  <div class="section">
+    <div class="mat-head"><p class="label">Palas por material</p><span class="tot" id="totInfo"></span></div>
+    <div class="mats" id="mats"></div>
+    <div class="acts">
+      <button class="btn-sec" id="btnBase">Receta base</button>
+      <button class="btn-sec gray" id="btnZero">Limpiar</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="label">Cómo queda la mezcla</p>
+    <div class="block"><div class="cards" id="tiles"></div></div>
+  </div>
+
+  <p class="note">Pala de <span id="palaTxt"></span> L. La barra verde muestra cuánto pesa cada material en la mezcla.</p>
+</main>
+
+<footer>Inteligencia Circular LATAM</footer>
+
+<div class="overlay" id="dlg">
+  <div class="panel">
+    <div class="panel-title">Cargar receta base</div>
+    <div class="panel-sub">¿Para cuántas palas en total?</div>
+    <div class="seg4" id="chips"></div>
+    <div class="acts">
+      <button class="btn-sec gray" id="dlgNo">Cancelar</button>
+      <button class="btn-sec ok" id="dlgOk">Cargar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="cfg">
+  <div class="panel big">
+    <div class="panel-header"><div class="panel-title">Configuración · Calidad</div><button class="btn-close" id="cfgClose" aria-label="Cerrar">✕</button></div>
+
+
+    <div id="cfgEdit">
+      <nav class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-t="mat">Materiales</button>
+        <button role="tab" aria-selected="false" data-t="lim">Límites</button>
+      </nav>
+      <section id="t-mat">
+        <div id="cmList"></div>
+        <button class="btn-sec" id="cmAdd" style="width:100%">+ Agregar material</button>
+        <div class="subtle" id="cmSum"></div>
+        <div class="fld" style="margin-top:12px;max-width:150px"><span>Volumen pala (L)</span><input id="cfgPala" inputmode="decimal"></div>
+      </section>
+      <section id="t-lim" hidden>
+        <div class="lm"><span></span><span class="fld"><span>Tipo</span></span><span class="fld"><span>Objetivo</span></span><span class="fld"><span>Cliente</span></span></div>
+        <div id="lmList"></div>
+        <div class="subtle">Celda vacía = no aplica. Objetivo = meta interna (naranjo si no se cumple). Cliente = límite de la cementera (rojo si no se cumple).</div>
+      </section>
+
+      <div class="section">
+        <p class="label">Guardar para todos</p>
+        <div class="subtle" style="margin-top:0">Los cambios ya quedaron en este equipo. Para que todos los vean, copia el bloque y reemplaza el bloque <b>CONFIG</b> al inicio del script de receta.html en GitHub.</div>
+        <div class="acts">
+          <button class="btn-sec ok" id="cfgCopy">Copiar para GitHub</button>
+          <button class="btn-sec gray" id="cfgReset">Valores del archivo</button>
+        </div>
+        <textarea class="code" id="cfgCode" readonly></textarea>
+        <div class="cfg-msg" id="cfgMsg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   PARÁMETROS DE LOS MATERIALES  ←  EDITAR SOLO ESTE BLOQUE CONFIG
+   Cuando calidad entregue análisis nuevos, cambiar los números aquí
+   (o pegar el bloque que genera el botón "Copiar para GitHub" del ⚙).
+   - dens   : kg por litro (pesar una pala llena / volumen de la pala)
+   - cloro, hum, cen : en %
+   - pcs    : kcal/kg
+   - base   : % en peso en la receta base (deben sumar 100)
+   ===================================================================== */
+const CONFIG = {
+  pala: 710,   // litros por pala del cargador
+  mats: [
+    {id:"madera", nombre:"Madera", dens:0.25, cloro:0.1, hum:10, pcs:4200, cen:6, base:10},
+    {id:"rechazo", nombre:"Rechazo", dens:0.1, cloro:0.25, hum:2, pcs:7000, cen:2, base:9},
+    {id:"asimilable", nombre:"Asimilable", dens:0.3, cloro:0.3, hum:10, pcs:5300, cen:10, base:78},
+    {id:"textiles", nombre:"Textiles", dens:0.4, cloro:0.1, hum:5, pcs:4000, cen:6, base:1},
+    {id:"viruta", nombre:"Viruta plástica", dens:0.25, cloro:0.1, hum:40, pcs:3000, cen:1, base:2}
+  ],
+  // tipo 'min' = no puede bajar de; 'max' = no puede pasar de. null = no aplica.
+  // obj = objetivo interno; cli = límite del cliente (CBB)
+  lims: [
+    {k:"dens", label:"Densidad", g:"f", u:"kg/L", tipo:"min", obj:0.2, cli:0.2, dec:2},
+    {k:"cloro", label:"Cloro", g:"m", u:"%", tipo:"max", obj:0.3, cli:0.3, dec:2},
+    {k:"hum", label:"Humedad", g:"f", u:"%", tipo:"max", obj:10, cli:15, dec:1},
+    {k:"pcs", label:"PCS", g:"m", u:"kcal/kg", tipo:"min", obj:5200, cli:null, dec:0},
+    {k:"pci", label:"PCI", g:"m", u:"kcal/kg", tipo:"min", obj:4780, cli:4500, dec:0},
+    {k:"cen", label:"Cenizas", g:"fp", u:"%", tipo:"max", obj:10, cli:10, dec:1}
+  ]
+};
+/* ============================ FIN CONFIG ============================ */
+
+// Palas por defecto (receta base para 20 palas, ajustada para cumplir)
+const PALAS_INICIO = {madera:2, rechazo:5, asimilable:13, textiles:0, viruta:0.5};
+
+const KEY = 'cdr-receta-palas', KEY_CFG = 'cdr-receta-config';
+const clone = o => JSON.parse(JSON.stringify(o));
+let CFG = clone(CONFIG);
+try { const c = JSON.parse(localStorage.getItem(KEY_CFG)); if (c && Array.isArray(c.mats) && Array.isArray(c.lims)) CFG = {...CFG, ...c}; } catch(e) {}
+const S = {pala: CFG.pala, lims: clone(CFG.lims), mats: CFG.mats.map(m => ({...m, palas: PALAS_INICIO[m.id] ?? 0}))};
+function saveCfg(){ try { localStorage.setItem(KEY_CFG, JSON.stringify({pala:S.pala, mats:S.mats.map(({palas, ...m}) => m), lims:S.lims})); } catch(e) {} }
+try { const g = JSON.parse(localStorage.getItem(KEY)); if (g) S.mats.forEach(m => { if (g[m.id] != null) m.palas = g[m.id]; }); } catch(e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(S.mats.map(m => [m.id, m.palas])))); } catch(e) {} }
+
+const $ = id => document.getElementById(id);
+const num = s => { if (s === null || s === undefined || s === '') return NaN; return parseFloat(String(s).replace(/\s/g,'').replace(',', '.')); };
+const n0 = s => { const v = num(s); return isNaN(v) ? 0 : v; };
+const fmt = (v, d) => isFinite(v) ? v.toLocaleString('es-CL', {minimumFractionDigits:d, maximumFractionDigits:d}) : '—';
+const inv = v => (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) ? '' : String(v).replace('.', ',');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fp = v => fmt(v, v % 1 ? 1 : 0);
+
+/* ---------- Cálculo ---------- */
+function computeFrom(palasById){
+  const P = S.pala > 0 ? S.pala : 1;
+  const rows = S.mats.map(m => { const p = Math.max(0, n0(palasById[m.id])); const vol = p*P; return {m, p, vol, kg: vol*m.dens}; });
+  const K = rows.reduce((a,r)=>a+r.kg,0), V = rows.reduce((a,r)=>a+r.vol,0);
+  rows.forEach(r => r.w = K>0 ? r.kg/K : 0);
+  const mix = {dens: V>0 ? K/V : NaN};
+  ['cloro','hum','pcs','cen'].forEach(k => mix[k] = rows.reduce((a,r)=>a + r.w*r.m[k], 0));
+  mix.pci = mix.pcs*0.93 - 5.6*mix.hum;
+  return {rows, K, V, mix};
+}
+const curPalas = () => Object.fromEntries(S.mats.map(m => [m.id, n0(m.palas)]));
+const compute = () => computeFrom(curPalas());
+const hasLim = v => v !== null && v !== undefined && !isNaN(v);
+function pass(v, lim, tipo){ if (!hasLim(lim)) return null; return tipo === 'min' ? v >= lim - 1e-9 : v <= lim + 1e-9; }
+function estado(l, v){
+  if (pass(v, l.cli, l.tipo) === false) return 'no';
+  if (pass(v, l.obj, l.tipo) === false) return 'lim';
+  return 'si';
+}
+function gap(l, v, lim){ if (!hasLim(lim) || !lim) return 0; return Math.max(0, l.tipo === 'max' ? (v-lim)/lim : (lim-v)/lim); }
+function score(mix){ return S.lims.reduce((a,l) => a + 10*gap(l, mix[l.k], l.cli) + gap(l, mix[l.k], l.obj), 0); }
+const palabra = l => (l.tipo === 'max' ? {m:'alto',f:'alta',fp:'altas'} : {m:'bajo',f:'baja',fp:'bajas'})[l.g || 'm'];
+
+/* ---------- Sugerencia: el cambio de 1 o ½ pala que más mejora ---------- */
+function sugerencia(){
+  const base = curPalas(), r0 = computeFrom(base);
+  if (!(r0.K > 0)) return null;
+  const s0 = score(r0.mix); if (s0 <= 1e-9) return null;
+  let best = null;
+  for (const m of S.mats) {
+    if (!(m.dens > 0)) continue;
+    for (const d of [1, -1, 0.5, -0.5]) {
+      const nv = n0(base[m.id]) + d; if (nv < -1e-9) continue;
+      const gain = s0 - score(computeFrom({...base, [m.id]: nv}).mix);
+      if (gain > 1e-6 && (!best || gain > best.gain + 1e-9 || (Math.abs(gain-best.gain) < 1e-9 && Math.abs(d) > Math.abs(best.d)))) best = {m, d, gain};
+    }
+  }
+  return best;
+}
+
+/* ---------- Pantalla ---------- */
+function renderMats(){
+  $('mats').innerHTML = S.mats.map(m => `
+    <div class="mat" data-id="${m.id}">
+      <div><div class="nm">${esc(m.nombre)}</div><div class="sub"></div></div>
+      <div class="step">
+        <button class="minus" aria-label="Quitar una pala">−</button>
+        <input type="text" inputmode="decimal" value="${inv(m.palas)}" aria-label="Palas de ${esc(m.nombre)}">
+        <button class="plus" aria-label="Agregar una pala">+</button>
+      </div>
+      <div class="bar"><i></i></div>
+    </div>`).join('');
+  $('mats').querySelectorAll('.mat').forEach(card => {
+    const m = S.mats.find(x => x.id === card.dataset.id), inp = card.querySelector('input');
+    const set = v => { m.palas = Math.max(0, Math.round(v*10)/10); inp.value = inv(m.palas); save(); update(); };
+    card.querySelector('.minus').onclick = () => set(n0(m.palas) - 1);
+    card.querySelector('.plus').onclick  = () => set(n0(m.palas) + 1);
+    inp.addEventListener('input', () => { m.palas = Math.max(0, n0(inp.value)); save(); update(); });
+    inp.addEventListener('focus', () => inp.select());
+  });
+  $('palaTxt').textContent = fmt(S.pala, 0);
+  update();
+}
+
+function update(){
+  const {rows, K, mix} = compute();
+  rows.forEach(r => {
+    const card = $('mats').querySelector(`.mat[data-id="${r.m.id}"]`); if (!card) return;
+    card.classList.toggle('on', r.kg > 0);
+    card.querySelector('.sub').textContent = r.kg > 0 ? `${fmt(r.kg,0)} kg · ${fmt(r.w*100,0)} % del peso` : 'No va en la mezcla';
+    card.querySelector('.bar i').style.width = (r.w*100) + '%';
+    const inp = card.querySelector('input'); if (document.activeElement !== inp) inp.value = inv(r.m.palas);
+  });
+  const totP = rows.reduce((a,r)=>a+r.p,0);
+  $('totInfo').innerHTML = K > 0 ? `<b>${fp(totP)}</b> palas · <b>${fmt(K,0)}</b> kg` : '';
+
+  const vd = $('verdict'), tl = $('tiles');
+  if (!(K > 0)) {
+    vd.className = 'verdict vacio';
+    vd.innerHTML = '<div class="ico">?</div><div><div class="tt">ARMA LA MEZCLA</div><div class="dd">Usa + y − o carga la receta base.</div></div>';
+    tl.innerHTML = ''; $('sug').classList.remove('on'); return;
+  }
+  const no = [], lim = [];
+  tl.innerHTML = S.lims.map(l => {
+    const v = mix[l.k], st = estado(l, v);
+    if (st === 'no') no.push(l); if (st === 'lim') lim.push(l);
+    let dd = l.dec; const ref = st === 'no' ? l.cli : l.obj;
+    while (st !== 'si' && dd < 4 && hasLim(ref) && fmt(v,dd) === fmt(ref,dd)) dd++;
+    const sig = l.tipo === 'min' ? 'mín.' : 'máx.';
+    const lims = [hasLim(l.obj) ? `obj. ${sig} ${fmt(l.obj,l.dec)}` : '', hasLim(l.cli) ? `cliente ${fmt(l.cli,l.dec)}` : ''].filter(Boolean).join(' · ');
+    const stt = st === 'si' ? '✓ Bien' : st === 'lim' ? `! ${palabra(l)}` : `✗ muy ${palabra(l)}`;
+    return `<div class="cardk ${st}"><div class="k-lbl">${l.label}</div><div class="k-val">${fmt(v,dd)} <small>${l.u}</small></div><div class="k-sub">${lims}</div><div class="k-st">${stt}</div></div>`;
+  }).join('');
+
+  const lista = a => a.map(l => l.label + ' ' + palabra(l)).join(' · ');
+  if (no.length) {
+    vd.className = 'verdict no';
+    vd.innerHTML = `<div class="ico">✗</div><div><div class="tt">NO CUMPLE</div><div class="dd">${lista(no)}</div></div>`;
+  } else if (lim.length) {
+    vd.className = 'verdict lim';
+    vd.innerHTML = `<div class="ico">!</div><div><div class="tt">CUMPLE, JUSTO</div><div class="dd">Pasa al cliente, pero fuera del objetivo: ${lista(lim)}</div></div>`;
+  } else {
+    vd.className = 'verdict si';
+    vd.innerHTML = `<div class="ico">✓</div><div><div class="tt">SÍ CUMPLE</div><div class="dd">La mezcla está dentro de todos los objetivos.</div></div>`;
+  }
+
+  const sg = sugerencia(), box = $('sug');
+  if (sg) {
+    const cant = Math.abs(sg.d) === 1 ? '1 pala' : 'media pala';
+    const acc = sg.d > 0 ? `<b>Agrega ${cant}</b> de ${esc(sg.m.nombre)}` : `<b>Saca ${cant}</b> de ${esc(sg.m.nombre)}`;
+    const after = computeFrom({...curPalas(), [sg.m.id]: n0(sg.m.palas) + sg.d}).mix;
+    const fix = S.lims.every(l => estado(l, after[l.k]) === 'si');
+    $('sugTxt').innerHTML = `${acc}<small>${fix ? 'Con eso la mezcla queda dentro de todo.' : 'Con eso mejora; puede que necesites más de un ajuste.'}</small>`;
+    $('sugBtn').onclick = () => { sg.m.palas = Math.max(0, Math.round((n0(sg.m.palas) + sg.d)*10)/10); save(); update(); };
+    box.classList.add('on');
+  } else box.classList.remove('on');
+}
+
+/* ---------- Receta base → palas ---------- */
+const OPC = [10, 20, 30, 50];
+let opcSel = 20;
+$('btnBase').onclick = () => {
+  $('chips').innerHTML = OPC.map(n => `<button data-n="${n}" aria-pressed="${n===opcSel}">${n}</button>`).join('');
+  $('chips').querySelectorAll('button').forEach(b => b.onclick = () => {
+    opcSel = +b.dataset.n; $('chips').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  });
+  $('dlg').classList.add('on');
+};
+$('dlgNo').onclick = () => $('dlg').classList.remove('on');
+$('dlg').onclick = e => { if (e.target.id === 'dlg') $('dlg').classList.remove('on'); };
+$('dlgOk').onclick = () => {
+  const vols = S.mats.map(m => m.dens > 0 ? n0(m.base)/m.dens : 0), tv = vols.reduce((a,b)=>a+b,0);
+  S.mats.forEach((m,i) => m.palas = tv > 0 ? Math.round(vols[i]/tv*opcSel*2)/2 : 0);
+  save(); $('dlg').classList.remove('on'); update();
+};
+$('btnZero').onclick = () => { S.mats.forEach(m => m.palas = 0); save(); update(); };
+
+/* ---------- Configuración (calidad) ---------- */
+const FLD = [['dens','Densidad kg/L'],['cloro','Cloro %'],['hum','Humedad %'],['pcs','PCS kcal/kg'],['cen','Cenizas %'],['base','Receta base %']];
+$('btnCfg').onclick = () => { $('cfgMsg').textContent = ''; renderCfg(); $('cfg').classList.add('on'); };
+$('cfgClose').onclick = () => $('cfg').classList.remove('on');
+document.querySelectorAll('#cfgEdit .tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#cfgEdit .tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  $('t-mat').hidden = b.dataset.t !== 'mat'; $('t-lim').hidden = b.dataset.t !== 'lim';
+});
+
+function renderCfg(){
+  $('cfgPala').value = inv(S.pala);
+  $('cmList').innerHTML = S.mats.map(m => `
+    <div class="cm" data-id="${m.id}">
+      <div class="cm-top"><input data-f="nombre" value="${esc(m.nombre)}" aria-label="Nombre"><button class="del">Quitar</button></div>
+      <div class="cm-grid">${FLD.map(([f,l]) => `<label class="fld"><span>${l}</span><input data-f="${f}" inputmode="decimal" value="${inv(m[f])}"></label>`).join('')}</div>
+    </div>`).join('');
+  $('cmList').querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => {
+    const m = S.mats.find(x => x.id === inp.closest('.cm').dataset.id), f = inp.dataset.f;
+    if (f === 'nombre') m.nombre = inp.value.trim() || 'Sin nombre'; else m[f] = n0(inp.value);
+    saveCfg(); cmSum(); renderMats();
+  }));
+  $('cmList').querySelectorAll('.del').forEach(b => b.onclick = () => {
+    if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = '¿Seguro?'; setTimeout(() => { b.classList.remove('armed'); b.textContent = 'Quitar'; }, 4000); return; }
+    S.mats = S.mats.filter(x => x.id !== b.closest('.cm').dataset.id); saveCfg(); renderCfg(); renderMats();
+  });
+  $('lmList').innerHTML = S.lims.map((l,i) => `
+    <div class="lm" data-i="${i}">
+      <span class="lmn">${l.label} <span style="font-weight:500;color:var(--g500)">${l.u}</span></span>
+      <label class="fld"><select data-f="tipo"><option value="min"${l.tipo==='min'?' selected':''}>mín.</option><option value="max"${l.tipo==='max'?' selected':''}>máx.</option></select></label>
+      <label class="fld"><input data-f="obj" inputmode="decimal" value="${inv(l.obj)}"></label>
+      <label class="fld"><input data-f="cli" inputmode="decimal" value="${inv(l.cli)}"></label>
+    </div>`).join('');
+  $('lmList').querySelectorAll('input,select').forEach(el => el.addEventListener('input', () => {
+    const l = S.lims[+el.closest('.lm').dataset.i], f = el.dataset.f;
+    if (f === 'tipo') l.tipo = el.value; else { const v = num(el.value); l[f] = isNaN(v) ? null : v; }
+    saveCfg(); update();
+  }));
+  cmSum();
+}
+function cmSum(){
+  const t = S.mats.reduce((a,m) => a + n0(m.base), 0);
+  $('cmSum').textContent = `La receta base suma ${fmt(t,1)} %` + (Math.abs(t-100) > 0.05 ? ' — debería sumar 100 %.' : '.');
+}
+$('cfgPala').addEventListener('input', e => { const v = num(e.target.value); if (v > 0) { S.pala = v; saveCfg(); $('palaTxt').textContent = fmt(v,0); update(); } });
+$('cmAdd').onclick = () => {
+  S.mats.push({id:'mat' + Date.now().toString(36), nombre:'Nuevo material', dens:0.3, cloro:0, hum:0, pcs:0, cen:0, base:0, palas:0});
+  saveCfg(); renderCfg(); renderMats();
+  const ins = $('cmList').querySelectorAll('.cm:last-child input'); if (ins[0]) { ins[0].focus(); ins[0].select(); }
+};
+function configCode(){
+  const q = v => JSON.stringify(v);
+  const mats = S.mats.map(m => `    {id:${q(m.id)}, nombre:${q(m.nombre)}, dens:${m.dens}, cloro:${m.cloro}, hum:${m.hum}, pcs:${m.pcs}, cen:${m.cen}, base:${m.base}}`).join(',\n');
+  const lims = S.lims.map(l => `    {k:${q(l.k)}, label:${q(l.label)}, g:${q(l.g)}, u:${q(l.u)}, tipo:${q(l.tipo)}, obj:${l.obj ?? 'null'}, cli:${l.cli ?? 'null'}, dec:${l.dec}}`).join(',\n');
+  return `const CONFIG = {\n  pala: ${S.pala},   // litros por pala del cargador\n  mats: [\n${mats}\n  ],\n  // tipo 'min' = no puede bajar de; 'max' = no puede pasar de. null = no aplica.\n  // obj = objetivo interno; cli = límite del cliente (CBB)\n  lims: [\n${lims}\n  ]\n};`;
+}
+$('cfgCopy').onclick = async () => {
+  const code = configCode(), ta = $('cfgCode'); ta.value = code;
+  try { await navigator.clipboard.writeText(code); $('cfgMsg').textContent = 'Copiado. Pégalo en receta.html reemplazando el bloque CONFIG.'; ta.classList.remove('on'); }
+  catch(e) { ta.classList.add('on'); ta.select(); $('cfgMsg').textContent = 'Cópialo desde el recuadro (Ctrl+C).'; }
+};
+$('cfgReset').onclick = e => {
+  const b = e.target;
+  if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = '¿Seguro?'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Valores del archivo'; }, 4000); return; }
+  delete b.dataset.armed; b.textContent = 'Valores del archivo';
+  try { localStorage.removeItem(KEY_CFG); } catch(err) {}
+  const prev = Object.fromEntries(S.mats.map(m => [m.id, m.palas]));
+  S.pala = CONFIG.pala; S.lims = clone(CONFIG.lims); S.mats = CONFIG.mats.map(m => ({...m, palas: prev[m.id] ?? PALAS_INICIO[m.id] ?? 0}));
+  renderCfg(); renderMats(); $('palaTxt').textContent = fmt(S.pala,0); $('cfgMsg').textContent = 'Se volvió a los valores del archivo.';
+};
+
+renderMats();
+</script>
+</body>
+</html>
