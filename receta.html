@@ -238,16 +238,6 @@ footer{ font-size:10px; font-weight:600; color:var(--g300); letter-spacing:.04em
         <div class="subtle">Celda vacía = no aplica. Objetivo = meta interna (naranjo si no se cumple). Cliente = límite de la cementera (rojo si no se cumple).</div>
       </section>
 
-      <div class="section">
-        <p class="label">Guardar para todos</p>
-        <div class="subtle" style="margin-top:0">Los cambios ya quedaron en este equipo. Para que todos los vean, copia el bloque y reemplaza el bloque <b>CONFIG</b> al inicio del script de receta.html en GitHub.</div>
-        <div class="acts">
-          <button class="btn-sec ok" id="cfgCopy">Copiar para GitHub</button>
-          <button class="btn-sec gray" id="cfgReset">Valores del archivo</button>
-        </div>
-        <textarea class="code" id="cfgCode" readonly></textarea>
-        <div class="cfg-msg" id="cfgMsg"></div>
-      </div>
     </div>
   </div>
 </div>
@@ -444,7 +434,7 @@ $('btnZero').onclick = () => { S.mats.forEach(m => m.palas = 0); save(); update(
 
 /* ---------- Configuración (calidad) ---------- */
 const FLD = [['dens','Densidad kg/L'],['cloro','Cloro %'],['hum','Humedad %'],['pcs','PCS kcal/kg'],['cen','Cenizas %'],['base','Receta base %']];
-$('btnCfg').onclick = () => { $('cfgMsg').textContent = ''; renderCfg(); $('cfg').classList.add('on'); };
+$('btnCfg').onclick = () => { renderCfg(); $('cfg').classList.add('on'); };
 $('cfgClose').onclick = () => $('cfg').classList.remove('on');
 document.querySelectorAll('#cfgEdit .tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#cfgEdit .tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
@@ -491,27 +481,6 @@ $('cmAdd').onclick = () => {
   saveCfg(); renderCfg(); renderMats();
   const ins = $('cmList').querySelectorAll('.cm:last-child input'); if (ins[0]) { ins[0].focus(); ins[0].select(); }
 };
-function configCode(){
-  const q = v => JSON.stringify(v);
-  const mats = S.mats.map(m => `    {id:${q(m.id)}, nombre:${q(m.nombre)}, dens:${m.dens}, cloro:${m.cloro}, hum:${m.hum}, pcs:${m.pcs}, cen:${m.cen}, base:${m.base}}`).join(',\n');
-  const lims = S.lims.map(l => `    {k:${q(l.k)}, label:${q(l.label)}, g:${q(l.g)}, u:${q(l.u)}, tipo:${q(l.tipo)}, obj:${l.obj ?? 'null'}, cli:${l.cli ?? 'null'}, dec:${l.dec}}`).join(',\n');
-  return `const CONFIG = {\n  pala: ${S.pala},   // litros por pala del cargador\n  mats: [\n${mats}\n  ],\n  // tipo 'min' = no puede bajar de; 'max' = no puede pasar de. null = no aplica.\n  // obj = objetivo interno; cli = límite del cliente (CBB)\n  lims: [\n${lims}\n  ]\n};`;
-}
-$('cfgCopy').onclick = async () => {
-  const code = configCode(), ta = $('cfgCode'); ta.value = code;
-  try { await navigator.clipboard.writeText(code); $('cfgMsg').textContent = 'Copiado. Pégalo en receta.html reemplazando el bloque CONFIG.'; ta.classList.remove('on'); }
-  catch(e) { ta.classList.add('on'); ta.select(); $('cfgMsg').textContent = 'Cópialo desde el recuadro (Ctrl+C).'; }
-};
-$('cfgReset').onclick = e => {
-  const b = e.target;
-  if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = '¿Seguro?'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Valores del archivo'; }, 4000); return; }
-  delete b.dataset.armed; b.textContent = 'Valores del archivo';
-  try { localStorage.removeItem(KEY_CFG); } catch(err) {}
-  const prev = Object.fromEntries(S.mats.map(m => [m.id, m.palas]));
-  S.pala = CONFIG.pala; S.lims = clone(CONFIG.lims); S.mats = CONFIG.mats.map(m => ({...m, palas: prev[m.id] ?? PALAS_INICIO[m.id] ?? 0}));
-  renderCfg(); renderMats(); $('palaTxt').textContent = fmt(S.pala,0); $('cfgMsg').textContent = 'Se volvió a los valores del archivo.';
-};
-
 renderMats();
 </script>
 </body>
